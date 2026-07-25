@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: healthcare_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgresadmin
+      POSTGRES_PASSWORD: "12345678"
+      POSTGRES_DB: healthcare_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: healthcare_rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # service communication port
+      - "15672:15672" # UI communication port
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmqadmin
+      RABBITMQ_DEFAULT_PASS: "12345678"
+    volumes:
+      - ./infrastructure/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./infrastructure/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+
+  redis:
+    image: redis:7-alpine
+    container_name: healthcare_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  minio:
+    image: minio/minio
+    container_name: healthcare_minio
+    restart: always
+    ports:
+      - "9000:9000"   # service communication port
+      - "9001:9001"   # UI communication port
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: "12345678"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc
+    container_name: healthcare_minio_init
+    depends_on:
+      - minio
+    volumes:
+      - ./infrastructure/minio-s3/create-buckets.sh:/create-buckets.sh
+    entrypoint: /bin/sh /create-buckets.sh
+
+volumes:
+  postgres_data:
+  minio_data:

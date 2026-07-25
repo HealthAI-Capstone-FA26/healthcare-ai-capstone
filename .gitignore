@@ -1,0 +1,24 @@
+# Node / NestJS
+node_modules/
+dist/
+
+# Python AI Worker
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.onnx
+*.pt
+*.pth
+
+# Environment / Secrets
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
