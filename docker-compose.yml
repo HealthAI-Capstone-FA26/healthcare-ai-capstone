@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -15,12 +15,26 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  postgres-hospital:
+    image: pgvector/pgvector:pg15 # <--- ĐỔI THÀNH IMAGE NÀY
+    container_name: healthcare_hospital_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: hospitaladmin
+      POSTGRES_PASSWORD: "12345678"
+      POSTGRES_DB: hospital_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - hospital_postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres-hospital/init-hospital.sql:/docker-entrypoint-initdb.d/init.sql
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: healthcare_rabbitmq
     restart: always
     ports:
-      - "5672:5672"   # service communication port
+      - "5672:5672" # service communication port
       - "15672:15672" # UI communication port
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmqadmin
@@ -41,8 +55,8 @@ services:
     container_name: healthcare_minio
     restart: always
     ports:
-      - "9000:9000"   # service communication port
-      - "9001:9001"   # UI communication port
+      - "9000:9000" # service communication port
+      - "9001:9001" # UI communication port
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: "12345678"
@@ -61,4 +75,5 @@ services:
 
 volumes:
   postgres_data:
+  hospital_postgres_data:
   minio_data:
