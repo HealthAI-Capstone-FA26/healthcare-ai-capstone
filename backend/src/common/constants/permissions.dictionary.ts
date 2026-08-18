@@ -39,6 +39,8 @@ export interface PermissionItem {
     description: string;
 }
 
+export type PermissionCode = `${Resource}:${Action}:${Scope}`;
+
 // 2. HELPER: Hàm render description tĩnh theo mẫu
 const buildDescription = (resource: string, action: string, scope: string): string => {
     return `Đây là quyền cho phép 1 đối tượng thuộc scope '${scope}' thực hiện hành động '${action}' vào tài nguyên '${resource}'`;
@@ -54,3 +56,10 @@ export const PERMISSIONS_DICTIONARY: PermissionItem[] = Object.values(Resource).
             })),
         ),
 );
+
+const PERMISSION_CODE_SET = new Set(
+    PERMISSIONS_DICTIONARY.map((item) => item.code),
+);
+
+export const isPermissionCode = (value: string): value is PermissionCode =>
+    PERMISSION_CODE_SET.has(value);

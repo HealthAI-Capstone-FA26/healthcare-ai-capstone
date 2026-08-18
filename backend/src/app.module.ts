@@ -1,7 +1,11 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from '../prisma/prisma.module';
+import { MailModule } from './modules/mail/mail.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
 import { PatientModule } from './modules/patient/patient.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { ProviderModule } from './modules/provider/provider.module';
@@ -23,7 +27,11 @@ import { SupplyModule } from './modules/supply/supply.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    MailModule,
+    AuthModule,
+    UserModule,
     PatientModule,
     OrganizationModule,
     ProviderModule,
@@ -46,4 +54,4 @@ import { SupplyModule } from './modules/supply/supply.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
