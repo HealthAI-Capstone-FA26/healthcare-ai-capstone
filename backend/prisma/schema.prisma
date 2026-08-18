@@ -23,7 +23,7 @@ model User {
   // Quan hệ
   profile            UserProfile?
   session            UserSession?
-  userRoles          UserRole[]        @relation("UserRoles")
+  userRoles          UserRole?        @relation("UserRoles")
   assignedUserRoles  UserRole[]        @relation("AssignedByUser")
   securitySettingsUpdated SecuritySetting[]
 
@@ -86,7 +86,7 @@ model Permission {
 }
 
 model UserRole {
-  userId             String   @map("user_id") @db.Char(36)
+  userId             String   @id @map("user_id") @db.Char(36)   // 👈 userId giờ là PK
   roleId             String   @map("role_id") @db.Char(36)
   assignedBy         String?  @map("assigned_by") @db.Char(36)
   assignedAt         DateTime @default(now()) @map("assigned_at")
@@ -95,7 +95,6 @@ model UserRole {
   role               Role     @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
   assignedByUser     User?    @relation("AssignedByUser", fields: [assignedBy], references: [userId])
 
-  @@id([userId, roleId])
   @@map("user_roles")
 }
 
@@ -129,4 +128,22 @@ model SecuritySetting {
   updatedByUser       User     @relation(fields: [updatedBy], references: [userId])
 
   @@map("security_settings")
+}
+
+// ================== REGISTER OTP (pending, chưa tạo User) ==================
+
+model RegistrationOtp {
+  registrationId String   @id @default(uuid()) @map("registration_id") @db.Char(36)
+  email          String   @unique @db.VarChar(255)
+  fullName       String   @map("full_name") @db.VarChar(255)
+  phoneNumber    String?  @map("phone_number") @db.VarChar(20)
+  actorRole      String   @default("patient") @map("actor_role") @db.VarChar(20)
+  passwordHash   String   @map("password_hash") @db.VarChar(255)
+  otpCodeHash    String   @map("otp_code_hash") @db.VarChar(255)
+  otpExpiresAt   DateTime @map("otp_expires_at")
+  attempts       Int      @default(0)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("registration_otps")
 }
