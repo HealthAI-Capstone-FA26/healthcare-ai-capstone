@@ -1,11 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
-// Chỗ cấu hình database (chưa kết nối)
-import { DatabaseModule } from './config/database.module';
-
-// Các module nghiệp vụ (chỉ khung, chưa code)
+import { PrismaModule } from '../prisma/prisma.module';
 import { PatientModule } from './modules/patient/patient.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { ProviderModule } from './modules/provider/provider.module';
@@ -27,8 +23,7 @@ import { SupplyModule } from './modules/supply/supply.module';
 
 @Module({
   imports: [
-    DatabaseModule,
-
+    PrismaModule,
     PatientModule,
     OrganizationModule,
     ProviderModule,
@@ -51,4 +46,4 @@ import { SupplyModule } from './modules/supply/supply.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
