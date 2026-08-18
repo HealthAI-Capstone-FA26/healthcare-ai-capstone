@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+// ================== USERS ==================
+
+model User {
+  userId             String   @id @default(uuid()) @map("user_id") @db.Char(36)
+  email              String   @unique @db.VarChar(255)
+  passwordHash       String   @map("password_hash") @db.VarChar(255)
+  status             String   @db.VarChar(20)
+  emailVerified      Boolean  @default(false) @map("email_verified")
+  mfaEnabled         Boolean  @default(false) @map("mfa_enabled")
+  mfaSecret          String?  @map("mfa_secret") @db.VarChar(255)
+  failedLoginAttempts Int     @default(0) @map("failed_login_attempts")
+  lastLoginAt        DateTime? @map("last_login_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Quan hệ
+  profile            UserProfile?
+  session            UserSession?
+  userRoles          UserRole[]        @relation("UserRoles")
+  assignedUserRoles  UserRole[]        @relation("AssignedByUser")
+  securitySettingsUpdated SecuritySetting[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  profileId          String   @id @default(uuid()) @map("profile_id") @db.Char(36)
+  userId             String   @unique @map("user_id") @db.Char(36)
+  actorRole          String   @map("actor_role") @db.VarChar(20)
+  fullName           String   @map("full_name") @db.VarChar(255)
+  phoneNumber        String?  @map("phone_number") @db.VarChar(20)
+  avatarUrl          String?  @map("avatar_url") @db.VarChar(255)
+  additionalProfile  Json?    @map("additional_profile") @db.JsonB
+  fhirResourceId     String?  @map("fhir_resource_id") @db.VarChar(255)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user               User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserSession {
+  sessionId          String   @id @default(uuid()) @map("session_id") @db.Char(36)
+  userId             String   @unique @map("user_id") @db.Char(36)
+  refreshTokenHash   String   @map("refresh_token_hash") @db.VarChar(255)
+  createdAt          DateTime @default(now()) @map("created_at")
+  expiredAt          DateTime? @map("expired_at")
+  revokedAt          DateTime? @map("revoked_at")
+
+  user               User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+// ================== RBAC ==================
+
+model Role {
+  roleId             String   @id @default(uuid()) @map("role_id") @db.Char(36)
+  roleCode           String   @unique @map("role_code") @db.Char(36)
+  roleName           String   @map("role_name") @db.VarChar(50)
+  description        String?  @db.VarChar(255)
+  isDefaultRole      Boolean  @default(false) @map("is_default_role")
+
+  userRoles          UserRole[]
+  rolePermissions    RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  permissionId       String   @id @default(uuid()) @map("permission_id") @db.Char(36)
+  permissionCode     String   @unique @map("permission_code") @db.VarChar(100)
+  description        String   @db.VarChar(255)
+
+  rolePermissions    RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId             String   @map("user_id") @db.Char(36)
+  roleId             String   @map("role_id") @db.Char(36)
+  assignedBy         String?  @map("assigned_by") @db.Char(36)
+  assignedAt         DateTime @default(now()) @map("assigned_at")
+
+  user               User     @relation("UserRoles", fields: [userId], references: [userId], onDelete: Cascade)
+  role               Role     @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+  assignedByUser     User?    @relation("AssignedByUser", fields: [assignedBy], references: [userId])
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId             String   @map("role_id") @db.Char(36)
+  permissionId       String   @map("permission_id") @db.Char(36)
+
+  role               Role       @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+  permission         Permission @relation(fields: [permissionId], references: [permissionId], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ================== SECURITY SETTINGS ==================
+
+model SecuritySetting {
+  settingId          String   @id @default(uuid()) @map("setting_id") @db.Char(36)
+  idleTimeoutMins     Int      @unique @map("idle_timeout_mins")
+  accessTokenTtlMins  Int      @map("access_token_ttl_mins")
+  refreshTokenTtlHours Int     @map("refresh_token_ttl_hours")
+  maxSessionHours     Int      @map("max_session_hours")
+  maxLoginAttempts    Int      @map("max_login_attempts")
+  lockoutDurationMins Int      @map("lockout_duration_mins")
+  mfaRequired         Boolean  @default(false) @map("mfa_required")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  // Ghi chú: ERD ghi type của updated_by là DATETIME, nhưng theo ngữ nghĩa (FK)
+  // đây phải là CHAR(36) tham chiếu tới users.user_id (admin thực hiện cập nhật).
+  updatedBy           String   @map("updated_by") @db.Char(36)
+
+  updatedByUser       User     @relation(fields: [updatedBy], references: [userId])
+
+  @@map("security_settings")
+}
