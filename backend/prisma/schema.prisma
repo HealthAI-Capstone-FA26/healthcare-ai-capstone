@@ -20,12 +20,20 @@ model User {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
-  // Quan hệ
   profile            UserProfile?
   session            UserSession?
-  userRoles          UserRole?        @relation("UserRoles")
+  userRoles          UserRole[]        @relation("UserRoles")
   assignedUserRoles  UserRole[]        @relation("AssignedByUser")
   securitySettingsUpdated SecuritySetting[]
+  patient                     Patient?
+  doctor                      Doctor?
+  patientContacts             PatientContact[]               @relation("PatientContactUser")
+  appointmentsBooked          Appointment[]                  @relation("AppointmentBookedBy")
+  receptionCheckins           ReceptionCheckin[]              @relation("ReceptionStaffUser")
+  doctorQueueEntriesRouted    DoctorQueueEntry[]              @relation("QueueRoutedByUser")
+  chiefComplaintsRecorded     ChiefComplaint[]                @relation("ComplaintRecordedByUser")
+  patientIdentityVerifications PatientIdentityVerification[]  @relation("IdentityVerifiedByUser")
+  consentsWitnessed           Consent[]                       @relation("ConsentWitnessedByUser")
 
   @@map("users")
 }
@@ -60,8 +68,6 @@ model UserSession {
   @@map("user_sessions")
 }
 
-// ================== RBAC ==================
-
 model Role {
   roleId             String   @id @default(uuid()) @map("role_id") @db.Char(36)
   roleCode           String   @unique @map("role_code") @db.Char(36)
@@ -86,7 +92,7 @@ model Permission {
 }
 
 model UserRole {
-  userId             String   @id @map("user_id") @db.Char(36)   // 👈 userId giờ là PK
+  userId             String   @map("user_id") @db.Char(36)
   roleId             String   @map("role_id") @db.Char(36)
   assignedBy         String?  @map("assigned_by") @db.Char(36)
   assignedAt         DateTime @default(now()) @map("assigned_at")
@@ -95,6 +101,7 @@ model UserRole {
   role               Role     @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
   assignedByUser     User?    @relation("AssignedByUser", fields: [assignedBy], references: [userId])
 
+  @@id([userId, roleId])
   @@map("user_roles")
 }
 
@@ -109,8 +116,6 @@ model RolePermission {
   @@map("role_permissions")
 }
 
-// ================== SECURITY SETTINGS ==================
-
 model SecuritySetting {
   settingId          String   @id @default(uuid()) @map("setting_id") @db.Char(36)
   idleTimeoutMins     Int      @unique @map("idle_timeout_mins")
@@ -121,16 +126,12 @@ model SecuritySetting {
   lockoutDurationMins Int      @map("lockout_duration_mins")
   mfaRequired         Boolean  @default(false) @map("mfa_required")
   updatedAt           DateTime @updatedAt @map("updated_at")
-  // Ghi chú: ERD ghi type của updated_by là DATETIME, nhưng theo ngữ nghĩa (FK)
-  // đây phải là CHAR(36) tham chiếu tới users.user_id (admin thực hiện cập nhật).
   updatedBy           String   @map("updated_by") @db.Char(36)
 
   updatedByUser       User     @relation(fields: [updatedBy], references: [userId])
 
   @@map("security_settings")
 }
-
-// ================== REGISTER OTP (pending, chưa tạo User) ==================
 
 model RegistrationOtp {
   registrationId String   @id @default(uuid()) @map("registration_id") @db.Char(36)
@@ -146,4 +147,325 @@ model RegistrationOtp {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@map("registration_otps")
+}
+
+model Department {
+  departmentId       String   @id @default(uuid()) @map("department_id") @db.Char(36)
+  departmentCode     String   @unique @map("department_code") @db.VarChar(20)
+  departmentName     String   @map("department_name") @db.VarChar(100)
+  description        String?  @db.VarChar(255)
+  roomLocation       String?  @map("room_location") @db.VarChar(100)
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  doctorDepartments  DoctorDepartment[]
+  doctorSchedules    DoctorSchedule[]
+  appointments       Appointment[]
+  encounters         Encounter[]
+  doctorQueueEntries DoctorQueueEntry[]
+  queueTickets       QueueTicket[]
+
+  @@map("departments")
+}
+
+model Doctor {
+  doctorId           String   @id @default(uuid()) @map("doctor_id") @db.Char(36)
+  userId             String?  @unique @map("user_id") @db.Char(36)
+  doctorCode         String   @unique @map("doctor_code") @db.VarChar(20)
+  fullName           String   @map("full_name") @db.VarChar(255)
+  title              String?  @db.VarChar(50)
+  licenseNumber       String?  @unique @map("license_number") @db.VarChar(50)
+  specialization     String?  @db.VarChar(100)
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  user               User?    @relation(fields: [userId], references: [userId])
+  doctorDepartments  DoctorDepartment[]
+  doctorSchedules    DoctorSchedule[]
+  appointments       Appointment[]
+  encounters         Encounter[]
+  doctorQueueEntries DoctorQueueEntry[]
+
+  @@map("doctors")
+}
+
+model DoctorDepartment {
+  doctorId           String   @map("doctor_id") @db.Char(36)
+  departmentId       String   @map("department_id") @db.Char(36)
+  isPrimary          Boolean  @default(true) @map("is_primary")
+  assignedAt         String?  @map("assigned_at") @db.VarChar(255)
+
+  doctor             Doctor     @relation(fields: [doctorId], references: [doctorId], onDelete: Cascade)
+  department         Department @relation(fields: [departmentId], references: [departmentId], onDelete: Cascade)
+
+  @@id([doctorId, departmentId])
+  @@map("doctor_departments")
+}
+
+model DoctorSchedule {
+  scheduleId         String   @id @default(uuid()) @map("schedule_id") @db.Char(36)
+  doctorId           String   @map("doctor_id") @db.Char(36)
+  departmentId       String   @map("department_id") @db.Char(36)
+  workDate           DateTime @map("work_date") @db.Date
+  session            String   @db.VarChar(20) // morning | afternoon | evening
+  startTime          DateTime @map("start_time") @db.Time
+  endTime            DateTime @map("end_time") @db.Time
+  slotDurationMins   Int      @map("slot_duration_mins")
+  maxPatientsPerSlot Int      @map("max_patients_per_slot")
+  status             String   @default("active") @db.VarChar(255) // active | cancelled
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  doctor             Doctor            @relation(fields: [doctorId], references: [doctorId], onDelete: Cascade)
+  department         Department        @relation(fields: [departmentId], references: [departmentId])
+  appointmentSlots   AppointmentSlot[]
+
+  @@unique([doctorId, workDate, session])
+  @@map("doctor_schedules")
+}
+
+model AppointmentSlot {
+  slotId             String   @id @default(uuid()) @map("slot_id") @db.Char(36)
+  scheduleId         String   @map("schedule_id") @db.Char(36)
+  slotStartTime      DateTime @map("slot_start_time")
+  slotEndTime        DateTime @map("slot_end_time")
+  capacity           Int
+  bookedCount        Int      @default(0) @map("booked_count")
+  status             String   @default("free") @db.VarChar(20) // free | full | blocked
+
+  schedule           DoctorSchedule @relation(fields: [scheduleId], references: [scheduleId], onDelete: Cascade)
+  appointments       Appointment[]
+
+  @@map("appointment_slots")
+}
+
+// ================== PATIENTS ==================
+
+model Patient {
+  patientId          String   @id @default(uuid()) @map("patient_id") @db.Char(36)
+  userId             String?  @unique @map("user_id") @db.Char(36)
+  patientCode        String   @unique @map("patient_code") @db.VarChar(20)
+  fullName           String   @map("full_name") @db.VarChar(255)
+  dateOfBirth        DateTime @map("date_of_birth") @db.Date
+  gender             String   @db.VarChar(10) // male | female | other | unknown
+  identityNumber     String?  @unique @map("identity_number") @db.VarChar(20)
+  insuranceNumber    String?  @unique @map("insurance_number") @db.VarChar(20)
+  phoneNumber        String   @map("phone_number") @db.VarChar(20)
+  email              String?  @db.VarChar(255)
+  address            String?  @db.VarChar(255)
+  ethnicity          String?  @db.VarChar(50)
+  isActive           Boolean  @default(true) @map("is_active")
+  identityVerified   Boolean  @default(false) @map("identity_verified")
+  identityVerifiedAt DateTime? @map("identity_verified_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user               User?    @relation(fields: [userId], references: [userId])
+  patientContacts    PatientContact[]
+  appointments       Appointment[]
+  encounters         Encounter[]
+  consents           Consent[]
+
+  @@map("patients")
+}
+
+model PatientContact {
+  contactId          String   @id @default(uuid()) @map("contact_id") @db.Char(36)
+  userId             String   @map("user_id") @db.Char(36)
+  patientId          String   @map("patient_id") @db.Char(36)
+  relationship       String   @db.VarChar(255) // self | parent | child | spouse | guardian | other
+  isPrimaryContact   Boolean  @default(false) @map("is_primary_contact")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  user               User     @relation("PatientContactUser", fields: [userId], references: [userId])
+  patient            Patient  @relation(fields: [patientId], references: [patientId], onDelete: Cascade)
+
+  @@unique([userId, patientId])
+  @@map("patient_contacts")
+}
+
+model Appointment {
+  appointmentId      String   @id @default(uuid()) @map("appointment_id") @db.Char(36)
+  appointmentCode    String   @unique @map("appointment_code") @db.VarChar(20)
+  patientId          String   @map("patient_id") @db.Char(36)
+  doctorId           String?  @map("doctor_id") @db.Char(36)
+  departmentId       String   @map("department_id") @db.Char(36)
+  slotId             String?  @map("slot_id") @db.Char(36)
+  bookedByUserId     String?  @map("booked_by_user_id") @db.Char(36)
+  bookingChannel     String   @map("booking_channel") @db.VarChar(20) // online | at_hospital
+  appointmentDate    DateTime @map("appointment_date") @db.Date
+  appointmentTime    DateTime? @map("appointment_time") @db.Time
+  status             String   @default("pending") @db.VarChar(20)
+  // pending -> confirmed -> checked_in -> in_progress -> completed || cancelled || no_show
+  reasonForVisit     String?  @map("reason_for_visit") @db.VarChar(255)
+  priority           String   @default("normal") @db.VarChar(20) // normal | urgent | emergency
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  cancelledAt        DateTime? @map("cancelled_at")
+  cancelReason       String?  @map("cancel_reason") @db.VarChar(255)
+
+  patient            Patient          @relation(fields: [patientId], references: [patientId])
+  doctor             Doctor?          @relation(fields: [doctorId], references: [doctorId])
+  department         Department       @relation(fields: [departmentId], references: [departmentId])
+  slot               AppointmentSlot? @relation(fields: [slotId], references: [slotId])
+  bookedByUser       User?            @relation("AppointmentBookedBy", fields: [bookedByUserId], references: [userId])
+
+  encounter          Encounter?
+  queueTicket        QueueTicket?
+  receptionCheckins  ReceptionCheckin[]
+
+  @@map("appointments")
+}
+
+model Encounter {
+  encounterId        String   @id @default(uuid()) @map("encounter_id") @db.Char(36)
+  appointmentId      String   @unique @map("appointment_id") @db.Char(36)
+  patientId          String   @map("patient_id") @db.Char(36)
+  departmentId       String   @map("department_id") @db.Char(36)
+  doctorId           String?  @map("doctor_id") @db.Char(36)
+  encounterCode      String   @unique @map("encounter_code") @db.VarChar(20)
+  patientType        String   @map("patient_type") @db.VarChar(20) // new | returning
+  status             String   @default("arrived") @db.VarChar(20)  // arrived -> registered -> waiting_for_doctor -> in_progress -> finished || cancelled
+  arrivedAt          DateTime @default(now()) @map("arrived_at")
+  registeredAt       DateTime? @map("registered_at")
+  finishedAt         DateTime? @map("finished_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  appointment        Appointment @relation(fields: [appointmentId], references: [appointmentId], onDelete: Cascade)
+  patient            Patient     @relation(fields: [patientId], references: [patientId])
+  department         Department  @relation(fields: [departmentId], references: [departmentId])
+  doctor             Doctor?     @relation(fields: [doctorId], references: [doctorId])
+
+  chiefComplaint     ChiefComplaint?
+  identityVerifications PatientIdentityVerification[]
+  doctorQueueEntry   DoctorQueueEntry?
+  consents           Consent[]
+
+  @@map("encounters")
+}
+
+model ChiefComplaint {
+  complaintId        String   @id @default(uuid()) @map("complaint_id") @db.Char(36)
+  encounterId        String   @unique @map("encounter_id") @db.Char(36)
+  reasonForVisit     String?  @map("reason_for_visit") @db.VarChar(255)
+  symptoms           String?  @db.Text
+  symptomOnsetDate   DateTime? @map("symptom_onset_date") @db.Date
+  painLevel          Int?     @map("pain_level")
+  inputChannel       String   @map("input_channel") @db.VarChar(20) // receptionist_assisted | online_per_visit
+  recordedByUserId   String   @map("recorded_by_user_id") @db.Char(36)
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  encounter          Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  recordedByUser     User      @relation("ComplaintRecordedByUser", fields: [recordedByUserId], references: [userId])
+
+  @@map("chief_complaints")
+}
+
+model PatientIdentityVerification {
+  verificationId     String   @id @default(uuid()) @map("verification_id") @db.Char(36)
+  encounterId        String   @map("encounter_id") @db.Char(36)
+  verifiedByUserId   String   @map("verified_by_user_id") @db.Char(36)
+  verificationMethod String   @map("verification_method") @db.VarChar(20) // national_id_card | health_insurance_card | patient_card | manual
+  verificationStatus String   @map("verification_status") @db.VarChar(20) // verified | failed | pending
+  mismatchNotes      String?  @map("mismatch_notes") @db.VarChar(255)
+  verifiedAt         DateTime @map("verified_at")
+
+  encounter          Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  verifiedByUser     User      @relation("IdentityVerifiedByUser", fields: [verifiedByUserId], references: [userId])
+
+  @@map("patient_identity_verifications")
+}
+
+model DoctorQueueEntry {
+  queueEntryId       String   @id @default(uuid()) @map("queue_entry_id") @db.Char(36)
+  encounterId        String   @unique @map("encounter_id") @db.Char(36)
+  doctorId           String   @map("doctor_id") @db.Char(36)
+  departmentId       String   @map("department_id") @db.Char(36)
+  queueOrder         Int      @map("queue_order")
+  priority           String   @default("normal") @db.VarChar(20)  // normal | urgent | emergency
+  status             String   @default("waiting") @db.VarChar(20) // waiting | called | in_progress | done | skipped | cancelled
+  enteredQueueAt     DateTime @default(now()) @map("entered_queue_at")
+  calledAt           DateTime? @map("called_at")
+  examStartedAt      DateTime? @map("exam_started_at")
+  routedByUserId     String?  @map("routed_by_user_id") @db.Char(36)
+
+  encounter          Encounter  @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  doctor             Doctor     @relation(fields: [doctorId], references: [doctorId])
+  department         Department @relation(fields: [departmentId], references: [departmentId])
+  routedByUser       User?      @relation("QueueRoutedByUser", fields: [routedByUserId], references: [userId])
+
+  @@map("doctor_queue_entries")
+}
+
+model QueueTicket {
+  ticketId           String   @id @default(uuid()) @map("ticket_id") @db.Char(36)
+  appointmentId      String   @unique @map("appointment_id") @db.Char(36)
+  departmentId       String   @map("department_id") @db.Char(36)
+  ticketPrefix       String   @map("ticket_prefix") @db.Char(1)
+  ticketDate         DateTime @map("ticket_date") @db.Date
+  ticketNumber       Int      @map("ticket_number")
+  calledAt           DateTime? @map("called_at")
+  issuedAt           DateTime @default(now()) @map("issued_at")
+  status             String   @default("waiting") @db.VarChar(20)  // waiting | called | serving | done | skipped | cancelled
+  counterNumber      String?  @map("counter_number") @db.VarChar(20)
+
+  appointment        Appointment @relation(fields: [appointmentId], references: [appointmentId], onDelete: Cascade)
+  department         Department  @relation(fields: [departmentId], references: [departmentId])
+
+  @@unique([departmentId, ticketPrefix, ticketDate, ticketNumber])
+  @@map("queue_tickets")
+}
+
+model ReceptionCheckin {
+  checkinId            String   @id @default(uuid()) @map("checkin_id") @db.Char(36)
+  appointmentId        String   @map("appointment_id") @db.Char(36)
+  receptionStaffUserId String   @map("reception_staff_user_id") @db.Char(36)
+  checkinTime          DateTime @default(now()) @map("checkin_time")
+  counterNumber        String?  @map("counter_number") @db.VarChar(20)
+  notes                String?  @db.VarChar(255)
+
+  appointment          Appointment @relation(fields: [appointmentId], references: [appointmentId], onDelete: Cascade)
+  receptionStaffUser   User        @relation("ReceptionStaffUser", fields: [receptionStaffUserId], references: [userId])
+
+  @@map("reception_checkins")
+}
+
+// ================== CONSENTS ==================
+
+model ConsentPolicy {
+  policyId           String   @id @default(uuid()) @map("policy_id") @db.Char(36)
+  policyCode         String   @unique @map("policy_code") @db.VarChar(50)
+  policyType         String   @map("policy_type") @db.VarChar(30)
+  version            String   @db.VarChar(20)
+  contentUrl         String   @map("content_url") @db.VarChar(255)
+  effectiveFrom      DateTime @map("effective_from") @db.Date
+  effectiveTo        DateTime? @map("effective_to") @db.Date
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  consents           Consent[]
+
+  @@unique([policyType, version])
+  @@map("consent_policies")
+}
+
+model Consent {
+  consentId          String   @id @default(uuid()) @map("consent_id") @db.Char(36)
+  patientId          String   @map("patient_id") @db.Char(36)
+  encounterId        String?  @map("encounter_id") @db.Char(36)
+  policyId           String   @map("policy_id") @db.Char(36)
+  checkedAt          DateTime @default(now()) @map("checked_at")
+  witnessedByUserId  String?  @map("witnessed_by_user_id") @db.Char(36)
+  ipAddress          String?  @map("ip_address") @db.VarChar(45)
+  deviceInfo         String?  @map("device_info") @db.VarChar(255)
+  status             String   @default("active") @db.VarChar(20) // active | revoked
+  revokedAt          DateTime? @map("revoked_at")
+  revokeReason       String?  @map("revoke_reason") @db.VarChar(255)
+
+  patient            Patient        @relation(fields: [patientId], references: [patientId])
+  encounter          Encounter?     @relation(fields: [encounterId], references: [encounterId])
+  policy             ConsentPolicy  @relation(fields: [policyId], references: [policyId])
+  witnessedByUser    User?          @relation("ConsentWitnessedByUser", fields: [witnessedByUserId], references: [userId])
+
+  @@map("consents")
 }
