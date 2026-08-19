@@ -16,6 +16,7 @@ model User {
   mfaEnabled         Boolean  @default(false) @map("mfa_enabled")
   mfaSecret          String?  @map("mfa_secret") @db.VarChar(255)
   failedLoginAttempts Int     @default(0) @map("failed_login_attempts")
+  lockedUntil        DateTime? @map("locked_until") // khóa tài khoản tạm thời khi đăng nhập sai quá số lần cho phép
   lastLoginAt        DateTime? @map("last_login_at")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
@@ -128,22 +129,4 @@ model SecuritySetting {
   updatedByUser       User     @relation(fields: [updatedBy], references: [userId])
 
   @@map("security_settings")
-}
-
-// ================== REGISTER OTP (pending, chưa tạo User) ==================
-
-model RegistrationOtp {
-  registrationId String   @id @default(uuid()) @map("registration_id") @db.Char(36)
-  email          String   @unique @db.VarChar(255)
-  fullName       String   @map("full_name") @db.VarChar(255)
-  phoneNumber    String?  @map("phone_number") @db.VarChar(20)
-  actorRole      String   @default("patient") @map("actor_role") @db.VarChar(20)
-  passwordHash   String   @map("password_hash") @db.VarChar(255)
-  otpCodeHash    String   @map("otp_code_hash") @db.VarChar(255)
-  otpExpiresAt   DateTime @map("otp_expires_at")
-  attempts       Int      @default(0)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  @@map("registration_otps")
 }

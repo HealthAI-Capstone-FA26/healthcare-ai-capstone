@@ -39,4 +39,46 @@ export class MailService {
 
     this.logger.log(`Đã gửi OTP đăng ký tới ${to}`);
   }
+
+  async sendLoginOtpMail(to: string, otp: string): Promise<void> {
+    const from =
+      this.configService.get<string>('MAIL_FROM') ??
+      this.configService.getOrThrow<string>('MAIL_USER');
+    const expiresMinutes = this.configService.get<string>('OTP_EXPIRES_MINUTES') ?? '5';
+
+    await this.transporter.sendMail({
+      from,
+      to,
+      subject: 'Mã xác thực đăng nhập (MFA)',
+      html: `
+        <p>Xin chào,</p>
+        <p>Mã OTP xác thực đăng nhập của bạn là:</p>
+        <h2 style="letter-spacing: 4px;">${otp}</h2>
+        <p>Mã có hiệu lực trong ${expiresMinutes} phút. Nếu không phải bạn đăng nhập, vui lòng đổi mật khẩu ngay.</p>
+      `,
+    });
+
+    this.logger.log(`Đã gửi OTP đăng nhập tới ${to}`);
+  }
+
+  async sendPasswordResetOtpMail(to: string, otp: string): Promise<void> {
+    const from =
+      this.configService.get<string>('MAIL_FROM') ??
+      this.configService.getOrThrow<string>('MAIL_USER');
+    const expiresMinutes = this.configService.get<string>('OTP_EXPIRES_MINUTES') ?? '5';
+
+    await this.transporter.sendMail({
+      from,
+      to,
+      subject: 'Mã xác thực đặt lại mật khẩu',
+      html: `
+        <p>Xin chào,</p>
+        <p>Mã OTP đặt lại mật khẩu của bạn là:</p>
+        <h2 style="letter-spacing: 4px;">${otp}</h2>
+        <p>Mã có hiệu lực trong ${expiresMinutes} phút. Nếu không phải bạn yêu cầu, vui lòng bỏ qua email này.</p>
+      `,
+    });
+
+    this.logger.log(`Đã gửi OTP đặt lại mật khẩu tới ${to}`);
+  }
 }

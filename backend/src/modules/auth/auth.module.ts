@@ -7,6 +7,10 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RegistrationOtpService } from './registration-otp.service';
+import { LoginOtpService } from './login-otp.service';
+import { PasswordResetOtpService } from './password-reset-otp.service';
+import { SessionService } from './session.service';
+import { SecurityConfigService } from './security-config.service';
 import { UserModule } from '../user/user.module';
 
 @Module({
@@ -25,7 +29,15 @@ import { UserModule } from '../user/user.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RegistrationOtpService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    RegistrationOtpService,
+    LoginOtpService,
+    PasswordResetOtpService,
+    SessionService,
+    SecurityConfigService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}
