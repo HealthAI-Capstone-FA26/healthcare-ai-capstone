@@ -25,7 +25,6 @@ import { MedicationModule } from './modules/medication/medication.module';
 import { ObservationModule } from './modules/observation/observation.module';
 import { ProcedureModule } from './modules/procedure/procedure.module';
 import { SupplyModule } from './modules/supply/supply.module';
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),

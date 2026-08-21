@@ -35,12 +35,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User account is inactive');
     }
 
+    const userRoles = user.userRoles ?? [];
+
     const permissions = Array.from(
       new Set(
-        (user.userRoles ?? []).flatMap((userRole) =>
-          (userRole.role?.rolePermissions ?? []).map(
-            (rp) => rp.permission.permissionCode,
-          ),
+        (userRoles[0]?.role.rolePermissions ?? []).map(
+          (rp) => rp.permission.permissionCode,
         ),
       ),
     );
