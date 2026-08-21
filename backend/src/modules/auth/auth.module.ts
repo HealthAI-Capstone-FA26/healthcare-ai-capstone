@@ -4,13 +4,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import type { StringValue } from 'ms';
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { RegistrationOtpService } from './registration-otp.service';
-import { LoginOtpService } from './login-otp.service';
-import { PasswordResetOtpService } from './password-reset-otp.service';
-import { SessionService } from './session.service';
-import { SecurityConfigService } from './security-config.service';
+import { TokenService } from './token/token.service';
+import { SessionService } from './session/session.service';
+import { SecurityConfigService } from './security-config/security-config.service';
+import { RegistrationOtpStore } from './registration/registration-otp.store';
+import { RegistrationService } from './registration/registration.service';
+import { LoginOtpStore } from './login/login-otp.store';
+import { LoginService } from './login/login.service';
+import { PasswordResetOtpStore } from './password/password-reset-otp.store';
+import { PasswordService } from './password/password.service';
 import { UserModule } from '../user/user.module';
 
 @Module({
@@ -30,14 +33,27 @@ import { UserModule } from '../user/user.module';
   ],
   controllers: [AuthController],
   providers: [
-    AuthService,
     JwtStrategy,
-    RegistrationOtpService,
-    LoginOtpService,
-    PasswordResetOtpService,
+
+    // Hạ tầng dùng chung
+    TokenService,
     SessionService,
     SecurityConfigService,
+
+    // Đăng ký
+    RegistrationOtpStore,
+    RegistrationService,
+
+    // Đăng nhập / refresh / logout
+    LoginOtpStore,
+    LoginService,
+
+    // Đổi mật khẩu / quên mật khẩu
+    PasswordResetOtpStore,
+    PasswordService,
   ],
-  exports: [AuthService],
+  // Không còn AuthService facade -> export thẳng 3 service theo domain,
+  // module khác (nếu cần) import đúng cái mình dùng thay vì phải kéo theo cả khối auth.
+  exports: [RegistrationService, LoginService, PasswordService],
 })
 export class AuthModule {}

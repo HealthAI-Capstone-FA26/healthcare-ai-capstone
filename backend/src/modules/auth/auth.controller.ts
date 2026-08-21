@@ -1,6 +1,8 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
+import { RegistrationService } from './registration/registration.service';
+import { LoginService } from './login/login.service';
+import { PasswordService } from './password/password.service';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LoginDto } from './dto/login.dto';
@@ -13,25 +15,31 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
+// Controller chỉ làm nhiệm vụ định tuyến HTTP -> gọi service theo đúng domain
+// (registration / login / password). Không còn 1 "AuthService" khổng lồ ôm hết.
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly registrationService: RegistrationService,
+    private readonly loginService: LoginService,
+    private readonly passwordService: PasswordService,
+  ) {}
 
-  // Bước 1: gửi OTP qua mail
+  // ================== REGISTER (2 bước: gửi OTP -> verify OTP) ==================
+
   @Post('register')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đăng ký (gửi OTP)' })
   register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+    return this.registrationService.register(dto);
   }
 
-  // verify otp mfa
   @Post('verify-otp')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Xác thực OTP (tạo tài khoản)' })
   verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtp(dto);
+    return this.registrationService.verifyOtp(dto);
   }
 
   // ================== LOGIN (2 bước: password + MFA OTP) ==================
@@ -40,21 +48,21 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đăng nhập bước 1: xác thực email + password, gửi OTP' })
   login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+    return this.loginService.login(dto);
   }
 
   @Post('login/verify-otp')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đăng nhập bước 2: xác thực OTP, trả về access/refresh token' })
   verifyLoginOtp(@Body() dto: VerifyLoginOtpDto) {
-    return this.authService.verifyLoginOtp(dto);
+    return this.loginService.verifyLoginOtp(dto);
   }
 
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cấp lại access token mới bằng refresh token' })
   refreshToken(@Body() dto: RefreshTokenDto) {
-    return this.authService.refreshToken(dto);
+    return this.loginService.refreshToken(dto);
   }
 
   @Post('logout')
@@ -63,7 +71,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đăng xuất, thu hồi session hiện tại' })
   logout(@CurrentUser('userId') userId: string) {
-    return this.authService.logout(userId);
+    return this.loginService.logout(userId);
   }
 
   // ================== CHANGE PASSWORD ==================
@@ -74,7 +82,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đổi mật khẩu (yêu cầu đăng nhập), thu hồi toàn bộ session' })
   changePassword(@CurrentUser('userId') userId: string, @Body() dto: ChangePasswordDto) {
-    return this.authService.changePassword(userId, dto);
+    return this.passwordService.changePassword(userId, dto);
   }
 
   // ================== FORGOT PASSWORD (3 bước: gửi OTP -> verify OTP -> đặt mật khẩu mới) ==================
@@ -83,20 +91,20 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Quên mật khẩu bước 1: gửi OTP qua mail' })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
-    return this.authService.forgotPassword(dto);
+    return this.passwordService.forgotPassword(dto);
   }
 
   @Post('forgot-password/verify-otp')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Quên mật khẩu bước 2: xác thực OTP, nhận resetToken' })
   verifyForgotPasswordOtp(@Body() dto: VerifyForgotPasswordOtpDto) {
-    return this.authService.verifyForgotPasswordOtp(dto);
+    return this.passwordService.verifyForgotPasswordOtp(dto);
   }
 
   @Post('forgot-password/reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Quên mật khẩu bước 3: đặt mật khẩu mới (nhập + xác nhận)' })
   resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto);
+    return this.passwordService.resetPassword(dto);
   }
 }
