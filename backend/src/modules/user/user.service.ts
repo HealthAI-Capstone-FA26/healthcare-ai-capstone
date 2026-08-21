@@ -9,6 +9,7 @@ interface CreateVerifiedUserInput {
   actorRole: string;
   fullName: string;
   phoneNumber?: string | null;
+  avatarUrl?: string | null;
   defaultRoleId?: string;
 }
 
@@ -91,31 +92,31 @@ export class UserService {
     });
   }
 
-  createVerifiedUser(input: CreateVerifiedUserInput, tx: TxClient = this.prisma ){
+  createVerifiedUser(input: CreateVerifiedUserInput, tx: TxClient = this.prisma) {
     return tx.user.create({
       data: {
-        email:input.email,
+        email: input.email,
         passwordHash: input.passwordHash,
         status: 'active',
         emailVerified: true,
-        mfaEnabled: true, 
+        mfaEnabled: true,
         profile: { // kết hợp tạo lun profile
           create: {
             actorRole: input.actorRole,
             fullName: input.fullName,
             phoneNumber: input.phoneNumber,
           },
-      },
-      ...(input.defaultRoleId &&{ // ở đây có nghĩa là nếu có default role thì tạo lun role
-        userRoles: {
-          create: {
-            roleId: input.defaultRoleId
-          }
         },
-      }),
-    },
-  });
-}
+        ...(input.defaultRoleId && { // ở đây có nghĩa là nếu có default role thì tạo lun role
+          userRoles: {
+            create: {
+              roleId: input.defaultRoleId
+            }
+          },
+        }),
+      },
+    });
+  }
 
   toResponseDto(user: User): UserResponseDto {
     return new UserResponseDto({

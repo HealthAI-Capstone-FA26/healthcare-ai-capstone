@@ -6,6 +6,7 @@ export interface RegistrationOtpRecord extends OtpRecordBase {
   email: string;
   fullName: string;
   phoneNumber?: string | null;
+  avatarUrl?: string | null;
   actorRole: string;
   passwordHash: string;
 }

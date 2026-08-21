@@ -24,4 +24,9 @@ export class RegisterDto {
   @MaxLength(20)
   phoneNumber?: string;
 
+  @ApiPropertyOptional({ example: 'https://minio.domain.com/app-uploads/avatars/user.jpg' })
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
+
 }
