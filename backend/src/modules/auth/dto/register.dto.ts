@@ -24,9 +24,9 @@ export class RegisterDto {
   @MaxLength(20)
   phoneNumber?: string;
 
-  @ApiPropertyOptional({ example: 'patient' })
+  @ApiPropertyOptional({ example: 'https://minio.domain.com/app-uploads/avatars/user.jpg' })
   @IsOptional()
   @IsString()
-  @MaxLength(20)
-  actorRole?: string;
+  avatarUrl?: string;
+
 }

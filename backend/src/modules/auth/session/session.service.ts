@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../../../prisma/prisma.service';
-
-const SALT_ROUNDS = 10;
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { SALT_ROUNDS } from '../common/auth.constants';
 
 // Quản lý user_sessions: 1 user hiện chỉ có 1 session đang hoạt động (theo unique userId của schema).
 // expiredAt là mốc "session_limit" tuyệt đối tính từ lúc login, không bị dời khi refresh token.
