@@ -24,9 +24,4 @@ export class RegisterDto {
   @MaxLength(20)
   phoneNumber?: string;
 
-  @ApiPropertyOptional({ example: 'patient' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  actorRole?: string;
 }

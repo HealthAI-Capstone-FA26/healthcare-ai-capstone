@@ -20,11 +20,6 @@ export class CreateUserDto {
   phoneNumber?: string;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  actorRole?: string;
-
-  @IsOptional()
   @IsUUID()
   roleId?: string;
 }
