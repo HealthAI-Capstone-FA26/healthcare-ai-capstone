@@ -20,7 +20,7 @@ export class RegistrationService {
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
     private readonly registrationOtpStore: RegistrationOtpStore,
-  ) {}
+  ) { }
 
   private getOtpExpiryMinutes(): number {
     return Number(this.configService.get<string>('OTP_EXPIRES_MINUTES') ?? 5);
@@ -42,6 +42,7 @@ export class RegistrationService {
       email: dto.email,
       fullName: dto.fullName,
       phoneNumber: dto.phoneNumber,
+      avatarUrl: dto.avatarUrl,
       actorRole: DEFAULT_ACTOR_ROLE,
       passwordHash,
       otpCodeHash,
@@ -85,6 +86,7 @@ export class RegistrationService {
           actorRole: pending.actorRole,
           fullName: pending.fullName,
           phoneNumber: pending.phoneNumber,
+          avatarUrl: pending.avatarUrl,
           defaultRoleId: defaultRole?.roleId,
         },
         tx,
