@@ -8,19 +8,20 @@ import { MatchSuggestionQueryDto } from './dto/match-suggestion-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RequirePermissions } from '../../common/decorators/permissions.decorator';
-import { CurrentUser, RequestUser } from '../../common/decorators/current-user.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Action, Resource, Scope } from '../../common/constants/permissions.dictionary';
+import { RequestUser } from '../auth/strategies/jwt.strategy';
 
 @ApiTags('Patients')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('patients')
 export class PatientController {
-  constructor(private readonly patientService: PatientService) {}
+  constructor(private readonly patientService: PatientService) { }
 
   @Post()
   // @RequirePermissions(`${Resource.PATIENT}:${Action.CREATE}:${Scope.OWN}`)
-    @ApiOperation({
+  @ApiOperation({
     summary:
       'Tạo hồ sơ bệnh nhân (lễ tân tạo tại quầy -> userId=null, hoặc user tự tạo hồ sơ cho mình)',
   })

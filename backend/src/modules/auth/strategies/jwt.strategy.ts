@@ -8,7 +8,17 @@ interface JwtPayload {
   sub: string;
   email: string;
   iat: number; // thời điểm jwt được tạo
-  exp: number;// thời điểm jwt hết hạn
+  exp: number; // thời điểm jwt hết hạn
+}
+
+/**
+ * Shape của req.user sau khi JwtAuthGuard validate JWT thành công.
+ * Dùng chung bởi @CurrentUser() decorator và PermissionsGuard.
+ */
+export interface RequestUser {
+  userId: string;
+  email: string;
+  permissions: string[]; // danh sách permissionCode dạng "resource:action:scope"
 }
 
 @Injectable()
@@ -24,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: JwtPayload): Promise<RequestUser> {
     const user = await this.userService.findByIdWithPermissions(payload.sub);
 
     if (!user) {

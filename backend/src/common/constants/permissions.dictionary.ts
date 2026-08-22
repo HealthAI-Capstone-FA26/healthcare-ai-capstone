@@ -23,6 +23,8 @@ export enum Resource {
     PROCEDURE = 'procedure',
     PROVIDER = 'provider',
     SUPPLY = 'supply',
+    USER = 'user',
+    ROLE = 'role'
 }
 
 export enum Action {
