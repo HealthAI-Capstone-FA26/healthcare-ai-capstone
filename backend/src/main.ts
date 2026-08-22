@@ -6,6 +6,7 @@ import { checkMinioConnection } from './common/configs/upload.config'; // <-- Im
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(
