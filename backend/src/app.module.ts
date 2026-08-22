@@ -27,6 +27,7 @@ import { MedicationModule } from './modules/medication/medication.module';
 import { ObservationModule } from './modules/observation/observation.module';
 import { ProcedureModule } from './modules/procedure/procedure.module';
 import { SupplyModule } from './modules/supply/supply.module';
+import { RolePermissionModule } from './modules/auth/role-permission/role-permission.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { SupplyModule } from './modules/supply/supply.module';
     ObservationModule,
     ProcedureModule,
     SupplyModule,
+    RolePermissionModule
   ],
   controllers: [AppController],
   providers: [AppService],
