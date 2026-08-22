@@ -59,4 +59,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async del(key: string): Promise<void> {
     await this.client.del(key);
   }
+
+  /**
+   * Cố gắng giành 1 distributed lock bằng SET key value NX EX ttl.
+   * Trả về token (dùng để release đúng lock của mình) nếu giành được, null nếu đã có instance khác giữ lock.
+   * Dùng cho cron chạy nhiều instance (vd sinh lịch hàng tuần) — chỉ 1 instance được thực thi.
+   */
+  async acquireLock(key: string, ttlSeconds: number): Promise<string | null> {
+    const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const result = await this.client.set(key, token, 'EX', Math.max(1, Math.ceil(ttlSeconds)), 'NX');
+    return result === 'OK' ? token : null;
+  }
+
+  // Chỉ release nếu token khớp (tránh instance A vô tình xoá lock của instance B sau khi TTL đã đổi chủ)
+  async releaseLock(key: string, token: string): Promise<void> {
+    const current = await this.client.get(key);
+    if (current === token) {
+      await this.client.del(key);
+    }
+  }
 }

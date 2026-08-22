@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -10,6 +11,7 @@ import { UserModule } from './modules/user/user.module';
 import { PatientModule } from './modules/patient/patient.module';
 import { DoctorModule } from './modules/doctor/doctor.module';
 import { DoctorDepartmentModule } from './modules/doctor-department/doctor-department.module';
+import { DoctorScheduleModule } from './modules/doctor-schedule/doctor-schedule.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { ProviderModule } from './modules/provider/provider.module';
 import { PayerModule } from './modules/payer/payer.module';
@@ -32,6 +34,7 @@ import { RolePermissionModule } from './modules/auth/role-permission/role-permis
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     RedisModule,
     MailModule,
@@ -40,6 +43,7 @@ import { RolePermissionModule } from './modules/auth/role-permission/role-permis
     PatientModule,
     DoctorModule,
     DoctorDepartmentModule,
+    DoctorScheduleModule,
     OrganizationModule,
     ProviderModule,
     PayerModule,
@@ -62,4 +66,4 @@ import { RolePermissionModule } from './modules/auth/role-permission/role-permis
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
