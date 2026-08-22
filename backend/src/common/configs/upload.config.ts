@@ -78,3 +78,13 @@ export const uploadImageToS3 = async (
 
     return { bucket: BUCKET_NAME, objectName };
 };
+
+export const deleteFileFromS3 = async (objectName: string): Promise<void> => {
+    try {
+        if (!objectName) return;
+        await minioClient.removeObject(BUCKET_NAME, objectName);
+        logger.log(`Deleted object from MinIO: ${objectName}`);
+    } catch (error) {
+        logger.error(`Failed to delete object ${objectName} from MinIO`, error);
+    }
+};
