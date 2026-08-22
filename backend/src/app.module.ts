@@ -8,6 +8,8 @@ import { MailModule } from './modules/mail/mail.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { PatientModule } from './modules/patient/patient.module';
+import { DoctorModule } from './modules/doctor/doctor.module';
+import { DoctorDepartmentModule } from './modules/doctor-department/doctor-department.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { ProviderModule } from './modules/provider/provider.module';
 import { PayerModule } from './modules/payer/payer.module';
@@ -25,6 +27,7 @@ import { MedicationModule } from './modules/medication/medication.module';
 import { ObservationModule } from './modules/observation/observation.module';
 import { ProcedureModule } from './modules/procedure/procedure.module';
 import { SupplyModule } from './modules/supply/supply.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -34,6 +37,8 @@ import { SupplyModule } from './modules/supply/supply.module';
     AuthModule,
     UserModule,
     PatientModule,
+    DoctorModule,
+    DoctorDepartmentModule,
     OrganizationModule,
     ProviderModule,
     PayerModule,
@@ -55,4 +60,4 @@ import { SupplyModule } from './modules/supply/supply.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
