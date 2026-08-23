@@ -1,15 +1,18 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { RequestUser } from '../../common/decorators/current-user.decorator';
+import { RequestUser } from '../auth/strategies/jwt.strategy';
 import { Action, Resource, Scope } from '../../common/constants/permissions.dictionary';
 import { hasPermissionScope } from '../../common/utils/permission.util';
 import { generateUniqueCode } from '../../common/utils/code-generator.util';
+import { isPendingRelationship } from '../../common/constants/patient-contact.constants';
+import { PatientContactService } from '../patientContact/patient-contact.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { SearchPatientDto } from './dto/search-patient.dto';
@@ -19,7 +22,10 @@ const PATIENT_CODE_PREFIX = 'BN';
 
 @Injectable()
 export class PatientService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly patientContactService: PatientContactService,
+  ) { }
 
   private generatePatientCode(): Promise<string> {
     return generateUniqueCode(PATIENT_CODE_PREFIX, async (code) => {
@@ -27,7 +33,7 @@ export class PatientService {
       return Boolean(existing);// Trả về true nếu có data (trùng), false nếu null
     });
   }
-  
+
   //POST /patient
   async create(dto: CreatePatientDto, currentUser: RequestUser) {
     const isStaffCreatingForCounter = hasPermissionScope(
@@ -36,11 +42,11 @@ export class PatientService {
       Action.CREATE,
       Scope.GROUP,
     );
- 
+
     if (isStaffCreatingForCounter) {
       return this.createPatientRecord(dto, null);
     }
- 
+
     // Self-service: user chỉ có quyền own -> patient này là của chính họ.
     const existingSelf = await this.prisma.patient.findUnique({
       where: { userId: currentUser.userId },
@@ -48,7 +54,7 @@ export class PatientService {
     if (existingSelf) {
       throw new ConflictException('Bạn đã có hồ sơ bệnh nhân, không thể tạo thêm');
     }
- 
+
     return this.createPatientRecord(dto, currentUser.userId);
   }
 
@@ -90,12 +96,12 @@ export class PatientService {
     return this.prisma.patient.findMany({
       where: search
         ? {
-            OR: [
-              { fullName: { contains: search, mode: 'insensitive' } },
-              { identityNumber: { contains: search, mode: 'insensitive' } },// tìm kiếm k phân biệt chữ hoa chữ thường mode:'sensitive'
-              { patientCode: { contains: search, mode: 'insensitive' } },
-            ],
-          }
+          OR: [
+            { fullName: { contains: search, mode: 'insensitive' } },
+            { identityNumber: { contains: search, mode: 'insensitive' } },// tìm kiếm k phân biệt chữ hoa chữ thường mode:'sensitive'
+            { patientCode: { contains: search, mode: 'insensitive' } },
+          ],
+        }
         : undefined,
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -115,15 +121,15 @@ export class PatientService {
   }
 
   //GET /patients/match-suggestion: user vừa đăng ký xong, kiểm tra có Patient (userId = null) nào khớp CCCD/BHYT/SĐT không.
-  async findMatchSuggestion(currentUser: RequestUser, query: MatchSuggestionQueryDto){
+  async findMatchSuggestion(currentUser: RequestUser, query: MatchSuggestionQueryDto) {
     let phoneNumber = query.phoneNumber
 
-    if(!phoneNumber){
+    if (!phoneNumber) {
       const profile = await this.prisma.userProfile.findUnique({
-        where : {userId: currentUser.userId}
+        where: { userId: currentUser.userId }
       })
-      phoneNumber = profile?.phoneNumber ?? undefined 
-    }    console.log(currentUser.userId, currentUser.permissions);
+      phoneNumber = profile?.phoneNumber ?? undefined
+    } console.log(currentUser.userId, currentUser.permissions);
 
     if (!query.identityNumber && !query.insuranceNumber && !phoneNumber) {
       throw new BadRequestException(
@@ -155,26 +161,64 @@ export class PatientService {
     };
   }
 
+  // GET /patients/:id/full (hoặc mở rộng GET /patients/:id) — quyền xem toàn bộ hồ sơ.
+  async getFullProfile(patientId: string, currentUser: RequestUser) {
+    const patient = await this.findById(patientId);
+
+    const isStaff =
+      hasPermissionScope(currentUser.permissions, Resource.PATIENT, Action.READ, Scope.ALL) ||
+      hasPermissionScope(currentUser.permissions, Resource.PATIENT, Action.READ, Scope.GROUP);
+
+    if (!isStaff) {
+      const approvedContact = await this.patientContactService.findApprovedContact(
+        currentUser.userId,
+        patientId,
+      );
+      if (!approvedContact) {
+        throw new ForbiddenException('Bạn không có quyền xem hồ sơ bệnh nhân này');
+      }
+    }
+
+    return patient;
+  }
+
+  // GET /patients/my — danh sách patient mà currentUser có PatientContact đã duyệt (relationship "sạch").
+  async listMyPatients(currentUser: RequestUser) {
+    const contacts = await this.prisma.patientContact.findMany({
+      where: { userId: currentUser.userId },
+      include: { patient: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return contacts
+      .filter((contact) => !isPendingRelationship(contact.relationship))
+      .map((contact) => ({
+        ...contact.patient,
+        relationship: contact.relationship,
+        isPrimaryContact: contact.isPrimaryContact,
+      }));
+  }
+
   async linkUser(patientId: string, currentUser: RequestUser) {
     const patient = await this.findById(patientId);
- 
+
     if (patient.userId !== null) {
       throw new ConflictException('Hồ sơ bệnh nhân này đã được liên kết với một tài khoản');
     }
- 
+
     const existingSelfPatient = await this.prisma.patient.findUnique({
       where: { userId: currentUser.userId },
     });
     if (existingSelfPatient && existingSelfPatient.patientId !== patientId) {
       throw new ConflictException('Tài khoản của bạn đã liên kết với một hồ sơ bệnh nhân khác');
     }
- 
+
     return this.prisma.patient.update({
       where: { patientId },
       data: { userId: currentUser.userId },
     });
   }
- 
+
 
 }
 
