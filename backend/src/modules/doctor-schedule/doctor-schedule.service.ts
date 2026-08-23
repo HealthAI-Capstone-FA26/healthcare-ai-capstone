@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { AppointmentSlotService } from '../appointment/appointment-slot.service';
+import { AppointmentSlotService } from '../appointment-slot/appointment-slot.service';
 import { CreateDoctorScheduleDto } from './dto/create-doctor-schedule.dto';
 import { SearchDoctorScheduleDto } from './dto/search-doctor-schedule.dto';
 import {

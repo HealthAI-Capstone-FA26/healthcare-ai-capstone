@@ -1,6 +1,7 @@
 // 1. DEFINITIONS: Enum Tài nguyên (map chuẩn theo danh sách Module), Action và Scope
 export enum Resource {
     ALLERGY = 'allergy',
+    APPOINTMENT = 'appointment', // tách riêng khỏi APPOINTMENT_SLOT: đây là quyền trên record lịch hẹn (status, cancel...)
     APPOINTMENT_SLOT = 'appointment-slot',
     CARE_PLAN = 'care-plan',
     CLAIM = 'claim',

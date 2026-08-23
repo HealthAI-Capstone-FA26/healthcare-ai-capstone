@@ -12,6 +12,7 @@ import { PatientModule } from './modules/patient/patient.module';
 import { DoctorModule } from './modules/doctor/doctor.module';
 import { DoctorDepartmentModule } from './modules/doctor-department/doctor-department.module';
 import { DoctorScheduleModule } from './modules/doctor-schedule/doctor-schedule.module';
+import { AppointmentModule } from './modules/appointment/appointment.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { ProviderModule } from './modules/provider/provider.module';
 import { PayerModule } from './modules/payer/payer.module';
@@ -30,7 +31,7 @@ import { ObservationModule } from './modules/observation/observation.module';
 import { ProcedureModule } from './modules/procedure/procedure.module';
 import { SupplyModule } from './modules/supply/supply.module';
 import { RolePermissionModule } from './modules/auth/role-permission/role-permission.module';
-
+import { PatientConTactModule } from './modules/patientContact/patient-contact.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -41,9 +42,11 @@ import { RolePermissionModule } from './modules/auth/role-permission/role-permis
     AuthModule,
     UserModule,
     PatientModule,
+    PatientConTactModule,
     DoctorModule,
     DoctorDepartmentModule,
     DoctorScheduleModule,
+    AppointmentModule,
     OrganizationModule,
     ProviderModule,
     PayerModule,

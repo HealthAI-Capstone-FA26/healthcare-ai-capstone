@@ -5,7 +5,7 @@ import { FindSlotsQueryDto } from './dto/find-slots-query.dto';
 import { AppointmentSlotService } from './appointment-slot.service';
 
 // Route nằm dưới tài nguyên "doctors" (không phải "doctor-schedules") theo đúng path spec Phase 3.
-@ApiTags('Appointment')
+@ApiTags('Appointment-slot')
 @ApiBearerAuth()
 // @UseGuards(JwtAuthGuard)
 @Controller('doctors')

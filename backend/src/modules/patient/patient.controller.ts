@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PatientService } from './patient.service';
+import { PatientContactService } from '../patientContact/patient-contact.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { SearchPatientDto } from './dto/search-patient.dto';
@@ -17,7 +18,10 @@ import { RequestUser } from '../auth/strategies/jwt.strategy';
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('patients')
 export class PatientController {
-  constructor(private readonly patientService: PatientService) { }
+  constructor(
+    private readonly patientService: PatientService,
+    private readonly patientContactService: PatientContactService,
+  ) { }
 
   @Post()
   // @RequirePermissions(`${Resource.PATIENT}:${Action.CREATE}:${Scope.OWN}`)
@@ -48,11 +52,37 @@ export class PatientController {
     return this.patientService.findMatchSuggestion(user, query);
   }
 
+  @Get('my')
+  @ApiOperation({
+    summary:
+      'Danh sách hồ sơ bệnh nhân mà user hiện tại quản lý (PatientContact đã duyệt), kèm relationship',
+  })
+  findMyPatients(@CurrentUser() user: RequestUser) {
+    return this.patientService.listMyPatients(user);
+  }
+
+  @Get('my-requests')
+  @ApiOperation({
+    summary: 'Danh sách yêu cầu làm người thân mà user hiện tại đã gửi và đang chờ duyệt',
+  })
+  findMyContactRequests(@CurrentUser() user: RequestUser) {
+    return this.patientContactService.listMyRequests(user);
+  }
+
   @Get(':id')
   // @RequirePermissions(`${Resource.PATIENT}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Xem chi tiết hồ sơ bệnh nhân' })
   findOne(@Param('id') id: string) {
     return this.patientService.findById(id);
+  }
+
+  @Get(':id/full')
+  @ApiOperation({
+    summary:
+      'Xem toàn bộ hồ sơ bệnh nhân — staff (read:group/all) hoặc user có PatientContact đã duyệt',
+  })
+  findFullProfile(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+    return this.patientService.getFullProfile(id, user);
   }
 
   @Patch(':id')
