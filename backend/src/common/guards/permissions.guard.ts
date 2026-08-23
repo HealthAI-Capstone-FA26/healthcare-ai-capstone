@@ -7,7 +7,8 @@ import {
 import { Reflector } from '@nestjs/core';
 // Sửa lại 2 path dưới đây cho khớp vị trí thật trong project
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
-import { PermissionCode } from '../constants/permissions.dictionary';
+import { Action, PermissionCode, Resource, Scope } from '../constants/permissions.dictionary';
+import { hasPermissionScope } from '../utils/permission.util';
 import { RequestUser } from '../../modules/auth/strategies/jwt.strategy';
 
 /**
@@ -17,7 +18,10 @@ import { RequestUser } from '../../modules/auth/strategies/jwt.strategy';
  * Dùng: @UseGuards(JwtAuthGuard, PermissionsGuard)
  *       @RequirePermissions('role:update:all')
  *
- * User cần có ĐỦ TẤT CẢ permission được liệt kê (AND logic).
+ * So khớp theo RANK scope (dùng chung hasPermissionScope với service layer), không phải
+ * exact-match chuỗi: user có scope rộng hơn route yêu cầu vẫn qua được, vd route yêu cầu
+ * `patient:read:own` thì user có `patient:read:group` hoặc `patient:read:all` đều pass.
+ * User cần thoả ĐỦ TẤT CẢ permission được liệt kê (AND logic).
  * Nếu route không gắn @RequirePermissions(...) thì coi như không giới hạn
  * (chỉ cần đã đăng nhập là qua được guard này).
  */
@@ -42,10 +46,10 @@ export class PermissionsGuard implements CanActivate {
             throw new ForbiddenException('Không xác định được người dùng');
         }
 
-        const userPermissions = user.permissions ?? [];
-        const hasAllRequiredPermissions = requiredPermissions.every((perm) =>
-            userPermissions.includes(perm),
-        );
+        const hasAllRequiredPermissions = requiredPermissions.every((perm) => {
+            const [resource, action, scope] = perm.split(':') as [Resource, Action, Scope];
+            return hasPermissionScope(user.permissions, resource, action, scope);
+        });
 
         if (!hasAllRequiredPermissions) {
             throw new ForbiddenException(

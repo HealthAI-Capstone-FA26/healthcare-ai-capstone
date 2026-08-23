@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +11,8 @@ import { RequestUser } from '../auth/strategies/jwt.strategy';
 import { Action, Resource, Scope } from '../../common/constants/permissions.dictionary';
 import { hasPermissionScope } from '../../common/utils/permission.util';
 import { generateUniqueCode } from '../../common/utils/code-generator.util';
+import { isPendingRelationship } from '../../common/constants/patient-contact.constants';
+import { PatientContactService } from '../patientContact/patient-contact.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { SearchPatientDto } from './dto/search-patient.dto';
@@ -19,7 +22,10 @@ const PATIENT_CODE_PREFIX = 'BN';
 
 @Injectable()
 export class PatientService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly patientContactService: PatientContactService,
+  ) { }
 
   private generatePatientCode(): Promise<string> {
     return generateUniqueCode(PATIENT_CODE_PREFIX, async (code) => {
@@ -153,6 +159,44 @@ export class PatientService {
         maskedPhoneNumber: maskTail(candidate.phoneNumber),
       },
     };
+  }
+
+  // GET /patients/:id/full (hoặc mở rộng GET /patients/:id) — quyền xem toàn bộ hồ sơ.
+  async getFullProfile(patientId: string, currentUser: RequestUser) {
+    const patient = await this.findById(patientId);
+
+    const isStaff =
+      hasPermissionScope(currentUser.permissions, Resource.PATIENT, Action.READ, Scope.ALL) ||
+      hasPermissionScope(currentUser.permissions, Resource.PATIENT, Action.READ, Scope.GROUP);
+
+    if (!isStaff) {
+      const approvedContact = await this.patientContactService.findApprovedContact(
+        currentUser.userId,
+        patientId,
+      );
+      if (!approvedContact) {
+        throw new ForbiddenException('Bạn không có quyền xem hồ sơ bệnh nhân này');
+      }
+    }
+
+    return patient;
+  }
+
+  // GET /patients/my — danh sách patient mà currentUser có PatientContact đã duyệt (relationship "sạch").
+  async listMyPatients(currentUser: RequestUser) {
+    const contacts = await this.prisma.patientContact.findMany({
+      where: { userId: currentUser.userId },
+      include: { patient: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return contacts
+      .filter((contact) => !isPendingRelationship(contact.relationship))
+      .map((contact) => ({
+        ...contact.patient,
+        relationship: contact.relationship,
+        isPrimaryContact: contact.isPrimaryContact,
+      }));
   }
 
   async linkUser(patientId: string, currentUser: RequestUser) {
