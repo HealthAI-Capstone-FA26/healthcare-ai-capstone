@@ -43,10 +43,12 @@ export class ProfileService {
       }
     }
 
+    const { avatar, ...updateData } = updateProfileDto;
+
     return this.prisma.userProfile.update({
       where: { userId },
       data: {
-        ...updateProfileDto,
+        ...updateData,
         avatarUrl,
       },
     });

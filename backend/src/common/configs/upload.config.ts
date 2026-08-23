@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { memoryStorage } from 'multer';
 import { extname } from 'path';
 import { BadRequestException, Logger } from '@nestjs/common';
@@ -26,6 +27,22 @@ export const checkMinioConnection = async (): Promise<boolean> => {
         } else {
             logger.log(`Bucket exists: ${BUCKET_NAME}`);
         }
+
+        // Set public read-only policy
+        const policy = {
+            Version: '2012-10-17',
+            Statement: [
+                {
+                    Effect: 'Allow',
+                    Principal: { AWS: ['*'] },
+                    Action: ['s3:GetObject'],
+                    Resource: [`arn:aws:s3:::${BUCKET_NAME}/*`],
+                },
+            ],
+        };
+        await minioClient.setBucketPolicy(BUCKET_NAME, JSON.stringify(policy));
+        logger.log(`Set public policy for bucket: ${BUCKET_NAME}`);
+
         logger.log('Connect to MinIO S3 successfully!');
         return true;
     } catch (error) {
