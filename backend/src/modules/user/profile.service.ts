@@ -7,6 +7,18 @@ import { uploadImageToS3, deleteFileFromS3 } from '../../common/configs/upload.c
 export class ProfileService {
   constructor(private readonly prisma: PrismaService) { }
 
+  async findByUserId(userId: string) {
+    const profile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException(`Profile for user ID ${userId} not found`);
+    }
+
+    return profile;
+  }
+
   async updateByUserId(
     userId: string,
     updateProfileDto: UpdateProfileDto,
