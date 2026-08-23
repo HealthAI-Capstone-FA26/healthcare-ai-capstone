@@ -41,7 +41,7 @@ export class ProfileController {
         @Body() updateProfileDto: UpdateProfileDto,
         @UploadedFile() file?: Express.Multer.File,
     ) {
-        const userId = req.user.id;
+        const userId = req.user.userId;
 
         return this.profileService.updateByUserId(
             userId,
