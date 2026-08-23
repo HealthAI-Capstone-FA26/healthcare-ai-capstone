@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppointmentSlotController } from './appointment-slot.controller';
-import { AppointmentSlotService } from './appointment-slot.service';
-
+import { PatientModule } from '../patient/patient.module';
+import { AppointmentController } from './appointment.controller';
+import { AppointmentService } from './appointment.service';
+import { PatientConTactModule } from '../patientContact/patient-contact.module';
 @Module({
-  controllers: [AppointmentSlotController],
-  providers: [AppointmentSlotService],
-  exports: [AppointmentSlotService],
+  imports: [PatientModule, PatientConTactModule],
+  controllers: [AppointmentController],
+  providers: [AppointmentService],
+  exports: [AppointmentService],
 })
 export class AppointmentModule {}
