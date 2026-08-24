@@ -13,6 +13,7 @@ import { DoctorModule } from './modules/doctor/doctor.module';
 import { DoctorDepartmentModule } from './modules/doctor-department/doctor-department.module';
 import { DoctorScheduleModule } from './modules/doctor-schedule/doctor-schedule.module';
 import { AppointmentModule } from './modules/appointment/appointment.module';
+import { QueueTicketModule } from './modules/queue-ticket/queue-ticket.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { ProviderModule } from './modules/provider/provider.module';
 import { PayerModule } from './modules/payer/payer.module';
@@ -47,6 +48,7 @@ import { PatientConTactModule } from './modules/patientContact/patient-contact.m
     DoctorDepartmentModule,
     DoctorScheduleModule,
     AppointmentModule,
+    QueueTicketModule,
     OrganizationModule,
     ProviderModule,
     PayerModule,

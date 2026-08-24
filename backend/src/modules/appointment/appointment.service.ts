@@ -16,9 +16,13 @@ import {
 import { RelationshipType } from '../../common/constants/relationship.constants';
 import { isPendingRelationship } from '../../common/constants/patient-contact.constants';
 import { PatientContactService } from '../patientContact/patient-contact.service';
+import { QueueTicketService } from '../queue-ticket/queue-ticket.service';
+import { QueueTicketPrefix } from '../../common/constants/queue-ticket.constants';
 import { RequestUser } from '../auth/strategies/jwt.strategy';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appointment.dto';
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
+import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 
 const APPOINTMENT_CODE_PREFIX = 'LH';
@@ -28,6 +32,7 @@ export class AppointmentService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly patientContactService: PatientContactService,
+    private readonly queueTicketService: QueueTicketService,
   ) {}
 
   private generateAppointmentCode(): Promise<string> {
@@ -143,6 +148,67 @@ export class AppointmentService {
     });
   }
 
+  // POST /appointments/at-hospital (bookingChannel = at_hospital) — chỉ reception staff.
+  // Luôn tạo kèm đúng 1 QueueTicket (prefix B) trong CÙNG transaction, không tách rời 2 bước (Phase 5).
+  async  createAtHospital(dto: CreateAtHospitalAppointmentDto, currentUser: RequestUser) {
+    let patientId = dto.patientId;
+
+    if (dto.contactId) {
+      const contact = await this.prisma.patientContact.findUnique({
+        where: { contactId: dto.contactId },
+      });
+      if (!contact) {
+        throw new NotFoundException('Không tìm thấy liên hệ bệnh nhân (contactId)');
+      }
+      patientId = contact.patientId;
+    }
+
+    if (!patientId) {
+      throw new BadRequestException('Cần cung cấp contactId hoặc patientId');
+    }
+
+    const patient = await this.prisma.patient.findUnique({ where: { patientId } });
+    if (!patient) {
+      throw new NotFoundException('Không tìm thấy hồ sơ bệnh nhân');
+    }
+
+    const department = await this.prisma.department.findUnique({
+      where: { departmentId: dto.departmentId },
+    });
+    if (!department) {
+      throw new NotFoundException('Không tìm thấy khoa');
+    }
+
+    const appointmentCode = await this.generateAppointmentCode();
+    const today = new Date(new Date().toDateString());
+
+    return this.prisma.$transaction(async (tx) => {
+      const appointment = await tx.appointment.create({
+        data: {
+          appointmentCode,
+          bookingChannel: 'at_hospital',
+          status: AppointmentStatus.PENDING,
+          patientId,
+          doctorId: null,
+          departmentId: dto.departmentId,
+          slotId: null,
+          bookedByUserId: currentUser.userId,
+          appointmentDate: today,
+          reasonForVisit: dto.reasonForVisit,
+          priority: dto.priority,
+        },
+      });
+
+      const queueTicket = await this.queueTicketService.issueTicketForAppointment(
+        tx,
+        appointment,
+        QueueTicketPrefix.AT_HOSPITAL,
+      );
+
+      return { appointment, queueTicket };
+    });
+  }
+
   async findById(appointmentId: string) {
     const appointment = await this.prisma.appointment.findUnique({ where: { appointmentId } });
     if (!appointment) {
@@ -172,46 +238,19 @@ export class AppointmentService {
   }
 
   // PATCH /appointments/:id/status — tuân theo state machine dùng chung (Phase 4 & Phase 5).
-  // Giữ hàm dùng chung này cho các transition nội bộ (vd: được gọi lại từ confirm/checkIn/...)
-  // Không còn expose thẳng qua controller — mỗi transition đã có API + permission riêng.
-  private async transitionTo(appointmentId: string, nextStatus: AppointmentStatus) {
+  async updateStatus(appointmentId: string, dto: UpdateAppointmentStatusDto) {
     const appointment = await this.findById(appointmentId);
 
-    if (!isValidAppointmentTransition(appointment.status, nextStatus)) {
+    if (!isValidAppointmentTransition(appointment.status, dto.status)) {
       throw new BadRequestException(
-        `Không thể chuyển trạng thái từ '${appointment.status}' sang '${nextStatus}'`,
+        `Không thể chuyển trạng thái từ '${appointment.status}' sang '${dto.status}'`,
       );
     }
 
     return this.prisma.appointment.update({
       where: { appointmentId },
-      data: { status: nextStatus },
+      data: { status: dto.status },
     });
-  }
-
-  // PATCH /appointments/:id/confirm — reception xác nhận lịch (pending -> confirmed).
-  async confirm(appointmentId: string) {
-    return this.transitionTo(appointmentId, AppointmentStatus.CONFIRMED);
-  }
-
-  // PATCH /appointments/:id/check-in — reception check-in tại quầy (confirmed -> checked_in).
-  async checkIn(appointmentId: string) {
-    return this.transitionTo(appointmentId, AppointmentStatus.CHECKED_IN);
-  }
-
-  // PATCH /appointments/:id/start — bác sĩ bắt đầu khám (checked_in -> in_progress).
-  async start(appointmentId: string) {
-    return this.transitionTo(appointmentId, AppointmentStatus.IN_PROGRESS);
-  }
-
-  // PATCH /appointments/:id/complete — bác sĩ hoàn tất khám (in_progress -> completed).
-  async complete(appointmentId: string) {
-    return this.transitionTo(appointmentId, AppointmentStatus.COMPLETED);
-  }
-
-  // PATCH /appointments/:id/no-show — bệnh nhân không đến (pending/confirmed/checked_in -> no_show).
-  async markNoShow(appointmentId: string) {
-    return this.transitionTo(appointmentId, AppointmentStatus.NO_SHOW);
   }
 
   // PATCH /appointments/:id/cancel — chỉ cho phép từ pending/confirmed.
