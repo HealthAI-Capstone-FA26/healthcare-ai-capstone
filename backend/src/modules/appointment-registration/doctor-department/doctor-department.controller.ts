@@ -3,10 +3,10 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { DoctorDepartmentService } from './doctor-department.service';
 import { AssignDoctorDepartmentDto } from './dto/assign-doctor-department.dto';
 import { UpdateDoctorDepartmentDto } from './dto/update-doctor-department.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../common/guards/permissions.guard';
-import { RequirePermissions } from '../../common/decorators/permissions.decorator';
-import { Action, Resource, Scope } from '../../common/constants/permissions.dictionary';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 // Không đặt @Controller() prefix chung vì route trải trên 2 "tài nguyên" (doctors/*, departments/*)
 // theo đúng path spec yêu cầu.

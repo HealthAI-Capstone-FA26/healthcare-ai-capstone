@@ -5,11 +5,11 @@ import { CreateDoctorScheduleDto } from './dto/create-doctor-schedule.dto';
 import { SearchDoctorScheduleDto } from './dto/search-doctor-schedule.dto';
 import { CancelDoctorScheduleDto } from './dto/cancel-doctor-schedule.dto';
 import { TriggerWeeklyScheduleGenDto } from './dto/trigger-weekly-schedule-gen.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../common/guards/permissions.guard';
-import { RequirePermissions } from '../../common/decorators/permissions.decorator';
-import { Action, Resource, Scope } from '../../common/constants/permissions.dictionary';
-import { WeeklyScheduleGenCron } from '../../common/cron/weekly-schedule-gen.cron';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
+import { WeeklyScheduleGenCron } from '../../../common/cron/weekly-schedule-gen.cron';
 
 @ApiTags('Doctor Schedules')
 @ApiBearerAuth()

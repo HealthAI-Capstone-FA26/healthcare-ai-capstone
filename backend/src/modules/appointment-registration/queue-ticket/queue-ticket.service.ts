@@ -1,18 +1,18 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Appointment, Prisma, QueueTicket } from '@prisma/client';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { RequestUser } from '../auth/strategies/jwt.strategy';
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import {
   compareQueueTickets,
   QueueTicketPrefix,
   QueueTicketStatus,
   toDateOnlyUTC,
-} from '../../common/constants/queue-ticket.constants';
+} from '../../../common/constants/queue-ticket.constants';
 import {
   AppointmentStatus,
   isValidAppointmentTransition,
-} from '../../common/utils/appointment-status.util';
-import { combineDateWithTimeOfDay } from '../../common/utils/schedule-time.util';
+} from '../../../common/utils/appointment-status.util';
+import { combineDateWithTimeOfDay } from '../../../common/utils/schedule-time.util';
 import { CallQueueTicketDto } from './dto/call-queue-ticket.dto';
 import { ServeQueueTicketDto } from './dto/serve-queue-ticket.dto';
 import { FindQueueTicketsQueryDto } from './dto/find-queue-tickets-query.dto';

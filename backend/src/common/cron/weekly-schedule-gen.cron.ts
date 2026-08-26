@@ -5,7 +5,7 @@ import { RedisService } from 'src/redis/redis.service';
 import {
   DoctorScheduleService,
   ResolvedScheduleInput,
-} from '../../modules/doctor-schedule/doctor-schedule.service';
+} from '../../modules/appointment-registration/doctor-schedule/doctor-schedule.service';
 import {
   DEFAULT_MAX_PATIENTS_PER_SLOT,
   DEFAULT_SLOT_DURATION_MINS,
