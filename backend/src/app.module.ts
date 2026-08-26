@@ -8,12 +8,8 @@ import { RedisModule } from './redis/redis.module';
 import { MailModule } from './modules/mail/mail.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
-import { PatientModule } from './modules/patient/patient.module';
 import { DoctorModule } from './modules/doctor/doctor.module';
-import { DoctorDepartmentModule } from './modules/doctor-department/doctor-department.module';
-import { DoctorScheduleModule } from './modules/doctor-schedule/doctor-schedule.module';
-import { AppointmentModule } from './modules/appointment/appointment.module';
-import { QueueTicketModule } from './modules/queue-ticket/queue-ticket.module';
+import { AppointmentRegistrationModule } from './modules/appointment-registration/appointment-registration.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { ProviderModule } from './modules/provider/provider.module';
 import { PayerModule } from './modules/payer/payer.module';
@@ -32,7 +28,6 @@ import { ObservationModule } from './modules/observation/observation.module';
 import { ProcedureModule } from './modules/procedure/procedure.module';
 import { SupplyModule } from './modules/supply/supply.module';
 import { RolePermissionModule } from './modules/auth/role-permission/role-permission.module';
-import { PatientConTactModule } from './modules/patientContact/patient-contact.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -42,13 +37,8 @@ import { PatientConTactModule } from './modules/patientContact/patient-contact.m
     MailModule,
     AuthModule,
     UserModule,
-    PatientModule,
-    PatientConTactModule,
     DoctorModule,
-    DoctorDepartmentModule,
-    DoctorScheduleModule,
-    AppointmentModule,
-    QueueTicketModule,
+    AppointmentRegistrationModule,
     OrganizationModule,
     ProviderModule,
     PayerModule,

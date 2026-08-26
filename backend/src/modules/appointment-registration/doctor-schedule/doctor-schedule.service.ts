@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import { AppointmentSlotService } from '../appointment-slot/appointment-slot.service';
 import { CreateDoctorScheduleDto } from './dto/create-doctor-schedule.dto';
 import { SearchDoctorScheduleDto } from './dto/search-doctor-schedule.dto';
@@ -16,7 +16,7 @@ import {
   ScheduleSession,
   SESSION_DEFAULTS,
   timeOfDay,
-} from '../../common/constants/schedule-session.constants';
+} from '../../../common/constants/schedule-session.constants';
 
 export interface ResolvedScheduleInput {
   doctorId: string;

@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../common/guards/permissions.guard';
-import { RequirePermissions } from '../../common/decorators/permissions.decorator';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { Action, Resource, Scope } from '../../common/constants/permissions.dictionary';
-import { RequestUser } from '../auth/strategies/jwt.strategy';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
+import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { QueueTicketService } from './queue-ticket.service';
 import { FindQueueTicketsQueryDto } from './dto/find-queue-tickets-query.dto';
 import { CallQueueTicketDto } from './dto/call-queue-ticket.dto';
