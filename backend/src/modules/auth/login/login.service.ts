@@ -4,7 +4,6 @@ import { UserService } from '../../user/user.service';
 import { SessionService } from '../session/session.service';
 import { SecurityConfigService } from '../security-config/security-config.service';
 import { TokenService } from '../token/token.service';
-import { LoginOtpStore } from './login-otp.store';
 import { MailService } from '../../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { LoginDto } from '../dto/login.dto';
@@ -21,10 +20,9 @@ export class LoginService {
     private readonly sessionService: SessionService,
     private readonly securityConfigService: SecurityConfigService,
     private readonly tokenService: TokenService,
-    private readonly loginOtpStore: LoginOtpStore,
     private readonly mailService: MailService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   private getOtpExpiryMinutes(): number {
     return Number(this.configService.get<string>('OTP_EXPIRES_MINUTES') ?? 5);
@@ -82,51 +80,11 @@ export class LoginService {
       throw new UnauthorizedException(invalidCredentialsMessage);
     }
 
-    // Mật khẩu đúng -> reset đếm sai, tiếp tục qua bước 2 (OTP MFA)
+    // Mật khẩu đúng -> reset số lần nhập sai
     await this.userService.resetFailedAttempts(user.userId);
 
-    const otp = generateOtp();
-    const otpCodeHash = await hashOtp(otp);
-    const otpExpiresAt = otpExpiryDate(this.getOtpExpiryMinutes());
-
-    await this.loginOtpStore.upsert(user.userId, { userId: user.userId, otpCodeHash, otpExpiresAt });
-    await this.mailService.sendLoginOtpMail(user.email, otp);
-
-    return {
-      message: 'Mật khẩu chính xác. Đã gửi mã OTP xác thực đăng nhập tới email của bạn',
-      email: user.email,
-    };
-  }
-
-  // ================== LOGIN (bước 2: verify OTP -> issue tokens) ==================
-  async verifyLoginOtp(dto: VerifyLoginOtpDto) {
-    const user = await this.userService.findByEmail(dto.email);
-    if (!user) {
-      throw new BadRequestException('Không tìm thấy yêu cầu đăng nhập cho email này');
-    }
-
-    const pending = await this.loginOtpStore.find(user.userId);
-    if (!pending) {
-      throw new BadRequestException('Không tìm thấy yêu cầu đăng nhập, vui lòng đăng nhập lại');
-    }
-
-    await assertOtpValid(
-      pending,
-      dto.otp,
-      {
-        expired: 'Mã OTP đã hết hạn, vui lòng đăng nhập lại',
-        maxAttemptsExceeded: 'Bạn đã nhập sai OTP quá số lần cho phép, vui lòng đăng nhập lại',
-        invalidOtp: 'Mã OTP không chính xác',
-      },
-      {
-        onExpiredOrMaxAttempts: () => this.loginOtpStore.delete(user.userId),
-        onWrongAttempt: () => this.loginOtpStore.incrementAttempts(user.userId).then(() => undefined),
-      },
-    );
-
-    await this.loginOtpStore.delete(user.userId);
+    // Cập nhật thời gian đăng nhập cuối và cấp phát tokens
     await this.userService.touchLastLogin(user.userId);
-
     const tokens = await this.issueTokens(user);
 
     return {
@@ -135,6 +93,7 @@ export class LoginService {
       ...tokens,
     };
   }
+
 
   // ================== REFRESH TOKEN ==================
   async refreshToken(dto: RefreshTokenDto) {

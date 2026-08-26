@@ -43,9 +43,12 @@ export class ProfileController {
     ) {
         const userId = req.user.id;
 
+        // Loại bỏ actorRole nếu user cố tình gửi lên trong body
+        const { actorRole, ...safeUpdateDto } = updateProfileDto;
+
         return this.profileService.updateByUserId(
             userId,
-            updateProfileDto,
+            safeUpdateDto,
             file,
         );
     }

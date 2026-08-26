@@ -26,7 +26,8 @@ export enum Resource {
     QUEUE_TICKET = 'queue-ticket',
     SUPPLY = 'supply',
     USER = 'user',
-    ROLE = 'role'
+    ROLE = 'role',
+    SECURITY_CONFIG = 'security-config',
 }
 
 export enum Action {

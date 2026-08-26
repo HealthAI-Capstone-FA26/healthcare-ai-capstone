@@ -68,12 +68,6 @@ export class AuthController {
     return this.loginService.login(dto);
   }
 
-  @Post('login/verify-otp')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Đăng nhập bước 2: xác thực OTP, trả về access/refresh token' })
-  verifyLoginOtp(@Body() dto: VerifyLoginOtpDto) {
-    return this.loginService.verifyLoginOtp(dto);
-  }
 
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
