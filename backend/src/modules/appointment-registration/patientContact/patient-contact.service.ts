@@ -6,15 +6,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { RedisService } from '../../redis/redis.service';
-import { RequestUser } from '../auth/strategies/jwt.strategy';
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { RedisService } from '../../../redis/redis.service';
+import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import {
   isPendingRelationship,
   PENDING_RELATIONSHIP_PREFIX,
   stripPendingPrefix,
   toPendingRelationship,
-} from '../../common/constants/patient-contact.constants';
+} from '../../../common/constants/patient-contact.constants';
 import { CreateContactRequestDto } from './dto/create-contact-request.dto';
 
 const CONTACT_REQUEST_RATE_LIMIT = 5;

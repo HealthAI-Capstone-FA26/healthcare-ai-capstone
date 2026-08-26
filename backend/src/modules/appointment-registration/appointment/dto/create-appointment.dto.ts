@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
-import { RelationshipType } from '../../../common/constants/relationship.constants';
+import { RelationshipType } from '../../../../common/constants/relationship.constants';
 
 export enum AppointmentPriority {
   NORMAL = 'normal',

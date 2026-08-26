@@ -6,12 +6,12 @@ import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { SearchPatientDto } from './dto/search-patient.dto';
 import { MatchSuggestionQueryDto } from './dto/match-suggestion-query.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../common/guards/permissions.guard';
-import { RequirePermissions } from '../../common/decorators/permissions.decorator';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { Action, Resource, Scope } from '../../common/constants/permissions.dictionary';
-import { RequestUser } from '../auth/strategies/jwt.strategy';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
+import { RequestUser } from '../../auth/strategies/jwt.strategy';
 
 @ApiTags('Patients')
 @ApiBearerAuth()

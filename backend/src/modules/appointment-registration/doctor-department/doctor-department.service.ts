@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../../prisma/prisma.service';
 import { AssignDoctorDepartmentDto } from './dto/assign-doctor-department.dto';
 
 // Schema dùng composite PK (doctorId, departmentId) cho DoctorDepartment (không có id riêng).

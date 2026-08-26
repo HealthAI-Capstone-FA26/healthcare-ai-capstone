@@ -6,19 +6,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { generateUniqueCode } from '../../common/utils/code-generator.util';
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { generateUniqueCode } from '../../../common/utils/code-generator.util';
 import {
   AppointmentStatus,
   canCancelAppointment,
   isValidAppointmentTransition,
-} from '../../common/utils/appointment-status.util';
-import { RelationshipType } from '../../common/constants/relationship.constants';
-import { isPendingRelationship } from '../../common/constants/patient-contact.constants';
+} from '../../../common/utils/appointment-status.util';
+import { RelationshipType } from '../../../common/constants/relationship.constants';
+import { isPendingRelationship } from '../../../common/constants/patient-contact.constants';
 import { PatientContactService } from '../patientContact/patient-contact.service';
 import { QueueTicketService } from '../queue-ticket/queue-ticket.service';
-import { QueueTicketPrefix } from '../../common/constants/queue-ticket.constants';
-import { RequestUser } from '../auth/strategies/jwt.strategy';
+import { QueueTicketPrefix } from '../../../common/constants/queue-ticket.constants';
+import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appointment.dto';
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';

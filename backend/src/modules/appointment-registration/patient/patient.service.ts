@@ -6,12 +6,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { RequestUser } from '../auth/strategies/jwt.strategy';
-import { Action, Resource, Scope } from '../../common/constants/permissions.dictionary';
-import { hasPermissionScope } from '../../common/utils/permission.util';
-import { generateUniqueCode } from '../../common/utils/code-generator.util';
-import { isPendingRelationship } from '../../common/constants/patient-contact.constants';
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
+import { hasPermissionScope } from '../../../common/utils/permission.util';
+import { generateUniqueCode } from '../../../common/utils/code-generator.util';
+import { isPendingRelationship } from '../../../common/constants/patient-contact.constants';
 import { PatientContactService } from '../patientContact/patient-contact.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
