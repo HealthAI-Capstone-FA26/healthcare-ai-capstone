@@ -7,10 +7,9 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TokenService } from './token/token.service';
 import { SessionService } from './session/session.service';
-import { SecurityConfigService } from './security-config/security-config.service';
+import { SecurityConfigModule } from './security-config/security-config.module';
 import { RegistrationOtpStore } from './registration/registration-otp.store';
 import { RegistrationService } from './registration/registration.service';
-import { LoginOtpStore } from './login/login-otp.store';
 import { LoginService } from './login/login.service';
 import { PasswordResetOtpStore } from './password/password-reset-otp.store';
 import { PasswordService } from './password/password.service';
@@ -19,6 +18,7 @@ import { UserModule } from '../user/user.module';
 @Module({
   imports: [
     UserModule,
+    SecurityConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -38,14 +38,12 @@ import { UserModule } from '../user/user.module';
     // Hạ tầng dùng chung
     TokenService,
     SessionService,
-    SecurityConfigService,
 
     // Đăng ký
     RegistrationOtpStore,
     RegistrationService,
 
     // Đăng nhập / refresh / logout
-    LoginOtpStore,
     LoginService,
 
     // Đổi mật khẩu / quên mật khẩu
@@ -56,4 +54,4 @@ import { UserModule } from '../user/user.module';
   // module khác (nếu cần) import đúng cái mình dùng thay vì phải kéo theo cả khối auth.
   exports: [RegistrationService, LoginService, PasswordService],
 })
-export class AuthModule {}
+export class AuthModule { }
