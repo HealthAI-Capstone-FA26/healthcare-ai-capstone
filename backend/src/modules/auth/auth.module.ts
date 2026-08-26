@@ -10,7 +10,6 @@ import { SessionService } from './session/session.service';
 import { SecurityConfigService } from './security-config/security-config.service';
 import { RegistrationOtpStore } from './registration/registration-otp.store';
 import { RegistrationService } from './registration/registration.service';
-import { LoginOtpStore } from './login/login-otp.store';
 import { LoginService } from './login/login.service';
 import { PasswordResetOtpStore } from './password/password-reset-otp.store';
 import { PasswordService } from './password/password.service';
@@ -45,7 +44,6 @@ import { UserModule } from '../user/user.module';
     RegistrationService,
 
     // Đăng nhập / refresh / logout
-    LoginOtpStore,
     LoginService,
 
     // Đổi mật khẩu / quên mật khẩu
@@ -56,4 +54,4 @@ import { UserModule } from '../user/user.module';
   // module khác (nếu cần) import đúng cái mình dùng thay vì phải kéo theo cả khối auth.
   exports: [RegistrationService, LoginService, PasswordService],
 })
-export class AuthModule {}
+export class AuthModule { }

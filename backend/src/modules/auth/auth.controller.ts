@@ -6,7 +6,6 @@ import { PasswordService } from './password/password.service';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { LoginDto } from './dto/login.dto';
-import { VerifyLoginOtpDto } from './dto/verify-login-otp.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -59,20 +58,13 @@ export class AuthController {
     return this.registrationService.verifyOtp(dto);
   }
 
-  // ================== LOGIN (2 bước: password + MFA OTP) ==================
+  // ================== LOGIN ==================
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Đăng nhập bước 1: xác thực email + password, gửi OTP' })
+  @ApiOperation({ summary: 'Đăng nhập bằng email và mật khẩu' })
   login(@Body() dto: LoginDto) {
     return this.loginService.login(dto);
-  }
-
-  @Post('login/verify-otp')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Đăng nhập bước 2: xác thực OTP, trả về access/refresh token' })
-  verifyLoginOtp(@Body() dto: VerifyLoginOtpDto) {
-    return this.loginService.verifyLoginOtp(dto);
   }
 
   @Post('refresh-token')

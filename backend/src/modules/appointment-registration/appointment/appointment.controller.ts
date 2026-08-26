@@ -47,13 +47,45 @@ export class AppointmentController {
     return this.appointmentService.findById(id);
   }
 
-  @Patch(':id/status')
-  @ApiOperation({ summary: 'Cập nhật trạng thái lịch hẹn theo state machine dùng chung' })
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateAppointmentStatusDto) {
-    return this.appointmentService.updateStatus(id, dto);
+  // Nhóm transition thuộc quầy lễ tân: appointment:update:all
+  @Patch(':id/confirm')
+  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @ApiOperation({ summary: 'Reception xác nhận lịch hẹn (pending -> confirmed)' })
+  confirm(@Param('id') id: string) {
+    return this.appointmentService.confirm(id);
+  }
+
+  @Patch(':id/check-in')
+  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @ApiOperation({ summary: 'Reception check-in bệnh nhân tại quầy (confirmed -> checked_in)' })
+  checkIn(@Param('id') id: string) {
+    return this.appointmentService.checkIn(id);
+  }
+
+  @Patch(':id/no-show')
+  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @ApiOperation({ summary: 'Đánh dấu bệnh nhân không đến (-> no_show)' })
+  markNoShow(@Param('id') id: string) {
+    return this.appointmentService.markNoShow(id);
+  }
+
+  // Nhóm transition thuộc bác sĩ khi khám: appointment:update:own (chỉ trên lịch hẹn của chính mình)
+  @Patch(':id/start')
+  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.OWN}`)
+  @ApiOperation({ summary: 'Bác sĩ bắt đầu khám (checked_in -> in_progress)' })
+  start(@Param('id') id: string) {
+    return this.appointmentService.start(id);
+  }
+
+  @Patch(':id/complete')
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.OWN}`)
+  @ApiOperation({ summary: 'Bác sĩ hoàn tất khám (in_progress -> completed)' })
+  complete(@Param('id') id: string) {
+    return this.appointmentService.complete(id);
   }
 
   @Patch(':id/cancel')
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Huỷ lịch hẹn (chỉ cho phép từ pending/confirmed)' })
   cancel(@Param('id') id: string, @Body() dto: CancelAppointmentDto) {
     return this.appointmentService.cancel(id, dto);

@@ -63,23 +63,67 @@ export class PatientService {
     userId: string | null,
     tx: Prisma.TransactionClient | PrismaService = this.prisma,
   ) {
-    const patientCode = await this.generatePatientCode();
+    const duplicateConditions: Prisma.PatientWhereInput[] = [
+      { identityNumber: dto.identityNumber },
+    ];
 
-    return tx.patient.create({
-      data: {
-        patientCode,
-        userId,
-        fullName: dto.fullName,
-        dateOfBirth: new Date(dto.dateOfBirth),
-        gender: dto.gender,
-        identityNumber: dto.identityNumber,
-        insuranceNumber: dto.insuranceNumber,
-        phoneNumber: dto.phoneNumber,
-        email: dto.email,
-        address: dto.address,
-        ethnicity: dto.ethnicity,
+    if (dto.insuranceNumber) {
+      duplicateConditions.push({ insuranceNumber: dto.insuranceNumber });
+    }
+    if (dto.email) {
+      duplicateConditions.push({ email: { equals: dto.email, mode: 'insensitive' } });
+    }
+
+    const duplicatePatient = await tx.patient.findFirst({
+      where: { OR: duplicateConditions },
+      select: {
+        identityNumber: true,
+        insuranceNumber: true,
+        email: true,
       },
     });
+
+    if (duplicatePatient) {
+      if (duplicatePatient.identityNumber === dto.identityNumber) {
+        throw new ConflictException('Số CCCD/CMND đã được sử dụng');
+      }
+      if (dto.insuranceNumber && duplicatePatient.insuranceNumber === dto.insuranceNumber) {
+        throw new ConflictException('Số bảo hiểm đã được sử dụng');
+      }
+      throw new ConflictException('Email đã được sử dụng');
+    }
+
+    const patientCode = await this.generatePatientCode();
+
+    try {
+      return await tx.patient.create({
+        data: {
+          patientCode,
+          userId,
+          fullName: dto.fullName,
+          dateOfBirth: new Date(dto.dateOfBirth),
+          gender: dto.gender,
+          identityNumber: dto.identityNumber,
+          insuranceNumber: dto.insuranceNumber,
+          phoneNumber: dto.phoneNumber,
+          email: dto.email,
+          address: dto.address,
+          ethnicity: dto.ethnicity,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const target = Array.isArray(error.meta?.target) ? error.meta.target.join(',') : '';
+        if (target.includes('identity_number')) {
+          throw new ConflictException('Số CCCD/CMND đã được sử dụng');
+        }
+        if (target.includes('insurance_number')) {
+          throw new ConflictException('Số bảo hiểm đã được sử dụng');
+        }
+        throw new ConflictException('Thông tin bệnh nhân đã tồn tại');
+      }
+      throw error;
+    }
   }
 
   async findById(patientId: string) {
