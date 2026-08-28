@@ -72,7 +72,6 @@ export class LoginService {
     // Mật khẩu đúng -> reset đếm sai và cấp token ngay
     await this.userService.resetFailedAttempts(user.userId);
     await this.userService.touchLastLogin(user.userId);
-
     const tokens = await this.issueTokens(user);
 
     return {
@@ -81,6 +80,7 @@ export class LoginService {
       ...tokens,
     };
   }
+
 
   // ================== REFRESH TOKEN ==================
   async refreshToken(dto: RefreshTokenDto) {

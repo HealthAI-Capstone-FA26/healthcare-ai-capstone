@@ -7,7 +7,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TokenService } from './token/token.service';
 import { SessionService } from './session/session.service';
-import { SecurityConfigService } from './security-config/security-config.service';
+import { SecurityConfigModule } from './security-config/security-config.module';
 import { RegistrationOtpStore } from './registration/registration-otp.store';
 import { RegistrationService } from './registration/registration.service';
 import { LoginService } from './login/login.service';
@@ -18,6 +18,7 @@ import { UserModule } from '../user/user.module';
 @Module({
   imports: [
     UserModule,
+    SecurityConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -37,7 +38,6 @@ import { UserModule } from '../user/user.module';
     // Hạ tầng dùng chung
     TokenService,
     SessionService,
-    SecurityConfigService,
 
     // Đăng ký
     RegistrationOtpStore,
