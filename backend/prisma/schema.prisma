@@ -206,6 +206,7 @@ model DoctorSchedule {
   appointmentSlots AppointmentSlot[]
 
   @@unique([doctorId, workDate, session])
+  @@index([doctorId, workDate])
   @@map("doctor_schedules")
 }
 
@@ -221,6 +222,7 @@ model AppointmentSlot {
   schedule     DoctorSchedule @relation(fields: [scheduleId], references: [scheduleId], onDelete: Cascade)
   appointments Appointment[]
 
+  @@index([scheduleId, status])
   @@map("appointment_slots")
 }
 
@@ -299,6 +301,8 @@ model Appointment {
   queueTicket       QueueTicket?
   receptionCheckins ReceptionCheckin[]
 
+  @@index([departmentId, appointmentDate, status])
+  @@index([patientId, appointmentDate(sort: Desc)])
   @@map("appointments")
 }
 
@@ -400,6 +404,7 @@ model QueueTicket {
   department  Department  @relation(fields: [departmentId], references: [departmentId])
 
   @@unique([departmentId, ticketPrefix, ticketDate, ticketNumber])
+  @@index([departmentId, ticketDate, status])
   @@map("queue_tickets")
 }
 
