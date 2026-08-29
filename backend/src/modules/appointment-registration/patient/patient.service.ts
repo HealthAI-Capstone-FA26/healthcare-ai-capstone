@@ -47,15 +47,76 @@ export class PatientService {
       return this.createPatientRecord(dto, null);
     }
 
-    // Self-service: user chỉ có quyền own -> patient này là của chính họ.
+    let rel = dto.relationship || 'self';
+    if (rel === 'Bản thân') rel = 'self';
+    else if (rel === 'Con cái') rel = 'child';
+    else if (rel === 'Bố/Mẹ' || rel === 'Cha mẹ') rel = 'parent';
+    else if (rel === 'Vợ/Chồng') rel = 'spouse';
+
+    // Validation: Mỗi tài khoản chỉ được có duy nhất 1 hồ sơ "Bản thân"
+    if (rel === 'self') {
+      const existingSelfContact = await this.prisma.patientContact.findFirst({
+        where: {
+          userId: currentUser.userId,
+          relationship: 'self',
+        },
+      });
+      if (existingSelfContact) {
+        throw new ConflictException('Tài khoản của bạn đã có 1 hồ sơ Bản thân, không thể tạo thêm hồ sơ Bản thân mới');
+      }
+    }
+
+    // Trường hợp tạo hồ sơ cho người thân (Con cái, Bố mẹ, Vợ/chồng...)
+    if (rel !== 'self') {
+      const newPatient = await this.createPatientRecord(dto, null);
+
+      await this.prisma.patientContact.create({
+        data: {
+          userId: currentUser.userId,
+          patientId: newPatient.patientId,
+          relationship: rel,
+          isPrimaryContact: false,
+        },
+      });
+
+      return {
+        ...newPatient,
+        relationship: rel,
+      };
+    }
+
+    // Self-service: Tạo hồ sơ cho chính bản thân
     const existingSelf = await this.prisma.patient.findUnique({
       where: { userId: currentUser.userId },
     });
     if (existingSelf) {
-      throw new ConflictException('Bạn đã có hồ sơ bệnh nhân, không thể tạo thêm');
+      throw new ConflictException('Bạn đã có hồ sơ bệnh nhân bản thân, không thể tạo thêm hồ sơ bản thân');
     }
 
-    return this.createPatientRecord(dto, currentUser.userId);
+    const selfPatient = await this.createPatientRecord(dto, currentUser.userId);
+
+    await this.prisma.patientContact.upsert({
+      where: {
+        userId_patientId: {
+          userId: currentUser.userId,
+          patientId: selfPatient.patientId,
+        },
+      },
+      update: {
+        relationship: 'self',
+      },
+      create: {
+        userId: currentUser.userId,
+        patientId: selfPatient.patientId,
+        relationship: 'self',
+        isPrimaryContact: true,
+      },
+    });
+
+    return {
+      ...selfPatient,
+      relationship: 'self',
+    };
   }
 
   private async createPatientRecord(
@@ -108,16 +169,61 @@ export class PatientService {
     });
   }
 
-  async update(patientId: string, dto: UpdatePatientDto) {
+  async update(patientId: string, dto: UpdatePatientDto, currentUser?: RequestUser) {
     await this.findById(patientId);
 
-    return this.prisma.patient.update({
+    const { relationship, ...patientData } = dto;
+
+    const updatedPatient = await this.prisma.patient.update({
       where: { patientId },
       data: {
-        ...dto,
+        ...patientData,
         dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
       },
     });
+
+    if (currentUser?.userId && relationship) {
+      let rel = relationship;
+      if (rel === 'Bản thân') rel = 'self';
+      else if (rel === 'Con cái') rel = 'child';
+      else if (rel === 'Bố/Mẹ' || rel === 'Cha mẹ') rel = 'parent';
+      else if (rel === 'Vợ/Chồng') rel = 'spouse';
+
+      if (rel === 'self') {
+        const existingSelfContact = await this.prisma.patientContact.findFirst({
+          where: {
+            userId: currentUser.userId,
+            relationship: 'self',
+            patientId: { not: patientId },
+          },
+        });
+        if (existingSelfContact) {
+          throw new ConflictException(
+            'Tài khoản của bạn đã có 1 hồ sơ Bản thân khác. Mỗi tài khoản chỉ được có duy nhất 1 hồ sơ Bản thân!',
+          );
+        }
+      }
+
+      await this.prisma.patientContact.upsert({
+        where: {
+          userId_patientId: {
+            userId: currentUser.userId,
+            patientId: patientId,
+          },
+        },
+        update: {
+          relationship: rel,
+        },
+        create: {
+          userId: currentUser.userId,
+          patientId: patientId,
+          relationship: rel,
+          isPrimaryContact: rel === 'self',
+        },
+      });
+    }
+
+    return updatedPatient;
   }
 
   //GET /patients/match-suggestion: user vừa đăng ký xong, kiểm tra có Patient (userId = null) nào khớp CCCD/BHYT/SĐT không.
@@ -174,7 +280,7 @@ export class PatientService {
         currentUser.userId,
         patientId,
       );
-      if (!approvedContact) {
+      if (!approvedContact && patient.userId !== currentUser.userId) {
         throw new ForbiddenException('Bạn không có quyền xem hồ sơ bệnh nhân này');
       }
     }
@@ -202,7 +308,7 @@ export class PatientService {
   async linkUser(patientId: string, currentUser: RequestUser) {
     const patient = await this.findById(patientId);
 
-    if (patient.userId !== null) {
+    if (patient.userId !== null && patient.userId !== currentUser.userId) {
       throw new ConflictException('Hồ sơ bệnh nhân này đã được liên kết với một tài khoản');
     }
 
@@ -213,13 +319,31 @@ export class PatientService {
       throw new ConflictException('Tài khoản của bạn đã liên kết với một hồ sơ bệnh nhân khác');
     }
 
-    return this.prisma.patient.update({
+    const updated = await this.prisma.patient.update({
       where: { patientId },
       data: { userId: currentUser.userId },
     });
+
+    await this.prisma.patientContact.upsert({
+      where: {
+        userId_patientId: {
+          userId: currentUser.userId,
+          patientId: patientId,
+        },
+      },
+      update: {
+        relationship: 'self',
+      },
+      create: {
+        userId: currentUser.userId,
+        patientId: patientId,
+        relationship: 'self',
+        isPrimaryContact: true,
+      },
+    });
+
+    return updated;
   }
-
-
 }
 
 function maskTail(value: string | null | undefined, visibleTail = 3): string | null { // che để lộ 3 số cuối

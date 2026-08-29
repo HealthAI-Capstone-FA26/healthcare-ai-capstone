@@ -86,10 +86,10 @@ export class PatientController {
   }
 
   @Patch(':id')
-  @RequirePermissions(`${Resource.PATIENT}:${Action.UPDATE}:${Scope.GROUP}`)
+  // @RequirePermissions(`${Resource.PATIENT}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Cập nhật hồ sơ bệnh nhân (lễ tân/admin)' })
-  update(@Param('id') id: string, @Body() dto: UpdatePatientDto) {
-    return this.patientService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdatePatientDto, @CurrentUser() user: RequestUser) {
+    return this.patientService.update(id, dto, user);
   }
 
   @Post(':id/link-user')

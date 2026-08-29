@@ -59,6 +59,11 @@ export class CreatePatientDto {
   @MaxLength(255)
   address?: string;
 
+  @ApiPropertyOptional({ example: 'Con cái' })
+  @IsOptional()
+  @IsString()
+  relationship?: string;
+
   @ApiPropertyOptional({ example: 'Kinh' })
   @IsOptional()
   @IsString()
