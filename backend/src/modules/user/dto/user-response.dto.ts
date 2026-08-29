@@ -5,6 +5,10 @@ export class UserResponseDto {
   emailVerified!: boolean;
   mfaEnabled!: boolean;
   createdAt!: Date;
+  fullName?: string;
+  actorRole?: string;
+  avatarUrl?: string;
+  phoneNumber?: string;
 
   constructor(partial: Partial<UserResponseDto>) {
     Object.assign(this, partial);

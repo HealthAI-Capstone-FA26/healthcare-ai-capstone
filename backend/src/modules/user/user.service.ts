@@ -21,7 +21,17 @@ export class UserService {
   constructor(private readonly prisma: PrismaService) { }
 
   findByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email } })
+    return this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        profile: true,
+        userRoles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
   }
 
   findById(userId: string) {
@@ -118,7 +128,8 @@ export class UserService {
     });
   }
 
-  toResponseDto(user: User): UserResponseDto {
+  toResponseDto(user: any): UserResponseDto {
+    const assignedRole = user.userRoles?.[0]?.role?.roleCode?.trim() || user.profile?.actorRole || 'PATIENT';
     return new UserResponseDto({
       userId: user.userId,
       email: user.email,
@@ -126,6 +137,10 @@ export class UserService {
       emailVerified: user.emailVerified,
       mfaEnabled: user.mfaEnabled,
       createdAt: user.createdAt,
+      fullName: user.profile?.fullName || user.email,
+      actorRole: assignedRole,
+      avatarUrl: user.profile?.avatarUrl,
+      phoneNumber: user.profile?.phoneNumber,
     });
   }
 }

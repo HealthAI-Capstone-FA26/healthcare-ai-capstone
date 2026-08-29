@@ -19,6 +19,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfileService } from './profile.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { imageUploadConfig } from '../../common/configs/upload.config'; // Nhớ trỏ đúng file minio config của bạn
 
 @ApiTags('Users')
@@ -37,12 +38,10 @@ export class ProfileController {
         summary: 'Cập nhật profile của người dùng hiện tại',
     })
     async updateMyProfile(
-        @Req() req,
+        @CurrentUser('userId') userId: string,
         @Body() updateProfileDto: UpdateProfileDto,
         @UploadedFile() file?: Express.Multer.File,
     ) {
-        const userId = req.user.id;
-
         // Loại bỏ actorRole nếu user cố tình gửi lên trong body
         const { actorRole, ...safeUpdateDto } = updateProfileDto;
 
