@@ -266,19 +266,49 @@ export class AppointmentService {
     return this.transitionTo(appointmentId, AppointmentStatus.CONFIRMED);
   }
 
-  // PATCH /appointments/:id/check-in — reception check-in tại quầy (confirmed -> checked_in).
+  // PATCH /appointments/:id/check-in — bệnh nhân đặt lịch online ĐÃ CÓ MẶT tại bệnh viện.
+  //
+  // ReceptionCheckin + Encounter tại đây — SAI vì bỏ qua hoàn toàn cơ chế hàng đợi. Theo đúng
+  // thiết kế đã có sẵn nhưng chưa từng dùng tới (xem comment QueueTicketPrefix trong
+  // queue-ticket.constants.ts và compareQueueTickets — prefix A=online LUÔN ưu tiên hơn
+  // B=at_hospital, trừ emergency), online và at_hospital phải CÙNG đi qua 1 hàng đợi
+  // (QueueTicket) của khoa, chỉ khác thời điểm phát số: at_hospital phát số ngay lúc tạo lịch
+  // (chưa biết bác sĩ), online phát số tại ĐÚNG THỜI ĐIỂM NÀY — lúc bệnh nhân thật sự có mặt
+  // (đã biết sẵn bác sĩ từ lúc đặt). Từ đây, ticket đi qua chung
+  // call() -> serve() -> done() với ticket at_hospital — ReceptionCheckin/Encounter chỉ được
+  // tạo ở serve()/done() (đã có sẵn), KHÔNG tạo trùng ở check-in nữa.
   async checkIn(appointmentId: string) {
     const appointment = await this.findById(appointmentId);
 
-    // Lịch hẹn at_hospital đi theo luồng hàng chờ riêng, phải phục vụ qua queue-ticket,
-    // không cho check-in trực tiếp ở đây.
     if (appointment.bookingChannel === 'at_hospital') {
       throw new BadRequestException(
-        'Lịch hẹn đăng ký tại bệnh viện phải được phục vụ qua PATCH /queue-tickets/:id/serve, không thể check-in trực tiếp',
+        'Lịch hẹn đăng ký tại bệnh viện đã có số thứ tự ngay từ lúc tạo, không cần check-in riêng',
       );
     }
 
-    return this.transitionTo(appointmentId, AppointmentStatus.CHECKED_IN);
+    // Chỉ cho phát số khi lịch đã được lễ tân xác nhận (confirmed) — chưa xác nhận thì chưa cho
+    // vào hàng đợi. Lưu ý: check-in KHÔNG đổi Appointment.status (giữ nguyên 'confirmed', giống
+    // hệt cách at_hospital giữ 'pending' suốt lúc chờ) — status chỉ thật sự chuyển sang
+    // 'checked_in' ở bước serve(), cùng lúc với việc tạo ReceptionCheckin.
+    if (appointment.status !== AppointmentStatus.CONFIRMED) {
+      throw new BadRequestException(
+        `Chỉ có thể check-in khi lịch hẹn đang ở trạng thái 'confirmed', hiện tại là '${appointment.status}'`,
+      );
+    }
+
+    const existingTicket = await this.prisma.queueTicket.findUnique({ where: { appointmentId } });
+    if (existingTicket) {
+      throw new BadRequestException('Lịch hẹn này đã có số thứ tự, không thể check-in lại');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const queueTicket = await this.queueTicketService.issueTicketForAppointment(
+        tx,
+        appointment,
+        QueueTicketPrefix.ONLINE,
+      );
+      return { appointment, queueTicket };
+    });
   }
 
   // PATCH /appointments/:id/start — bác sĩ bắt đầu khám (checked_in -> in_progress).

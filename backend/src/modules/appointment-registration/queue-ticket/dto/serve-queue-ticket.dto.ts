@@ -1,11 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class ServeQueueTicketDto {
-  // Bác sĩ được lễ tân chọn/gán lúc tiếp nhận (at_hospital chưa có doctorId từ lúc tạo).
-  // Quyết định cho Câu hỏi mở #1 Phase 5: bắt buộc doctor đang có DoctorSchedule active đúng
-  // khung giờ hiện tại tại khoa này — không cho lễ tân chọn tự do (xem QueueTicketService.serve).
-  @ApiProperty()
+  // Bắt buộc CHỈ KHI appointment chưa có doctorId (at_hospital — lễ tân chọn/gán lúc tiếp nhận).
+  // Với online đã chọn bác sĩ từ lúc đặt lịch, để trống — service tự dùng đúng bác sĩ đã đặt
+  // (xem QueueTicketService.serve), tránh lễ tân gõ nhầm đổi sang bác sĩ khác ý bệnh nhân.
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsUUID()
-  doctorId: string;
+  doctorId?: string;
 }

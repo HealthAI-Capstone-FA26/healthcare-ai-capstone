@@ -36,6 +36,8 @@ model User {
   chiefComplaintsRecorded      ChiefComplaint[]              @relation("ComplaintRecordedByUser")
   patientIdentityVerifications PatientIdentityVerification[] @relation("IdentityVerifiedByUser")
   consentsWitnessed            Consent[]                     @relation("ConsentWitnessedByUser")
+  allergiesRecorded            PatientAllergy[]              @relation("AllergyRecordedByUser")
+  medicalHistoriesRecorded     PatientMedicalHistory[]        @relation("MedicalHistoryRecordedByUser")
 
   @@map("users")
 }
@@ -252,6 +254,8 @@ model Patient {
   appointments    Appointment[]
   encounters      Encounter[]
   consents        Consent[]
+  allergies       PatientAllergy[]
+  medicalHistories PatientMedicalHistory[]
 
   @@map("patients")
 }
@@ -330,7 +334,11 @@ model Encounter {
   identityVerifications PatientIdentityVerification[]
   doctorQueueEntry      DoctorQueueEntry?
   consents              Consent[]
+  allergies             PatientAllergy[]
+  medicalHistories      PatientMedicalHistory[]
 
+  @@index([patientId, arrivedAt(sort: Desc)])
+  @@index([status, departmentId])
   @@map("encounters")
 }
 
@@ -341,13 +349,13 @@ model ChiefComplaint {
   symptoms         String?   @db.Text
   symptomOnsetDate DateTime? @map("symptom_onset_date") @db.Date
   painLevel        Int?      @map("pain_level")
-  inputChannel     String    @map("input_channel") @db.VarChar(20) // receptionist_assisted | online_per_visit
-  recordedByUserId String    @map("recorded_by_user_id") @db.Char(36)
+  inputChannel     String    @map("input_channel") @db.VarChar(20) // self_kiosk | receptionist_assisted | online_pre_visit
+  recordedByUserId String?   @map("recorded_by_user_id") @db.Char(36) // NULL khi bệnh nhân tự nhập qua kiosk/app (self_kiosk)
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
   encounter      Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
-  recordedByUser User      @relation("ComplaintRecordedByUser", fields: [recordedByUserId], references: [userId])
+  recordedByUser User?     @relation("ComplaintRecordedByUser", fields: [recordedByUserId], references: [userId])
 
   @@map("chief_complaints")
 }
@@ -364,6 +372,7 @@ model PatientIdentityVerification {
   encounter      Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
   verifiedByUser User      @relation("IdentityVerifiedByUser", fields: [verifiedByUserId], references: [userId])
 
+  @@index([encounterId, verifiedAt(sort: Desc)])
   @@map("patient_identity_verifications")
 }
 
@@ -385,6 +394,7 @@ model DoctorQueueEntry {
   department   Department @relation(fields: [departmentId], references: [departmentId])
   routedByUser User?      @relation("QueueRoutedByUser", fields: [routedByUserId], references: [userId])
 
+  @@index([doctorId, status, queueOrder])
   @@map("doctor_queue_entries")
 }
 
@@ -445,7 +455,9 @@ model Consent {
   patientId         String    @map("patient_id") @db.Char(36)
   encounterId       String?   @map("encounter_id") @db.Char(36)
   policyId          String    @map("policy_id") @db.Char(36)
-  checkedAt         DateTime  @default(now()) @map("checked_at")
+  signatureType     String    @map("signature_type") @db.VarChar(20) // e_signature_draw | otp_confirmed | checkbox_click
+  signatureDataUrl  String?   @map("signature_data_url") @db.VarChar(255)
+  signedAt          DateTime  @default(now()) @map("signed_at")
   witnessedByUserId String?   @map("witnessed_by_user_id") @db.Char(36)
   ipAddress         String?   @map("ip_address") @db.VarChar(45)
   deviceInfo        String?   @map("device_info") @db.VarChar(255)
@@ -458,5 +470,53 @@ model Consent {
   policy          ConsentPolicy @relation(fields: [policyId], references: [policyId])
   witnessedByUser User?         @relation("ConsentWitnessedByUser", fields: [witnessedByUserId], references: [userId])
 
+  @@index([patientId, status])
   @@map("consents")
+}
+
+// ================== PATIENT LONG-TERM RECORDS ==================
+// (dị ứng / tiền sử — hồ sơ dài hạn, không gắn cứng 1 encounter; encounterId chỉ để audit
+// lượt khám nào đã khai báo, khoá sở hữu chính vẫn là patientId — theo module3.md mục 3)
+
+model PatientAllergy {
+  allergyId           String   @id @default(uuid()) @map("allergy_id") @db.Char(36)
+  patientId           String   @map("patient_id") @db.Char(36)
+  allergyType         String   @map("allergy_type") @db.VarChar(20) // drug | food | environmental | other
+  allergenName        String   @map("allergen_name") @db.VarChar(255)
+  reactionDescription String?  @map("reaction_description") @db.Text
+  severity            String   @db.VarChar(20) // mild | moderate | severe | life_threatening
+  recordedByUserId    String?  @map("recorded_by_user_id") @db.Char(36)
+  encounterId         String?  @map("encounter_id") @db.Char(36)
+  recordedAt          DateTime @default(now()) @map("recorded_at")
+  status              String   @default("active") @db.VarChar(20) // active | resolved | entered_in_error
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  patient         Patient    @relation(fields: [patientId], references: [patientId])
+  encounter       Encounter? @relation(fields: [encounterId], references: [encounterId])
+  recordedByUser  User?      @relation("AllergyRecordedByUser", fields: [recordedByUserId], references: [userId])
+
+  @@index([patientId, status])
+  @@map("patient_allergies")
+}
+
+model PatientMedicalHistory {
+  historyId        String    @id @default(uuid()) @map("history_id") @db.Char(36)
+  patientId        String    @map("patient_id") @db.Char(36)
+  historyType      String    @map("history_type") @db.VarChar(20) // chronic_disease | surgery | family_history
+  conditionName    String    @map("condition_name") @db.VarChar(255)
+  icd10Code        String?   @map("icd10_code") @db.VarChar(10)
+  onsetDate        DateTime? @map("onset_date") @db.Date
+  notes            String?   @db.Text
+  recordedByUserId String?   @map("recorded_by_user_id") @db.Char(36)
+  encounterId      String?   @map("encounter_id") @db.Char(36)
+  recordedAt       DateTime  @default(now()) @map("recorded_at")
+  status           String    @default("active") @db.VarChar(20) // active | resolved | inactive
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  patient        Patient    @relation(fields: [patientId], references: [patientId])
+  encounter      Encounter? @relation(fields: [encounterId], references: [encounterId])
+  recordedByUser User?      @relation("MedicalHistoryRecordedByUser", fields: [recordedByUserId], references: [userId])
+
+  @@index([patientId, historyType])
+  @@map("patient_medical_history")
 }

@@ -13,13 +13,17 @@ import {
   isValidAppointmentTransition,
 } from '../../../common/utils/appointment-status.util';
 import { combineDateWithTimeOfDay } from '../../../common/utils/schedule-time.util';
+import { EncounterService } from '../../reception-intake/encounter/encounter.service';
 import { CallQueueTicketDto } from './dto/call-queue-ticket.dto';
 import { ServeQueueTicketDto } from './dto/serve-queue-ticket.dto';
 import { FindQueueTicketsQueryDto } from './dto/find-queue-tickets-query.dto';
 
 @Injectable()
 export class QueueTicketService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly encounterService: EncounterService,
+  ) {}
 
   /**
    * Sinh ticketNumber tiếp theo theo (departmentId, prefix, date) và tạo QueueTicket cho 1
@@ -37,7 +41,11 @@ export class QueueTicketService {
     appointment: Appointment,
     prefix: QueueTicketPrefix,
   ): Promise<QueueTicket> {
-    const ticketDate = toDateOnlyUTC(appointment.createdAt ?? new Date());
+    // Ticket luôn đại diện cho hàng đợi CỦA NGÀY BỆNH NHÂN THẬT SỰ CÓ MẶT tại khoa, không phải
+    // ngày tạo appointment. Với at_hospital 2 mốc này trùng nhau (tạo lúc nào đến lúc đó) nên
+    // trước đây dùng appointment.createdAt không lộ bug; với online thì appointment có thể được
+    // TẠO/đặt trước nhiều ngày rồi mới đến, nên bắt buộc phải dùng ngày hiện tại tại đây.
+    const ticketDate = toDateOnlyUTC(getHospitalWallClockNow());
     const lockKey = `${appointment.departmentId}:${prefix}:${ticketDate.toISOString().slice(0, 10)}`;
 
     // pg_advisory_xact_lock tự release khi transaction kết thúc (commit/rollback).
@@ -162,8 +170,19 @@ export class QueueTicketService {
       throw new BadRequestException(`Không thể tiếp nhận số đang ở trạng thái '${ticket.status}'`);
     }
 
+    // Online đã chọn bác sĩ cụ thể ngay từ lúc đặt lịch -> LUÔN ƯU TIÊN doctorId đã có sẵn trên
+    // appointment, không cho lễ tân đổi tuỳ tiện tại bước serve (tránh gán nhầm/đổi khác ý bệnh
+    // nhân đã chọn). Chỉ khi appointment chưa có doctorId (at_hospital, chưa từng chọn bác sĩ)
+    // mới bắt buộc lễ tân cung cấp qua dto.doctorId.
+    const doctorId = ticket.appointment.doctorId ?? dto.doctorId;
+    if (!doctorId) {
+      throw new BadRequestException(
+        'Lịch hẹn này chưa gán bác sĩ, cần cung cấp doctorId khi tiếp nhận',
+      );
+    }
+
     const doctor = await this.prisma.doctor.findUnique({
-      where: { doctorId: dto.doctorId },
+      where: { doctorId },
       include: { doctorDepartments: true },
     });
     if (!doctor) {
@@ -179,7 +198,7 @@ export class QueueTicketService {
     // Quyết định cho Câu hỏi mở #1 Phase 5: bác sĩ bắt buộc đang có DoctorSchedule active đúng
     // khung giờ hiện tại tại khoa này, không để lễ tân chọn tự do (tránh gán nhầm bác sĩ đã hết
     // ca/nghỉ, nhất quán với luồng online vốn đã validate slot theo đúng ca của bác sĩ).
-    await this.assertDoctorOnActiveShift(dto.doctorId, ticket.departmentId);
+    await this.assertDoctorOnActiveShift(doctorId, ticket.departmentId);
 
     return this.prisma.$transaction(async (tx) => {
       const updatedTicket = await tx.queueTicket.update({
@@ -211,23 +230,42 @@ export class QueueTicketService {
 
       const updatedAppointment = await tx.appointment.update({
         where: { appointmentId: ticket.appointmentId },
-        data: { doctorId: dto.doctorId, status: AppointmentStatus.CHECKED_IN },
+        data: { doctorId, status: AppointmentStatus.CHECKED_IN },
       });
 
       return { queueTicket: updatedTicket, appointment: updatedAppointment };
     });
   }
 
-  // PATCH /queue-tickets/:id/done — sẵn sàng bàn giao Module 3, KHÔNG tự tạo Encounter ở đây.
+  // PATCH /queue-tickets/:id/done — bàn giao Module 3: tạo Encounter trong cùng transaction với
+  // bước đóng ticket, dùng ReceptionCheckin đã được tạo ở bước serve() để lấy đúng arrivedAt.
   async done(ticketId: string) {
     const ticket = await this.findById(ticketId);
     if (ticket.status !== QueueTicketStatus.SERVING) {
       throw new BadRequestException(`Không thể đánh dấu hoàn tất khi đang ở trạng thái '${ticket.status}'`);
     }
 
-    return this.prisma.queueTicket.update({
-      where: { ticketId },
-      data: { status: QueueTicketStatus.DONE },
+    // serve() luôn tạo đúng 1 ReceptionCheckin cho appointment trước khi ticket chuyển sang
+    // SERVING, nên tại đây bắt buộc phải tìm thấy — nếu không có nghĩa là dữ liệu bất thường.
+    const checkin = await this.prisma.receptionCheckin.findFirst({
+      where: { appointmentId: ticket.appointmentId },
+      orderBy: { checkinTime: 'desc' },
+    });
+    if (!checkin) {
+      throw new BadRequestException(
+        'Không tìm thấy ReceptionCheckin của appointment này, không thể tạo Encounter',
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const updatedTicket = await tx.queueTicket.update({
+        where: { ticketId },
+        data: { status: QueueTicketStatus.DONE },
+      });
+
+      const encounter = await this.encounterService.createFromCheckin(tx, ticket.appointment, checkin);
+
+      return { queueTicket: updatedTicket, encounter };
     });
   }
 }

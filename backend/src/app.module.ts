@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { DoctorModule } from './modules/doctor/doctor.module';
 import { AppointmentRegistrationModule } from './modules/appointment-registration/appointment-registration.module';
+import { ReceptionIntakeModule } from './modules/reception-intake/reception-intake.module';
 import { RolePermissionModule } from './modules/auth/role-permission/role-permission.module';
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RolePermissionModule } from './modules/auth/role-permission/role-permis
     UserModule,
     DoctorModule,
     AppointmentRegistrationModule,
+    ReceptionIntakeModule,
     RolePermissionModule
   ],
   controllers: [AppController],

@@ -57,7 +57,9 @@ export class AppointmentController {
 
   @Patch(':id/check-in')
   // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
-  @ApiOperation({ summary: 'Reception check-in bệnh nhân tại quầy (confirmed -> checked_in)' })
+  @ApiOperation({
+    summary: 'Bệnh nhân đặt lịch online đã có mặt tại bệnh viện — phát số thứ tự (prefix A, ưu tiên hơn at_hospital)',
+  })
   checkIn(@Param('id') id: string) {
     return this.appointmentService.checkIn(id);
   }

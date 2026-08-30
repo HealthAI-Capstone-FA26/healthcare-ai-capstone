@@ -18,11 +18,15 @@ const LOCK_TTL_SECONDS = 5 * 60;
 
 /**
  * Chạy định kỳ mỗi Chủ nhật 00:00 -> sinh DoctorSchedule + AppointmentSlot cho TUẦN KẾ TIẾP
- * (thứ 2 -> thứ 7, không sinh Chủ nhật) cho tất cả bác sĩ đang active, ở cả 3 session.
+ * (thứ 2 -> Chủ nhật, đủ 7 ngày) cho tất cả bác sĩ đang active, ở cả 3 session.
+ *
+ * Bệnh viện Tâm Anh khám ngoại trú đủ 7 ngày/tuần (không nghỉ Chủ nhật) — đã xác nhận qua tra cứu
+ * thực tế thời gian khám ngoại trú công bố của bệnh viện, nên KHÔNG loại Chủ nhật khỏi lịch sinh.
  *
  * Giả định tạm thời (CHƯA có model "lịch làm việc định kỳ theo bác sĩ" trong schema hiện tại):
- * mọi bác sĩ active làm việc cả 3 session, từ thứ 2 tới thứ 7. Khi có bảng cấu hình
- * availability riêng cho từng bác sĩ, thay thế đoạn resolveDoctorsToGenerate() bên dưới.
+ * mọi bác sĩ active làm việc cả 3 session, đủ 7 ngày/tuần. Khi có bảng cấu hình
+ * availability riêng cho từng bác sĩ (vd 1 số bác sĩ không làm Chủ nhật), thay thế đoạn
+ * resolveDoctorsToGenerate() bên dưới.
  */
 @Injectable()
 export class WeeklyScheduleGenCron {
@@ -83,8 +87,8 @@ export class WeeklyScheduleGenCron {
         continue;
       }
 
-      for (let dayOffset = 0; dayOffset < 6; dayOffset += 1) {
-        // thứ 2 (offset 0) -> thứ 7 (offset 5), không sinh Chủ nhật
+      for (let dayOffset = 0; dayOffset < 7; dayOffset += 1) {
+        // thứ 2 (offset 0) -> Chủ nhật (offset 6), đủ 7 ngày (bệnh viện khám ngoại trú cả tuần)
         const workDate = addDays(weekMonday, dayOffset);
 
         for (const session of Object.values(ScheduleSession)) {
