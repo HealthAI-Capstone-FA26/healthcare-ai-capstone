@@ -58,4 +58,10 @@ export class DoctorDepartmentController {
   findDoctorsByDepartment(@Param('id') departmentId: string) {
     return this.doctorDepartmentService.findDoctorsByDepartment(departmentId);
   }
+
+  @Get('departments')
+  @ApiOperation({ summary: 'Lấy danh sách tất cả các khoa phòng đang hoạt động (Public API)' })
+  findAllDepartments() {
+    return this.doctorDepartmentService.findAllDepartments();
+  }
 }
