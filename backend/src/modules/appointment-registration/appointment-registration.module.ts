@@ -24,6 +24,8 @@ import { PatientContactService } from './patientContact/patient-contact.service'
 import { WeeklyScheduleGenCron } from '../../common/cron/weekly-schedule-gen.cron';
 import { ExpireSlotsCron } from '../../common/cron/expire-slots.cron';
 
+import { ReceptionIntakeModule } from '../reception-intake/reception-intake.module';
+
 /**
  * Gom toàn bộ domain nghiệp vụ đăng ký khám (Module 2 — Đăng ký khám chữa bệnh):
  * Patient, PatientContact, DoctorDepartment, DoctorSchedule, AppointmentSlot,
@@ -32,8 +34,12 @@ import { ExpireSlotsCron } from '../../common/cron/expire-slots.cron';
  * AppointmentSlot được Appointment đặt, Appointment at-hospital sinh
  * QueueTicket, bác sĩ gán chuyên khoa qua DoctorDepartment) nên được hợp nhất
  * thành 1 module duy nhất thay vì tách rời như trước.
+ *
+ * Import ReceptionIntakeModule (Module 3) để QueueTicketService gọi được EncounterService
+ * ngay tại bước done() — xem comment trong ReceptionIntakeModule.
  */
 @Module({
+  imports: [ReceptionIntakeModule],
   controllers: [
     PatientController,
     PatientContactController,
