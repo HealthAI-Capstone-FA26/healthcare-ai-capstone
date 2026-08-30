@@ -7,7 +7,13 @@ import {
 import { Reflector } from '@nestjs/core';
 // Sửa lại 2 path dưới đây cho khớp vị trí thật trong project
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
-import { PermissionCode } from '../constants/permissions.dictionary';
+import {
+    Action,
+    PermissionCode,
+    Resource,
+    Scope,
+} from '../constants/permissions.dictionary';
+import { hasPermissionScope } from '../utils/permission.util';
 import { RequestUser } from '../../modules/auth/strategies/jwt.strategy';
 
 /**
@@ -43,9 +49,16 @@ export class PermissionsGuard implements CanActivate {
         }
 
         const userPermissions = user.permissions ?? [];
-        const hasAllRequiredPermissions = requiredPermissions.every((perm) =>
-            userPermissions.includes(perm),
-        );
+        const hasAllRequiredPermissions = requiredPermissions.every((permission) => {
+            const [resource, action, scope] = permission.split(':');
+
+            return hasPermissionScope(
+                userPermissions,
+                resource as Resource,
+                action as Action,
+                scope as Scope,
+            );
+        });
 
         if (!hasAllRequiredPermissions) {
             throw new ForbiddenException(

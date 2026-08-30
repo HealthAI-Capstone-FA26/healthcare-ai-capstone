@@ -85,6 +85,12 @@ export class AppointmentService {
       throw new BadRequestException('Slot không tồn tại, không thuộc bác sĩ này, hoặc đã hết chỗ');
     }
 
+    // Slot phải thuộc đúng khoa mà dto yêu cầu, tránh trường hợp doctorId trùng nhưng lịch làm
+    // việc lại gắn với khoa khác.
+    if (slot.schedule.departmentId !== dto.departmentId) {
+      throw new BadRequestException('Slot không thuộc khoa đã chọn');
+    }
+
     const appointmentCode = await this.generateAppointmentCode();
 
     return this.prisma.$transaction(async (tx) => {
@@ -238,19 +244,56 @@ export class AppointmentService {
   }
 
   // PATCH /appointments/:id/status — tuân theo state machine dùng chung (Phase 4 & Phase 5).
-  async updateStatus(appointmentId: string, dto: UpdateAppointmentStatusDto) {
+  // Giữ hàm dùng chung này cho các transition nội bộ (vd: được gọi lại từ confirm/checkIn/...)
+  // Không còn expose thẳng qua controller — mỗi transition đã có API + permission riêng.
+  private async transitionTo(appointmentId: string, nextStatus: AppointmentStatus) {
     const appointment = await this.findById(appointmentId);
 
-    if (!isValidAppointmentTransition(appointment.status, dto.status)) {
+    if (!isValidAppointmentTransition(appointment.status, nextStatus)) {
       throw new BadRequestException(
-        `Không thể chuyển trạng thái từ '${appointment.status}' sang '${dto.status}'`,
+        `Không thể chuyển trạng thái từ '${appointment.status}' sang '${nextStatus}'`,
       );
     }
 
     return this.prisma.appointment.update({
       where: { appointmentId },
-      data: { status: dto.status },
+      data: { status: nextStatus },
     });
+  }
+
+  // PATCH /appointments/:id/confirm — reception xác nhận lịch (pending -> confirmed).
+  async confirm(appointmentId: string) {
+    return this.transitionTo(appointmentId, AppointmentStatus.CONFIRMED);
+  }
+
+  // PATCH /appointments/:id/check-in — reception check-in tại quầy (confirmed -> checked_in).
+  async checkIn(appointmentId: string) {
+    const appointment = await this.findById(appointmentId);
+
+    // Lịch hẹn at_hospital đi theo luồng hàng chờ riêng, phải phục vụ qua queue-ticket,
+    // không cho check-in trực tiếp ở đây.
+    if (appointment.bookingChannel === 'at_hospital') {
+      throw new BadRequestException(
+        'Lịch hẹn đăng ký tại bệnh viện phải được phục vụ qua PATCH /queue-tickets/:id/serve, không thể check-in trực tiếp',
+      );
+    }
+
+    return this.transitionTo(appointmentId, AppointmentStatus.CHECKED_IN);
+  }
+
+  // PATCH /appointments/:id/start — bác sĩ bắt đầu khám (checked_in -> in_progress).
+  async start(appointmentId: string) {
+    return this.transitionTo(appointmentId, AppointmentStatus.IN_PROGRESS);
+  }
+
+  // PATCH /appointments/:id/complete — bác sĩ hoàn tất khám (in_progress -> completed).
+  async complete(appointmentId: string) {
+    return this.transitionTo(appointmentId, AppointmentStatus.COMPLETED);
+  }
+
+  // PATCH /appointments/:id/no-show — bệnh nhân không đến (pending/confirmed/checked_in -> no_show).
+  async markNoShow(appointmentId: string) {
+    return this.transitionTo(appointmentId, AppointmentStatus.NO_SHOW);
   }
 
   // PATCH /appointments/:id/cancel — chỉ cho phép từ pending/confirmed.
@@ -263,13 +306,29 @@ export class AppointmentService {
       );
     }
 
-    return this.prisma.appointment.update({
-      where: { appointmentId },
-      data: {
-        status: AppointmentStatus.CANCELLED,
-        cancelledAt: new Date(),
-        cancelReason: dto.cancelReason,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const cancelledAppointment = await tx.appointment.update({
+        where: { appointmentId },
+        data: {
+          status: AppointmentStatus.CANCELLED,
+          cancelledAt: new Date(),
+          cancelReason: dto.cancelReason,
+        },
+      });
+
+      // Nếu lịch hẹn có gắn slot (booking online) thì phải trả lại chỗ: giảm bookedCount
+      // và mở lại status='free' để slot có thể được đặt lại.
+      if (appointment.slotId) {
+        await tx.appointmentSlot.update({
+          where: { slotId: appointment.slotId },
+          data: {
+            bookedCount: { decrement: 1 },
+            status: 'free',
+          },
+        });
+      }
+
+      return cancelledAppointment;
     });
   }
 }

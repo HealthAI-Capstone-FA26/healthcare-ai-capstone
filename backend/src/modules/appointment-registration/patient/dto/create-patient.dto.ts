@@ -32,10 +32,9 @@ export class CreatePatientDto {
   gender: PatientGender;
 
   @ApiPropertyOptional({ example: '079090001234' })
-  @IsOptional()
   @IsString()
   @MaxLength(20)
-  identityNumber?: string;
+  identityNumber: string;
 
   @ApiPropertyOptional({ example: 'HS4010123456789' })
   @IsOptional()

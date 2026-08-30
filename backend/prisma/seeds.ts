@@ -18,16 +18,28 @@ const prisma = new PrismaClient({ adapter });
 // tránh phải sửa file này mỗi khi đổi chính sách phân quyền.
 
 async function seedPermissions(): Promise<void> {
+  const permissionData = PERMISSIONS_DICTIONARY.map(({ code, description }) => ({
+    permissionCode: code,
+    description,
+  }));
+
+  const uniquePermissionCodes = new Set(
+    permissionData.map(({ permissionCode }) => permissionCode),
+  );
+
+  if (uniquePermissionCodes.size !== permissionData.length) {
+    throw new Error('Permission dictionary contains duplicate permission codes.');
+  }
+
   await prisma.permission.createMany({
-    data: PERMISSIONS_DICTIONARY.map((item) => ({
-      permissionCode: item.code,
-      description: item.description,
-    })),
+    data: permissionData,
     skipDuplicates: true,
   });
 
   const count = await prisma.permission.count();
-  console.log(`Seeded permissions, total in DB: ${count}`);
+  console.log(
+    `Seeded ${permissionData.length} permissions (resource:action:scope), total in DB: ${count}`,
+  );
 }
 
 async function seedRole(

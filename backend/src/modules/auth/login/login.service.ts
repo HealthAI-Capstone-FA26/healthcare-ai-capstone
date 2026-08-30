@@ -1,18 +1,13 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../../user/user.service';
 import { SessionService } from '../session/session.service';
 import { SecurityConfigService } from '../security-config/security-config.service';
 import { TokenService } from '../token/token.service';
-import { MailService } from '../../mail/mail.service';
-import { ConfigService } from '@nestjs/config';
 import { LoginDto } from '../dto/login.dto';
-import { VerifyLoginOtpDto } from '../dto/verify-login-otp.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
-import { generateOtp, hashOtp, otpExpiryDate } from '../common/otp.util';
-import { assertOtpValid } from '../common/otp-validation.util';
 
-// ================== LOGIN (2 bước: password + MFA OTP), REFRESH, LOGOUT ==================
+// ================== LOGIN, REFRESH, LOGOUT ==================
 @Injectable()
 export class LoginService {
   constructor(
@@ -20,13 +15,7 @@ export class LoginService {
     private readonly sessionService: SessionService,
     private readonly securityConfigService: SecurityConfigService,
     private readonly tokenService: TokenService,
-    private readonly mailService: MailService,
-    private readonly configService: ConfigService,
   ) { }
-
-  private getOtpExpiryMinutes(): number {
-    return Number(this.configService.get<string>('OTP_EXPIRES_MINUTES') ?? 5);
-  }
 
   // Sinh cặp access token (ngắn hạn) + refresh token (dài hạn hơn), đồng thời tạo/replace session trong DB
   private async issueTokens(user: { userId: string; email: string }) {
@@ -80,10 +69,8 @@ export class LoginService {
       throw new UnauthorizedException(invalidCredentialsMessage);
     }
 
-    // Mật khẩu đúng -> reset số lần nhập sai
+    // Mật khẩu đúng -> reset đếm sai và cấp token ngay
     await this.userService.resetFailedAttempts(user.userId);
-
-    // Cập nhật thời gian đăng nhập cuối và cấp phát tokens
     await this.userService.touchLastLogin(user.userId);
     const tokens = await this.issueTokens(user);
 

@@ -24,7 +24,7 @@ export class PatientController {
   ) { }
 
   @Post()
-  // @RequirePermissions(`${Resource.PATIENT}:${Action.CREATE}:${Scope.OWN}`)
+  @RequirePermissions(`${Resource.PATIENT}:${Action.CREATE}:${Scope.OWN}`)
   @ApiOperation({
     summary:
       'Tạo hồ sơ bệnh nhân (lễ tân tạo tại quầy -> userId=null, hoặc user tự tạo hồ sơ cho mình)',
@@ -41,7 +41,7 @@ export class PatientController {
   }
 
   @Get('match-suggestion')
-  // @RequirePermissions(`${Resource.PATIENT}:${Action.READ}:${Scope.OWN}`)
+  @RequirePermissions(`${Resource.PATIENT}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({
     summary: 'Gợi ý hồ sơ bệnh nhân khớp với user hiện tại (dùng ngay sau khi đăng ký) patient có user_id == null',
   })
