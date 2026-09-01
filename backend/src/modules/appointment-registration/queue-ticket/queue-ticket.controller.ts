@@ -32,19 +32,13 @@ export class QueueTicketController {
     return this.queueTicketService.call(id, dto);
   }
 
-  @Patch(':id/serve')
-  // @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.UPDATE}:${Scope.ALL}`)
-  @ApiOperation({
-    summary: 'Tiếp nhận: tạo ReceptionCheckin, gán bác sĩ, chuyển Appointment sang checked_in',
-  })
-  serve(@Param('id') id: string, @Body() dto: ServeQueueTicketDto, @CurrentUser() user: RequestUser) {
-    return this.queueTicketService.serve(id, dto, user);
-  }
-
   @Patch(':id/done')
   // @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.UPDATE}:${Scope.ALL}`)
-  @ApiOperation({ summary: 'Đánh dấu hoàn tất tiếp nhận, sẵn sàng bàn giao Module 3' })
-  done(@Param('id') id: string) {
-    return this.queueTicketService.done(id);
+  @ApiOperation({
+    summary:
+      'Kết thúc lượt gọi số (called -> done): tạo ReceptionCheckin, gán bác sĩ, chuyển Appointment sang checked_in, và tạo Encounter mở đầu workflow khám (Module 3)',
+  })
+  done(@Param('id') id: string, @Body() dto: ServeQueueTicketDto, @CurrentUser() user: RequestUser) {
+    return this.queueTicketService.done(id, dto, user);
   }
 }

@@ -162,12 +162,15 @@ export class QueueTicketService {
     });
   }
 
-  // PATCH /queue-tickets/:id/serve — tạo ReceptionCheckin, gán doctorId, chuyển
-  // Appointment.status = checked_in ĐÚNG QUA transition map dùng chung Phase 4 (không viết map riêng).
-  async serve(ticketId: string, dto: ServeQueueTicketDto, currentUser: RequestUser) {
+  // PATCH /queue-tickets/:id/done — bàn giao Module 3: kết thúc lượt gọi số (called -> done),
+  // tạo ReceptionCheckin (chỉ là mốc BẮT ĐẦU tiếp nhận, không phải dấu hiệu "đang khám"), gán
+  // doctorId, chuyển Appointment.status = checked_in ĐÚNG QUA transition map dùng chung Phase 4
+  // (không viết map riêng), rồi tạo Encounter — tất cả trong CÙNG 1 transaction. `done` ở đây
+  // KHÔNG phải "khám xong", mà là "ticket đã hoàn tất vai trò hàng đợi, chuyển sang workflow khám".
+  async done(ticketId: string, dto: ServeQueueTicketDto, currentUser: RequestUser) {
     const ticket = await this.findById(ticketId);
-    if (![QueueTicketStatus.WAITING, QueueTicketStatus.CALLED].includes(ticket.status as QueueTicketStatus)) {
-      throw new BadRequestException(`Không thể tiếp nhận số đang ở trạng thái '${ticket.status}'`);
+    if (ticket.status !== QueueTicketStatus.CALLED) {
+      throw new BadRequestException(`Không thể chuyển sang khám khi đang ở trạng thái '${ticket.status}'`);
     }
 
     // Online đã chọn bác sĩ cụ thể ngay từ lúc đặt lịch -> LUÔN ƯU TIÊN doctorId đã có sẵn trên
@@ -201,12 +204,15 @@ export class QueueTicketService {
     await this.assertDoctorOnActiveShift(doctorId, ticket.departmentId);
 
     return this.prisma.$transaction(async (tx) => {
+      // called -> done: ticket hoàn tất vai trò hàng đợi/ưu tiên ngay tại đây, KHÔNG có trạng
+      // thái trung gian "serving" nào cả.
       const updatedTicket = await tx.queueTicket.update({
         where: { ticketId },
-        data: { status: QueueTicketStatus.SERVING },
+        data: { status: QueueTicketStatus.DONE },
       });
 
-      await tx.receptionCheckin.create({
+      // Chỉ là mốc bắt đầu tiếp nhận (ai tiếp nhận, quầy nào), không mang ý nghĩa "đang khám".
+      const checkin = await tx.receptionCheckin.create({
         data: {
           appointmentId: ticket.appointmentId,
           receptionStaffUserId: currentUser.userId,
@@ -233,39 +239,11 @@ export class QueueTicketService {
         data: { doctorId, status: AppointmentStatus.CHECKED_IN },
       });
 
-      return { queueTicket: updatedTicket, appointment: updatedAppointment };
-    });
-  }
+      // done xảy ra TRƯỚC khi tạo Encounter (done = "chuyển sang khám", không phải "khám xong") —
+      // tạo Encounter ngay trong cùng transaction, mở đầu workflow khám (Module 3).
+      const encounter = await this.encounterService.createFromCheckin(tx, updatedAppointment, checkin);
 
-  // PATCH /queue-tickets/:id/done — bàn giao Module 3: tạo Encounter trong cùng transaction với
-  // bước đóng ticket, dùng ReceptionCheckin đã được tạo ở bước serve() để lấy đúng arrivedAt.
-  async done(ticketId: string) {
-    const ticket = await this.findById(ticketId);
-    if (ticket.status !== QueueTicketStatus.SERVING) {
-      throw new BadRequestException(`Không thể đánh dấu hoàn tất khi đang ở trạng thái '${ticket.status}'`);
-    }
-
-    // serve() luôn tạo đúng 1 ReceptionCheckin cho appointment trước khi ticket chuyển sang
-    // SERVING, nên tại đây bắt buộc phải tìm thấy — nếu không có nghĩa là dữ liệu bất thường.
-    const checkin = await this.prisma.receptionCheckin.findFirst({
-      where: { appointmentId: ticket.appointmentId },
-      orderBy: { checkinTime: 'desc' },
-    });
-    if (!checkin) {
-      throw new BadRequestException(
-        'Không tìm thấy ReceptionCheckin của appointment này, không thể tạo Encounter',
-      );
-    }
-
-    return this.prisma.$transaction(async (tx) => {
-      const updatedTicket = await tx.queueTicket.update({
-        where: { ticketId },
-        data: { status: QueueTicketStatus.DONE },
-      });
-
-      const encounter = await this.encounterService.createFromCheckin(tx, ticket.appointment, checkin);
-
-      return { queueTicket: updatedTicket, encounter };
+      return { queueTicket: updatedTicket, appointment: updatedAppointment, encounter };
     });
   }
 }
