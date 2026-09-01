@@ -21,17 +21,18 @@ export class EncounterService {
   /**
    * Điểm nối Module 2 -> Module 3: được gọi TRONG CÙNG transaction với
    * `QueueTicketService.done()` (xem queue-ticket.service.ts), ngay sau khi ticket chuyển sang
-   * DONE. Mỗi appointment chỉ có đúng 1 Encounter (appointmentId unique trên bảng encounters).
+   * DONE (called -> done). Mỗi appointment chỉ có đúng 1 Encounter (appointmentId unique trên
+   * bảng encounters). `done` ở đây là "ticket rời hàng đợi, chuyển sang khám", KHÔNG phải "khám
+   * xong" — nên Encounter được tạo NGAY SAU done, mở đầu quy trình khám chứ không phải kết thúc.
    *
-   * - `arrivedAt` lấy từ `checkin.checkinTime` (thời điểm lễ tân thực sự tiếp nhận ở quầy/serve
-   *   ticket), KHÔNG dùng default(now()) của schema — vì done() có thể được gọi trễ hơn thời điểm
-   *   bệnh nhân thật sự đến.
+   * - `arrivedAt` lấy từ `checkin.checkinTime` (thời điểm lễ tân thực sự tiếp nhận ở quầy, tạo
+   *   trong cùng transaction với done()), KHÔNG dùng default(now()) của schema.
    * - `patientType`: 'new' nếu bệnh nhân CHƯA từng có Encounter nào ở trạng thái 'finished'
    *   trước đó, ngược lại 'returning'. Dùng đúng lúc tạo (trong transaction) để tránh race với
    *   encounter đang tạo cùng lúc của chính bệnh nhân này (không thể tự đếm chính nó vì chưa insert).
-   * - `doctorId` lấy từ `appointment.doctorId` (đã được gán ở bước `serve()`), có thể null nếu
-   *   luồng nào đó chưa gán bác sĩ tại thời điểm done — cho phép null, DoctorQueueEntry ở Phase 6
-   *   mới là nơi bắt buộc phải có bác sĩ.
+   * - `doctorId` lấy từ `appointment.doctorId` (đã được gán trong cùng bước done()), có thể null
+   *   nếu luồng nào đó chưa gán bác sĩ tại thời điểm done — cho phép null, DoctorQueueEntry ở
+   *   Phase 6 mới là nơi bắt buộc phải có bác sĩ.
    */
   async createFromCheckin(
     tx: Prisma.TransactionClient,

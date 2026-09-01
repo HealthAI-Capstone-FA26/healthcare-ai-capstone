@@ -7,10 +7,12 @@ export enum QueueTicketPrefix {
   AT_HOSPITAL = 'B',
 }
 
+// QueueTicket chỉ dùng để bốc số + quản lý ưu tiên gọi số, KHÔNG biểu thị "đang khám".
+// waiting -> called -> done, hết. Bước khám (Encounter) là một quy trình riêng, bắt đầu SAU
+// khi ticket đạt done (xem QueueTicketService.done()), không còn trạng thái `serving` trung gian.
 export enum QueueTicketStatus {
   WAITING = 'waiting',
   CALLED = 'called',
-  SERVING = 'serving',
   DONE = 'done',
   SKIPPED = 'skipped',
   CANCELLED = 'cancelled',

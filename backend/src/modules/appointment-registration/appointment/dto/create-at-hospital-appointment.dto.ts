@@ -2,7 +2,7 @@ import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { AppointmentPriority } from './create-appointment.dto';
 
-// doctorId/slotId không có ở bước tạo (gán sau lúc `serve`, xem QueueTicketService.serve).
+// doctorId/slotId không có ở bước tạo (gán sau lúc `done`, xem QueueTicketService.done).
 // bookingChannel = 'at_hospital' được service tự gán, không nhận từ client.
 export class CreateAtHospitalAppointmentDto {
   @ApiPropertyOptional({
