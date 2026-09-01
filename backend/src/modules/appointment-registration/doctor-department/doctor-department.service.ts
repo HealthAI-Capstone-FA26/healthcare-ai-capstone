@@ -112,4 +112,12 @@ export class DoctorDepartmentService {
       orderBy: [{ isPrimary: 'desc' }],
     });
   }
+
+  // GET /departments — lấy danh sách tất cả các khoa phòng đang hoạt động
+  findAllDepartments() {
+    return this.prisma.department.findMany({
+      where: { isActive: true },
+      orderBy: { departmentName: 'asc' },
+    });
+  }
 }

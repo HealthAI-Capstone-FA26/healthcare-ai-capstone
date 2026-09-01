@@ -32,6 +32,7 @@ model User {
   patientContacts              PatientContact[]              @relation("PatientContactUser")
   appointmentsBooked           Appointment[]                 @relation("AppointmentBookedBy")
   receptionCheckins            ReceptionCheckin[]            @relation("ReceptionStaffUser")
+  staffDepartments             StaffDepartment[]             @relation("StaffDepartments")
   doctorQueueEntriesRouted     DoctorQueueEntry[]            @relation("QueueRoutedByUser")
   chiefComplaintsRecorded      ChiefComplaint[]              @relation("ComplaintRecordedByUser")
   patientIdentityVerifications PatientIdentityVerification[] @relation("IdentityVerifiedByUser")
@@ -146,6 +147,7 @@ model Department {
   isActive       Boolean  @default(true) @map("is_active")
   createdAt      DateTime @default(now()) @map("created_at")
 
+  staffDepartments StaffDepartment[]
   doctorDepartments  DoctorDepartment[]
   doctorSchedules    DoctorSchedule[]
   appointments       Appointment[]
@@ -175,6 +177,19 @@ model Doctor {
   doctorQueueEntries DoctorQueueEntry[]
 
   @@map("doctors")
+}
+
+model StaffDepartment {
+  userId       String   @map("user_id") @db.Char(36)
+  departmentId String   @map("department_id") @db.Char(36)
+  isPrimary    Boolean  @default(true) @map("is_primary")
+  assignedAt   DateTime @default(now()) @map("assigned_at")
+
+  user       User       @relation("StaffDepartments", fields: [userId], references: [userId], onDelete: Cascade)
+  department Department @relation(fields: [departmentId], references: [departmentId], onDelete: Cascade)
+
+  @@id([userId, departmentId])
+  @@map("staff_departments")
 }
 
 model DoctorDepartment {

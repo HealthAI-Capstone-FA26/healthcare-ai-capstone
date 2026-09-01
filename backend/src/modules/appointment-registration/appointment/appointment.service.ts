@@ -33,7 +33,7 @@ export class AppointmentService {
     private readonly prisma: PrismaService,
     private readonly patientContactService: PatientContactService,
     private readonly queueTicketService: QueueTicketService,
-  ) {}
+  ) { }
 
   private generateAppointmentCode(): Promise<string> {
     return generateUniqueCode(APPOINTMENT_CODE_PREFIX, async (code) => {
@@ -49,7 +49,7 @@ export class AppointmentService {
     // 1. patientId tồn tại.
     const patient = await this.prisma.patient.findUnique({ where: { patientId: dto.patientId } });
     if (!patient) {
-      throw new NotFoundException('Không tìm thấy hồ sơ bệnh nhân');
+      throw new NotFoundException('Hồ sơ bệnh nhân bạn cần tìm không tồn tại. Hãy tạo hồ sơ trước khi đặt lịch');
     }
 
     // 2. Validate relationship theo đúng trạng thái sở hữu hiện tại của patient.
@@ -73,7 +73,7 @@ export class AppointmentService {
           'Bạn chưa được xác nhận là người liên hệ của bệnh nhân này, vui lòng gửi yêu cầu và chờ chủ hồ sơ duyệt',
         );
       }
-    } 
+    }
     // else: relationship != self và patient chưa có chủ -> tự do, xử lý ở bước tạo.
 
     // 3. AppointmentSlot tồn tại, thuộc đúng doctorId, status = free.
@@ -156,7 +156,7 @@ export class AppointmentService {
 
   // POST /appointments/at-hospital (bookingChannel = at_hospital) — chỉ reception staff.
   // Luôn tạo kèm đúng 1 QueueTicket (prefix B) trong CÙNG transaction, không tách rời 2 bước (Phase 5).
-  async  createAtHospital(dto: CreateAtHospitalAppointmentDto, currentUser: RequestUser) {
+  async createAtHospital(dto: CreateAtHospitalAppointmentDto, currentUser: RequestUser) {
     let patientId = dto.patientId;
 
     if (dto.contactId) {

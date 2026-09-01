@@ -11,12 +11,12 @@ import { Action, Resource, Scope } from '../../common/constants/permissions.dict
 
 @ApiTags('Doctors')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('doctors')
 export class DoctorController {
   constructor(private readonly doctorService: DoctorService) {}
 
   @Post()
+  // @UseGuards(JwtAuthGuard, PermissionsGuard)
   // @RequirePermissions(`${Resource.DOCTOR}:${Action.CREATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Tạo bác sĩ (chính thức hoặc thỉnh giảng) — chỉ admin' })
   create(@Body() dto: CreateDoctorDto) {
@@ -24,21 +24,20 @@ export class DoctorController {
   }
 
   @Get()
-  // @RequirePermissions(`${Resource.DOCTOR}:${Action.READ}:${Scope.OWN}`)
-  @ApiOperation({ summary: 'Danh sách bác sĩ, lọc theo khoa/tên (phục vụ chọn bác sĩ khi đặt lịch)' })
+  @ApiOperation({ summary: 'Danh sách bác sĩ công khai (Public API - phục vụ khách & bệnh nhân chọn bác sĩ)' })
   findAll(@Query() query: SearchDoctorDto) {
     return this.doctorService.findAll(query);
   }
 
   @Get(':id')
-  // @RequirePermissions(`${Resource.DOCTOR}:${Action.READ}:${Scope.OWN}`)
-  @ApiOperation({ summary: 'Xem chi tiết bác sĩ' })
+  @ApiOperation({ summary: 'Xem chi tiết thông tin bác sĩ công khai (Public API)' })
   findOne(@Param('id') id: string) {
     return this.doctorService.findById(id);
   }
 
   @Patch(':id')
-  @RequirePermissions(`${Resource.DOCTOR}:${Action.UPDATE}:${Scope.ALL}`)
+  // @UseGuards(JwtAuthGuard, PermissionsGuard)
+  // @RequirePermissions(`${Resource.DOCTOR}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Cập nhật thông tin bác sĩ — chỉ admin' })
   update(@Param('id') id: string, @Body() dto: UpdateDoctorDto) {
     return this.doctorService.update(id, dto);
