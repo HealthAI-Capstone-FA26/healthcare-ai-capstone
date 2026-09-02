@@ -128,6 +128,10 @@ export class UserService {
     });
   }
 
+  findRoleByCode(roleCode: string) {
+  return this.prisma.role.findUnique({ where: { roleCode } });
+}
+
   toResponseDto(user: any): UserResponseDto {
     const assignedRole = user.userRoles?.[0]?.role?.roleCode?.trim() || user.profile?.actorRole || 'PATIENT';
     return new UserResponseDto({
