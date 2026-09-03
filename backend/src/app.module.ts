@@ -13,10 +13,13 @@ import { DoctorModule } from './modules/doctor/doctor.module';
 import { AppointmentRegistrationModule } from './modules/appointment-registration/appointment-registration.module';
 import { ReceptionIntakeModule } from './modules/reception-intake/reception-intake.module';
 import { RolePermissionModule } from './modules/auth/role-permission/role-permission.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { VitalModule } from './modules/vitals/vital.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     PrismaModule,
     RedisModule,
     MailModule,
@@ -26,7 +29,8 @@ import { RolePermissionModule } from './modules/auth/role-permission/role-permis
     DoctorModule,
     AppointmentRegistrationModule,
     ReceptionIntakeModule,
-    RolePermissionModule
+    RolePermissionModule,
+    VitalModule
   ],
   controllers: [AppController],
   providers: [AppService],
