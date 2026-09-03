@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { MailModule } from './modules/mail/mail.module';
+import { SmsModule } from './modules/sms/sms.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { DoctorModule } from './modules/doctor/doctor.module';
@@ -22,6 +23,7 @@ import { VitalModule } from './modules/vitals/vital.module';
     PrismaModule,
     RedisModule,
     MailModule,
+    SmsModule,
     AuthModule,
     UserModule,
     DoctorModule,

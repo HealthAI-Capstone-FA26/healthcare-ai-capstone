@@ -113,21 +113,11 @@ export class DoctorService {
   }
 
   async update(doctorId: string, dto: UpdateDoctorDto) {
-    const doctor = await this.findById(doctorId);
+    await this.findById(doctorId);
 
-    const updatedDoctor = await this.prisma.doctor.update({
+    return this.prisma.doctor.update({
       where: { doctorId },
       data: dto,
     });
-
-    // Đồng bộ sang bảng UserProfile nếu doctor này có tài khoản user và có cập nhật fullName
-    if (doctor.userId && dto.fullName) {
-      await this.prisma.userProfile.updateMany({
-        where: { userId: doctor.userId },
-        data: { fullName: dto.fullName },
-      });
-    }
-
-    return updatedDoctor;
   }
 }

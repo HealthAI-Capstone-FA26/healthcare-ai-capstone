@@ -61,6 +61,27 @@ export class MailService {
     this.logger.log(`Đã gửi OTP đăng nhập tới ${to}`);
   }
 
+  async sendContactRequestOtpMail(to: string, otp: string): Promise<void> {
+    const from =
+      this.configService.get<string>('MAIL_FROM') ??
+      this.configService.getOrThrow<string>('MAIL_USER');
+    const expiresMinutes = this.configService.get<string>('OTP_EXPIRES_MINUTES') ?? '5';
+
+    await this.transporter.sendMail({
+      from,
+      to,
+      subject: 'Mã xác thực yêu cầu làm người liên hệ',
+      html: `
+        <p>Xin chào,</p>
+        <p>Có người vừa yêu cầu làm người liên hệ (người thân) của hồ sơ bệnh nhân này. Mã OTP xác thực là:</p>
+        <h2 style="letter-spacing: 4px;">${otp}</h2>
+        <p>Mã có hiệu lực trong ${expiresMinutes} phút. Nếu không phải bạn hoặc người thân của bạn yêu cầu, vui lòng bỏ qua email này.</p>
+      `,
+    });
+
+    this.logger.log(`Đã gửi OTP xác thực người liên hệ tới ${to}`);
+  }
+
   async sendPasswordResetOtpMail(to: string, otp: string): Promise<void> {
     const from =
       this.configService.get<string>('MAIL_FROM') ??
