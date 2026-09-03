@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from 'prisma/prisma.service';
 
-export async function seedDepartments(prisma: PrismaClient): Promise<void> {
+export async function seedDepartments(prisma: PrismaService): Promise<void> {
     const departments = [
         {
             departmentCode: 'IM',

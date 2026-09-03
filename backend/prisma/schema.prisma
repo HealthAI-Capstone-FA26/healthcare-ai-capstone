@@ -670,6 +670,7 @@ model VitalSignThreshold {
   effectiveFrom    DateTime @map("effective_from") @db.Date
   isActive         Boolean  @default(true) @map("is_active")
   createdAt        DateTime @default(now()) @map("created_at")
+  sourceReference  String?  @map("source_reference") @db.VarChar(255)
 
   item VitalSignItem @relation(fields: [itemId], references: [itemId])
 
@@ -689,6 +690,7 @@ model VitalSignAlert {
   expectedMin       Decimal?  @map("expected_min") @db.Decimal(10, 2)
   expectedMax       Decimal?  @map("expected_max") @db.Decimal(10, 2)
   status            String    @default("active") @db.VarChar(20) // active | confirmed | resolved
+  reason            String?   @db.VarChar(500)
   confirmedByUserId String?   @map("confirmed_by_user_id") @db.Char(36)
   confirmedAt       DateTime? @map("confirmed_at")
   createdAt         DateTime  @default(now()) @map("created_at")

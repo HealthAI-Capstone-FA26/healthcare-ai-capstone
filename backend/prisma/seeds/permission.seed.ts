@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import { PERMISSIONS_DICTIONARY } from '../../src/common/constants/permissions.dictionary';
+import { PrismaService } from 'prisma/prisma.service';
 
-export async function seedPermissions(prisma: PrismaClient): Promise<void> {
+export async function seedPermissions(prisma: PrismaService): Promise<void> {
     const permissionData = PERMISSIONS_DICTIONARY.map(({ code, description }) => ({
         permissionCode: code,
         description,
