@@ -41,6 +41,13 @@ export class AdminRbacController {
     // ROLE <-> PERMISSION
     // ============================================================
 
+    @ApiOperation({ summary: 'Lấy danh sách tất cả permissions khả dụng trong hệ thống' })
+    @ApiOkResponse({ description: 'Danh sách tất cả permissions' })
+    @Get('permissions')
+    listAllPermissions() {
+        return this.adminRbacService.listAllPermissions();
+    }
+
     @ApiOperation({ summary: 'Lấy danh sách tất cả role kèm permissions' })
     @ApiOkResponse({ description: 'Danh sách role kèm permissions' })
     @RequirePermissions('role:read:all')
