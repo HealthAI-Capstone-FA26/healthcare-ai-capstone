@@ -5,7 +5,7 @@ import { RedisService } from 'src/redis/redis.service';
 import {
   DoctorScheduleService,
   ResolvedScheduleInput,
-} from '../../modules/appointment-registration/doctor-schedule/doctor-schedule.service';
+} from '../../modules/shared/doctor-schedule/doctor-schedule.service';
 import {
   DEFAULT_MAX_PATIENTS_PER_SLOT,
   DEFAULT_SLOT_DURATION_MINS,
@@ -36,7 +36,7 @@ export class WeeklyScheduleGenCron {
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
     private readonly doctorScheduleService: DoctorScheduleService,
-  ) {}
+  ) { }
 
   @Cron(CronExpression.EVERY_WEEK) // 00:00 mỗi Chủ nhật
   async handleCron() {

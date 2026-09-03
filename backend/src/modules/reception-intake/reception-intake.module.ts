@@ -6,8 +6,8 @@ import { EncounterService } from './encounter/encounter.service';
 import { ChiefComplaintController } from './chief-complaint/chief-complaint.controller';
 import { ChiefComplaintService } from './chief-complaint/chief-complaint.service';
 
-import { IdentityVerificationController } from './identity-verification/indentity-verification.controller';
-import { IdentityVerificationService } from './identity-verification/indentity-verification.service';
+import { IdentityVerificationController } from './identity-verification/identity-verification.controller';
+import { IdentityVerificationService } from './identity-verification/identity-verification.service';
 
 /**
  * Gom domain nghiệp vụ Tiếp đón & Đăng ký khám (Module 3): Encounter, ChiefComplaint,
@@ -24,4 +24,4 @@ import { IdentityVerificationService } from './identity-verification/indentity-v
   providers: [EncounterService, ChiefComplaintService, IdentityVerificationService],
   exports: [EncounterService],
 })
-export class ReceptionIntakeModule {}
+export class ReceptionIntakeModule { }

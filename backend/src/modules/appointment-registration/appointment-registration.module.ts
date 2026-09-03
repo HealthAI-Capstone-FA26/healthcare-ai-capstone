@@ -3,14 +3,14 @@ import { Module } from '@nestjs/common';
 import { AppointmentController } from './appointment/appointment.controller';
 import { AppointmentService } from './appointment/appointment.service';
 
-import { AppointmentSlotController } from './appointment-slot/appointment-slot.controller';
-import { AppointmentSlotService } from './appointment-slot/appointment-slot.service';
+import { AppointmentSlotController } from '../shared/appointment-slot/appointment-slot.controller';
+import { AppointmentSlotService } from '../shared/appointment-slot/appointment-slot.service';
 
-import { DoctorScheduleController } from './doctor-schedule/doctor-schedule.controller';
-import { DoctorScheduleService } from './doctor-schedule/doctor-schedule.service';
+import { DoctorScheduleController } from '../shared/doctor-schedule/doctor-schedule.controller';
+import { DoctorScheduleService } from '../shared/doctor-schedule/doctor-schedule.service';
 
-import { DoctorDepartmentController } from './doctor-department/doctor-department.controller';
-import { DoctorDepartmentService } from './doctor-department/doctor-department.service';
+import { DoctorDepartmentController } from '../shared/doctor-department/doctor-department.controller';
+import { DoctorDepartmentService } from '../shared/doctor-department/doctor-department.service';
 
 import { QueueTicketController } from './queue-ticket/queue-ticket.controller';
 import { QueueTicketService } from './queue-ticket/queue-ticket.service';
@@ -70,4 +70,4 @@ import { ReceptionIntakeModule } from '../reception-intake/reception-intake.modu
     QueueTicketService,
   ],
 })
-export class AppointmentRegistrationModule {}
+export class AppointmentRegistrationModule { }
