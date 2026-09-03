@@ -126,22 +126,12 @@ export class ProfileService {
 
     const { avatar, ...updateData } = updateProfileDto;
 
-    const updatedProfile = await this.prisma.userProfile.update({
+    return this.prisma.userProfile.update({
       where: { userId },
       data: {
         ...updateData,
         avatarUrl,
       },
     });
-
-    // Đồng bộ sang bảng Doctor nếu user này liên kết với hồ sơ Bác sĩ và có cập nhật fullName
-    if (updateData.fullName) {
-      await this.prisma.doctor.updateMany({
-        where: { userId },
-        data: { fullName: updateData.fullName },
-      });
-    }
-
-    return updatedProfile;
   }
 }

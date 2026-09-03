@@ -20,6 +20,7 @@ import { PatientService } from './patient/patient.service';
 
 import { PatientContactController } from './patientContact/patient-contact.controller';
 import { PatientContactService } from './patientContact/patient-contact.service';
+import { ContactRequestOtpStore } from './patientContact/contact-request-otp.store';
 
 import { WeeklyScheduleGenCron } from '../../common/cron/weekly-schedule-gen.cron';
 import { ExpireSlotsCron } from '../../common/cron/expire-slots.cron';
@@ -52,6 +53,7 @@ import { ReceptionIntakeModule } from '../reception-intake/reception-intake.modu
   providers: [
     PatientService,
     PatientContactService,
+    ContactRequestOtpStore,
     DoctorDepartmentService,
     DoctorScheduleService,
     AppointmentSlotService,
