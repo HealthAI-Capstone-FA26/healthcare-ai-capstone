@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from 'prisma/prisma.service';
 
-export async function seedVitalSignItems(prisma: PrismaClient) {
+export async function seedVitalSignItems(prisma: PrismaService) {
     const items = [
         { itemCode: 'HR', itemName: 'Nhịp tim / Mạch', loincCode: '8867-4', unit: 'bpm', isCalculated: false, isActive: true },
         { itemCode: 'SBP', itemName: 'Huyết áp Tâm thu', loincCode: '8480-6', unit: 'mmHg', isCalculated: false, isActive: true },
