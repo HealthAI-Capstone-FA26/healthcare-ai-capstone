@@ -9,9 +9,16 @@ export class AdminRbacService {
     // ROLE <-> PERMISSION
     // ============================================================
 
+    /** Lấy danh sách tất cả permissions khả dụng trong hệ thống */
+    async listAllPermissions() {
+        return this.prisma.permission.findMany({
+            orderBy: { permissionCode: 'asc' },
+        });
+    }
+
     /** Lấy danh sách tất cả role kèm permissions (cho màn hình quản trị) */
     async listRolesWithPermissions() {
-        return this.prisma.role.findMany({
+        const roles = await this.prisma.role.findMany({
             include: {
                 rolePermissions: {
                     include: { permission: true },
@@ -19,6 +26,11 @@ export class AdminRbacService {
             },
             orderBy: { roleName: 'asc' },
         });
+
+        return roles.map((r) => ({
+            ...r,
+            roleCode: r.roleCode.trim(),
+        }));
     }
 
     /** Lấy permissions hiện tại của 1 role */

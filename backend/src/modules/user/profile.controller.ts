@@ -1,8 +1,10 @@
 import {
     Body,
     Controller,
+    Get,
     Param,
     Patch,
+    Query,
     Req,
     UploadedFile,
     UseGuards,
@@ -18,9 +20,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 import { ProfileService } from './profile.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { SearchUserDto } from './dto/search-user.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { imageUploadConfig } from '../../common/configs/upload.config'; // Nhớ trỏ đúng file minio config của bạn
+import { imageUploadConfig } from '../../common/configs/upload.config';
 
 @ApiTags('Users')
 @Controller('users')
@@ -28,6 +31,22 @@ export class ProfileController {
     constructor(
         private readonly profileService: ProfileService,
     ) { }
+
+    @Get()
+    @ApiOperation({
+        summary: 'Lấy danh sách người dùng toàn hệ thống (Dành cho Admin)',
+    })
+    async findAll(@Query() query: SearchUserDto) {
+        return this.profileService.findAll(query);
+    }
+
+    @Get(':userId')
+    @ApiOperation({
+        summary: 'Xem chi tiết hồ sơ tài khoản người dùng theo userId',
+    })
+    async findById(@Param('userId') userId: string) {
+        return this.profileService.findById(userId);
+    }
 
     @Patch('me')
     @UseGuards(JwtAuthGuard)
