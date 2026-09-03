@@ -45,6 +45,7 @@ export class AppointmentService {
   }
 
   // POST /appointments (bookingChannel = online)
+  // POST /appointments (bookingChannel = online)
   async createOnline(dto: CreateAppointmentDto, currentUser: RequestUser) {
     // 1. patientId tồn tại.
     const patient = await this.prisma.patient.findUnique({ where: { patientId: dto.patientId } });
@@ -52,29 +53,27 @@ export class AppointmentService {
       throw new NotFoundException('Hồ sơ bệnh nhân bạn cần tìm không tồn tại. Hãy tạo hồ sơ trước khi đặt lịch');
     }
 
-    // 2. Validate relationship theo đúng trạng thái sở hữu hiện tại của patient.
+    // 2. Bắt buộc đã có PatientContact "sạch" (đã duyệt) từ trước giữa currentUser và patient này.
+    // Việc TẠO contact (self lúc tạo hồ sơ/link-user, hoặc người thân qua contact-request) được xử
+    // lý riêng ở PatientService/PatientContactService — createOnline KHÔNG tự tạo/upsert contact nữa,
+    // chỉ đọc và xác thực contact đã tồn tại.
     const existingContact = await this.prisma.patientContact.findUnique({
       where: { userId_patientId: { userId: currentUser.userId, patientId: dto.patientId } },
     });
 
-    const isSelf = dto.relationship === RelationshipType.SELF;
-    const patientHasOwner = patient.userId !== null;
-
-    if (isSelf) {
-      if (patient.userId !== currentUser.userId) {
-        throw new ForbiddenException(
-          'Hồ sơ bệnh nhân này chưa được liên kết với tài khoản của bạn',
-        );
-      }
-    } else if (patientHasOwner) {
-      // Đã có chủ + relationship != self -> bắt buộc đã có contact "sạch" (đã duyệt) từ trước.
-      if (!existingContact || isPendingRelationship(existingContact.relationship)) {
-        throw new ForbiddenException(
-          'Bạn chưa được xác nhận là người liên hệ của bệnh nhân này, vui lòng gửi yêu cầu và chờ chủ hồ sơ duyệt',
-        );
-      }
+    if (!existingContact || isPendingRelationship(existingContact.relationship)) {
+      throw new ForbiddenException(
+        'Bạn chưa có liên kết hợp lệ với hồ sơ bệnh nhân này. Vui lòng liên kết hồ sơ (nếu là bản thân) ' +
+        'hoặc gửi yêu cầu làm người liên hệ và chờ chủ hồ sơ duyệt trước khi đặt lịch.',
+      );
     }
-    // else: relationship != self và patient chưa có chủ -> tự do, xử lý ở bước tạo.
+
+    // relationship trong dto (nếu có) phải khớp với contact đã duyệt — tránh client tự khai khác đi.
+    if (dto.relationship && dto.relationship !== existingContact.relationship) {
+      throw new BadRequestException(
+        `relationship trong yêu cầu ('${dto.relationship}') không khớp với liên kết đã duyệt ('${existingContact.relationship}')`,
+      );
+    }
 
     // 3. AppointmentSlot tồn tại, thuộc đúng doctorId, status = free.
     const slot = await this.prisma.appointmentSlot.findUnique({
@@ -85,8 +84,6 @@ export class AppointmentService {
       throw new BadRequestException('Slot không tồn tại, không thuộc bác sĩ này, hoặc đã hết chỗ');
     }
 
-    // Slot phải thuộc đúng khoa mà dto yêu cầu, tránh trường hợp doctorId trùng nhưng lịch làm
-    // việc lại gắn với khoa khác.
     if (slot.schedule.departmentId !== dto.departmentId) {
       throw new BadRequestException('Slot không thuộc khoa đã chọn');
     }
@@ -94,27 +91,6 @@ export class AppointmentService {
     const appointmentCode = await this.generateAppointmentCode();
 
     return this.prisma.$transaction(async (tx) => {
-      // Upsert PatientContact chỉ theo đúng nhánh đã được validate ở bước 2 (không upsert vô điều kiện).
-      if (isSelf || !patientHasOwner) {
-        if (!existingContact) {
-          await tx.patientContact.create({
-            data: {
-              userId: currentUser.userId,
-              patientId: dto.patientId,
-              relationship: dto.relationship,
-              isPrimaryContact: isSelf,
-            },
-          });
-        }
-      } else if (existingContact && existingContact.relationship !== dto.relationship) {
-        // Patient đã có chủ, contact đã duyệt từ trước -> chỉ update relationship nếu khác,
-        // không đụng isPrimaryContact, không tạo mới contact ở nhánh này.
-        await tx.patientContact.update({
-          where: { contactId: existingContact.contactId },
-          data: { relationship: dto.relationship },
-        });
-      }
-
       const appointment = await tx.appointment.create({
         data: {
           appointmentCode,
@@ -132,8 +108,6 @@ export class AppointmentService {
         },
       });
 
-      // Điểm chống race condition quan trọng nhất: chỉ tăng bookedCount nếu vẫn còn chỗ trống
-      // tại đúng thời điểm ghi (updateMany trả count=0 nghĩa là request khác đã chiếm hết chỗ).
       const slotUpdateResult = await tx.appointmentSlot.updateMany({
         where: { slotId: dto.slotId, bookedCount: { lt: slot.capacity } },
         data: { bookedCount: { increment: 1 } },
@@ -142,7 +116,7 @@ export class AppointmentService {
         throw new ConflictException('Slot đã đầy, vui lòng chọn slot khác');
       }
 
-      const newBookedCount = slot.bookedCount + 1;// phải + 1 vì lúc này chỉ Database update nhưng bookCount trong slot trong code vẫn chưa
+      const newBookedCount = slot.bookedCount + 1;
       if (newBookedCount >= slot.capacity) {
         await tx.appointmentSlot.update({
           where: { slotId: dto.slotId },
@@ -159,18 +133,8 @@ export class AppointmentService {
   async createAtHospital(dto: CreateAtHospitalAppointmentDto, currentUser: RequestUser) {
     let patientId = dto.patientId;
 
-    if (dto.contactId) {
-      const contact = await this.prisma.patientContact.findUnique({
-        where: { contactId: dto.contactId },
-      });
-      if (!contact) {
-        throw new NotFoundException('Không tìm thấy liên hệ bệnh nhân (contactId)');
-      }
-      patientId = contact.patientId;
-    }
-
     if (!patientId) {
-      throw new BadRequestException('Cần cung cấp contactId hoặc patientId');
+      throw new BadRequestException('Cần cung cấp patientId');
     }
 
     const patient = await this.prisma.patient.findUnique({ where: { patientId } });
@@ -277,6 +241,7 @@ export class AppointmentService {
   // (đã biết sẵn bác sĩ từ lúc đặt). Từ đây, ticket đi qua chung
   // call() -> serve() -> done() với ticket at_hospital — ReceptionCheckin/Encounter chỉ được
   // tạo ở serve()/done() (đã có sẵn), KHÔNG tạo trùng ở check-in nữa.
+  // CHỈ ONLINE
   async checkIn(appointmentId: string) {
     const appointment = await this.findById(appointmentId);
 

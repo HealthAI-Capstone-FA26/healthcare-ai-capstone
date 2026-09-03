@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { RequestUser } from '../../auth/strategies/jwt.strategy';
-import { IdentityVerificationService } from './indentity-verification.service';
+import { IdentityVerificationService } from './identity-verification.service';
 import { CreateIdentityVerificationDto } from './dto/create-identity-verification.dto';
 
 @ApiTags('Identity Verification')
@@ -11,7 +11,7 @@ import { CreateIdentityVerificationDto } from './dto/create-identity-verificatio
 @UseGuards(JwtAuthGuard)
 @Controller('encounters/:encounterId/identity-verifications')
 export class IdentityVerificationController {
-  constructor(private readonly identityVerificationService: IdentityVerificationService) {}
+  constructor(private readonly identityVerificationService: IdentityVerificationService) { }
 
   @Post()
   @ApiOperation({ summary: 'Ghi nhận 1 lần xác minh danh tính bệnh nhân cho lượt khám (log nhiều dòng)' })
