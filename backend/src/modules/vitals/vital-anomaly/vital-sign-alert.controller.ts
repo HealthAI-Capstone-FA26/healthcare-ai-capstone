@@ -1,6 +1,7 @@
 import { Controller, Post, Param, Inject } from '@nestjs/common';
 import { VitalSignDetectionOrchestrator } from './vital-sign-detection.orchestrator';
 import { PrismaService } from '../../../../prisma/prisma.service';
+import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 
 /**
  * Ví dụ controller NestJS. Nếu bạn dùng framework khác (Express thuần, Fastify...),
@@ -13,6 +14,8 @@ import { PrismaService } from '../../../../prisma/prisma.service';
  * Cách gắn PrismaClient: đổi 'PrismaClient' bên dưới thành PrismaService của bạn
  * nếu project đã có sẵn provider quản lý kết nối Prisma.
  */
+
+@ApiTags('Vital Sessions')
 @Controller('vital-sessions')
 export class VitalSignAlertController {
     private readonly orchestrator: VitalSignDetectionOrchestrator;
@@ -27,6 +30,15 @@ export class VitalSignAlertController {
      * theo từng observation (bất thường hay không, mức độ, nguồn phát hiện).
      */
     @Post(':id/detect-alerts')
+    @ApiOperation({
+        summary: 'Chạy lại phát hiện bất thường cho 1 phiên đo',
+        description:
+            'Chạy toàn bộ detector (rule-based + ai) cho session, ghi lại isAbnormal trên từng observation ' +
+            'và tạo VitalSignAlert nếu có bất thường mới. Thường được gọi tự động qua event sau khi ghi/sửa sinh hiệu — ' +
+            'endpoint này dùng để chạy lại thủ công khi cần (VD: sau khi ngưỡng tham chiếu được cập nhật).',
+    })
+    @ApiParam({ name: 'id', description: 'ID phiên ghi nhận sinh hiệu (vitalSessionId)', format: 'uuid' })
+    @ApiOkResponse({ description: 'Kết quả phát hiện bất thường đã gộp theo từng observation.' })
     async detectAlerts(@Param('id') vitalSessionId: string) {
         const results = await this.orchestrator.run(vitalSessionId);
         return {
