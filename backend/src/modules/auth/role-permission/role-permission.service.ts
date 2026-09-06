@@ -132,10 +132,10 @@ export class AdminRbacService {
     }
 
     /**
-     * Gán role cho user. Vì 1 user chỉ có 1 role nên thao tác này sẽ
-     * THAY THẾ role cũ (nếu có) bằng role mới, đồng thời đồng bộ
-     * UserProfile.actorRole = Role.roleCode của role vừa gán.
-     * Toàn bộ chạy trong 1 transaction để đảm bảo nhất quán.
+     * chưa có UserProfile tại thời điểm gán role thì actorRole KHÔNG được đồng bộ, dẫn đến
+     * UserProfile.actorRole có thể lệch với UserRole->Role.roleCode thật về sau (khi profile
+     * được tạo ở nơi khác với giá trị actorRole cũ/mặc định). Giờ dùng upsert để actorRole
+     * LUÔN được đảm bảo khớp Role.roleCode ngay sau khi gán, kể cả khi profile chưa tồn tại.
      */
     async assignRoleToUser(userId: string, roleId: string, assignedBy: string) {
         const user = await this.prisma.user.findUnique({
@@ -148,11 +148,17 @@ export class AdminRbacService {
         }
 
         const role = await this.ensureRoleExists(roleId);
+        // trim trước khi ghi vào UserProfile.actorRole (VarChar(20)), nếu không sẽ vừa
+        // sai dữ liệu (actorRole = "PATIENT" + 29 khoảng trắng) vừa có thể lỗi "value too long".
+        const roleCode = role.roleCode.trim();
 
         const alreadyHasThisRole = user.userRoles.some(
             (userRole) => userRole.roleId === roleId,
         );
         if (alreadyHasThisRole) {
+            // Vẫn đảm bảo actorRole khớp role hiện tại, phòng trường hợp actorRole từng bị lệch
+            // trước khi có fix này (dữ liệu cũ) — xem thêm script backfill actor-role.
+            await this.syncActorRole(userId, roleCode, user.email);
             return role;
         }
 
@@ -163,15 +169,27 @@ export class AdminRbacService {
                 data: { userId, roleId, assignedBy },
             });
 
-            if (user.profile) {
-                await tx.userProfile.update({
-                    where: { userId },
-                    data: { actorRole: role.roleCode },
-                });
-            }
+            await tx.userProfile.upsert({
+                where: { userId },
+                update: { actorRole: roleCode },
+                create: {
+                    userId,
+                    actorRole: roleCode,
+                    fullName: user.email,
+                },
+            });
         });
 
         return role;
+    }
+
+    /** Đồng bộ UserProfile.actorRole = roleCode, tạo profile placeholder nếu chưa có. */
+    private async syncActorRole(userId: string, roleCode: string, fallbackFullName: string) {
+        await this.prisma.userProfile.upsert({
+            where: { userId },
+            update: { actorRole: roleCode },
+            create: { userId, actorRole: roleCode, fullName: fallbackFullName },
+        });
     }
 
 

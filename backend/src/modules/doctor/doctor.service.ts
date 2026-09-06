@@ -4,20 +4,23 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../common/utils/code-generator.util';
 import { SALT_ROUNDS } from '../auth/common/auth.constants';
+import { ACTOR_ROLE } from '../../common/constants/actor-role.constant';
 import { UserService } from '../user/user.service';
 import { CreateDoctorDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { SearchDoctorDto } from './dto/search-doctor.dto';
 
 const DOCTOR_CODE_PREFIX = 'BS';
-const DOCTOR_ROLE_CODE = 'DOCTOR';
+// FIX: dùng hằng số dùng chung thay vì hardcode 'DOCTOR' cục bộ — tránh lệch giá trị
+// nếu sau này Role.roleCode của bác sĩ đổi tên (chỉ cần sửa 1 chỗ ở actor-role.constant.ts).
+const DOCTOR_ROLE_CODE = ACTOR_ROLE.DOCTOR;
 
 @Injectable()
 export class DoctorService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   private generateDoctorCode(): Promise<string> {
     return generateUniqueCode(DOCTOR_CODE_PREFIX, async (code) => {
