@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 import { LabRoomController } from './lab-room-catalog/lab-room.controller';
-import { LabRoomService } from './lab-room-catalog/lab-room.service';
 
 import { LabTaskController } from './lab-task-intake/lab-task.controller';
 import { LabTaskService } from './lab-task-intake/lab-task.service';
@@ -28,6 +27,9 @@ import { LabReferenceRangeService } from './lab-reference-range/lab-reference-ra
 
 import { LabCompletionNotificationService } from './lab-completion/lab-completion-notification.service';
 
+import { UserModule } from '../user/user.module';
+import { LabRoomService } from './lab-room-catalog/lab-room.service';
+
 /**
  * Mô-đun 7 — Xét nghiệm tại phòng Lab.
  *
@@ -48,6 +50,7 @@ import { LabCompletionNotificationService } from './lab-completion/lab-completio
  * các API dưới đây) và lấy userId từ req.user thay vì client tự truyền lên.
  */
 @Module({
+    imports: [UserModule],
     controllers: [
         LabRoomController,
         LabTaskController,
@@ -79,4 +82,4 @@ import { LabCompletionNotificationService } from './lab-completion/lab-completio
         LabAlertGateway,
     ],
 })
-export class LabTestModule {}
+export class LabTestModule { }

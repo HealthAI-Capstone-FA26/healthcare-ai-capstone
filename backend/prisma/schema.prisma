@@ -93,7 +93,7 @@ model UserSession {
 
 model Role {
   roleId        String  @id @default(uuid()) @map("role_id") @db.Char(36)
-  roleCode      String  @unique @map("role_code") @db.Char(36)
+  roleCode      String  @unique @map("role_code") @db.VarChar(36)
   roleName      String  @map("role_name") @db.VarChar(50)
   description   String? @db.VarChar(255)
   isDefaultRole Boolean @default(false) @map("is_default_role")
