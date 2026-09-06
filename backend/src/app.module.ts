@@ -15,6 +15,7 @@ import { ReceptionIntakeModule } from './modules/reception-intake/reception-inta
 import { RolePermissionModule } from './modules/auth/role-permission/role-permission.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { VitalModule } from './modules/vitals/vital.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
