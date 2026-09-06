@@ -152,7 +152,7 @@ export class DoctorScheduleService {
   async findById(scheduleId: string) {
     const schedule = await this.prisma.doctorSchedule.findUnique({
       where: { scheduleId },
-      include: { appointmentSlots: true },
+      include: { appointmentSlots: true, department: true },
     });
     if (!schedule) {
       throw new NotFoundException('Không tìm thấy lịch làm việc');
