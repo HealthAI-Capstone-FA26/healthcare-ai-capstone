@@ -7,6 +7,7 @@ import { LabTaskController } from './lab-task-intake/lab-task.controller';
 import { LabTaskService } from './lab-task-intake/lab-task.service';
 import { PAYMENT_VERIFICATION_PORT } from './lab-task-intake/payment-verification.port';
 import { DefaultPaymentVerificationAdapter } from './lab-task-intake/payment-verification.port';
+import { LabTaskOrderCancellationListener } from './lab-task-intake/listeners/lab-task-order-cancellation.listener';
 
 import { LabResultController } from './lab-result-entry/lab-result.controller';
 import { LabResultService } from './lab-result-entry/lab-result.service';
@@ -46,8 +47,13 @@ import { LabRoomService } from './lab-room-catalog/lab-room.service';
  *       - kiểm tra nếu đây là kết quả cuối cùng còn thiếu của lượt khám thì gửi Notification
  *         cho bác sĩ phụ trách và bệnh nhân (lab-completion).
  *
- * TODO khi có auth module: gắn Guard theo role (DOCTOR để chỉ định — module khác, LAB_STAFF cho
- * các API dưới đây) và lấy userId từ req.user thay vì client tự truyền lên.
+ * AUTH: mọi controller trong module này (trừ POST /lab-tasks/:id/verify-payment, được gọi bởi
+ * module Thanh toán chứ không phải user đăng nhập) đã gắn JwtAuthGuard; các action ghi actor
+ * (receive/report-exception/resolve-exception ở lab-task-intake, submit/update/add-attachment ở
+ * lab-result-entry) lấy userId từ req.user (JWT) và assert actorRole tương ứng qua
+ * ActorRoleService (LAB_STAFF cho các API của phòng Lab, DOCTOR cho resolve-exception) — cùng
+ * cơ chế với LabRoomService.assignStaff, không dùng RequirePermissions/PermissionsGuard vì
+ * PERMISSIONS_DICTIONARY hiện chưa có Resource cho domain lab-test.
  */
 @Module({
     imports: [UserModule],
@@ -63,6 +69,7 @@ import { LabRoomService } from './lab-room-catalog/lab-room.service';
         PrismaService,
         LabRoomService,
         LabTaskService,
+        LabTaskOrderCancellationListener,
         { provide: PAYMENT_VERIFICATION_PORT, useClass: DefaultPaymentVerificationAdapter },
         LabResultService,
         RuleBasedLabDetector,

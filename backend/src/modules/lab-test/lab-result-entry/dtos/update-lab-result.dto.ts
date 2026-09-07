@@ -1,4 +1,4 @@
-import { ArrayMinSize, IsArray, IsIn, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsIn, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { LabResultValueDto } from './lab-result-value.dto';
@@ -11,12 +11,6 @@ import { LAB_RESULT_STATUSES, LabResultStatus } from './submit-lab-result.dto';
  * resultStatus thành 'corrected' để lưu vết lịch sử đính chính trên EMR.
  */
 export class UpdateLabResultDto {
-    // TODO: khi có auth module, lấy từ req.user (JWT) thay vì client tự truyền lên.
-    @ApiPropertyOptional({ description: 'ID người thực hiện chỉnh sửa', format: 'uuid' })
-    @IsOptional()
-    @IsUUID()
-    reviewedByUserId?: string;
-
     @ApiPropertyOptional({ description: 'Danh sách chỉ số cần sửa/bổ sung', type: [LabResultValueDto] })
     @IsOptional()
     @IsArray()

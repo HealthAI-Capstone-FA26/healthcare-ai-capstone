@@ -1130,7 +1130,7 @@ model LabTask {
   labRoomId          String    @map("lab_room_id") @db.Char(36)
   assignedLabStaffId String?   @map("assigned_lab_staff_id") @db.Char(36)
   paymentVerified    Boolean   @default(false) @map("payment_verified")
-  status             String    @default("payment_pending") @db.VarChar(20) // payment_pending => ready => in_progress => completed || cancelled
+  status             String    @default("payment_pending") @db.VarChar(20) // payment_pending => ready => in_progress => completed || cancelled || on_hold
   receivedAt         DateTime? @map("received_at")
   startedAt          DateTime? @map("started_at")
   completedAt        DateTime? @map("completed_at")

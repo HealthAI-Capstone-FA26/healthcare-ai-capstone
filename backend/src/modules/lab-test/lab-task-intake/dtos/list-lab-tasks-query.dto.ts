@@ -2,7 +2,17 @@ import { IsUUID, IsOptional, IsIn, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export const LAB_TASK_STATUSES = ['payment_pending', 'ready', 'in_progress', 'completed', 'cancelled'] as const;
+// 'on_hold': phòng Lab báo cáo không thể tiếp tục thực hiện (mẫu bị từ chối, bệnh nhân không có mặt...).
+// Đây KHÔNG phải trạng thái kết thúc — chỉ bác sĩ/module Order mới có quyền quyết định bước tiếp theo
+// (huỷ hẳn chỉ định -> 'cancelled', hoặc yêu cầu lấy lại mẫu -> quay về 'ready').
+export const LAB_TASK_STATUSES = [
+    'payment_pending',
+    'ready',
+    'in_progress',
+    'on_hold',
+    'completed',
+    'cancelled',
+] as const;
 export type LabTaskStatus = (typeof LAB_TASK_STATUSES)[number];
 
 /**

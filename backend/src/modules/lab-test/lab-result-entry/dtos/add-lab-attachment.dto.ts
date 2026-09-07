@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const LAB_ATTACHMENT_FILE_TYPES = ['pdf', 'raw_export', 'image', 'other'] as const;
@@ -24,9 +24,4 @@ export class AddLabAttachmentDto {
     @IsString()
     @MaxLength(255)
     description?: string;
-
-    // TODO: khi có auth module, lấy từ req.user (JWT) thay vì client tự truyền lên.
-    @ApiProperty({ description: 'ID người tải lên', format: 'uuid' })
-    @IsUUID()
-    uploadedByUserId: string;
 }

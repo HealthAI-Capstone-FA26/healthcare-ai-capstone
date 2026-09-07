@@ -11,6 +11,8 @@ import {
     LabResultSubmittedEvent,
     LAB_RESULT_SUBMITTED_EVENT,
 } from '../lab-anomaly/lab-result-submitted.event';
+import { ActorRoleService } from '../../user/actor-role.service';
+import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 
 /**
  * Nhập/tra cứu kết quả xét nghiệm (LabResult + LabResultValue) và tệp đính kèm.
@@ -26,6 +28,7 @@ export class LabResultService {
         private readonly prisma: PrismaService,
         private readonly labTaskService: LabTaskService,
         private readonly eventEmitter: EventEmitter2,
+        private readonly actorRoleService: ActorRoleService,
     ) {}
 
     /** Validate + build dữ liệu Prisma cho danh sách value, đối chiếu đúng dataType của từng parameter. */
@@ -69,8 +72,11 @@ export class LabResultService {
      * Kỹ thuật viên nhập kết quả cho 1 LabTask. Sau khi lưu thành công:
      *  - LabTask chuyển sang 'completed';
      *  - emit 'lab-result.submitted' để chạy detection/AI/thông báo hoàn tất ở background.
+     *
+     * `enteredByUserId` (lấy từ JWT, xem LabResultController.submit) phải có actorRole LAB_STAFF.
      */
-    async submitResult(labTaskId: string, dto: SubmitLabResultDto) {
+    async submitResult(labTaskId: string, dto: SubmitLabResultDto, enteredByUserId: string) {
+        await this.actorRoleService.assertActorRole(enteredByUserId, [ACTOR_ROLE.LAB_STAFF]);
         await this.labTaskService.assertReadyForResultEntry(labTaskId);
 
         const existing = await this.prisma.labResult.findUnique({ where: { labTaskId } });
@@ -87,7 +93,7 @@ export class LabResultService {
             const created = await tx.labResult.create({
                 data: {
                     labTaskId,
-                    enteredByUserId: dto.enteredByUserId,
+                    enteredByUserId,
                     // reviewedAt là field bắt buộc trong schema hiện tại; tạm mặc định = resultedAt
                     // cho tới khi có 1 bước "bác sĩ duyệt kết quả" riêng biệt trong luồng nghiệp vụ.
                     reviewedAt: resultedAt,
@@ -114,8 +120,15 @@ export class LabResultService {
      * Sửa/bổ sung kết quả đã lưu. Nếu resultStatus hiện tại đã là 'final' và có gửi `values`,
      * tự chuyển resultStatus sang 'corrected' để lưu vết đính chính trên EMR thay vì âm thầm
      * ghi đè kết quả đã chốt.
+     *
+     * `reviewedByUserId` (lấy từ JWT, xem LabResultController.update) phải có actorRole LAB_STAFF
+     * hoặc DOCTOR — cả kỹ thuật viên tự sửa và bác sĩ xác nhận/đính chính kết quả đều hợp lệ.
+     * Được ghi lại vào reviewedByUserId/reviewedAt của bản ghi — trước đây field này tồn tại trên
+     * DTO nhưng chưa từng được lưu, giờ có actor thật từ JWT nên lưu luôn để có audit trail.
      */
-    async updateResult(labResultId: string, dto: UpdateLabResultDto) {
+    async updateResult(labResultId: string, dto: UpdateLabResultDto, reviewedByUserId: string) {
+        await this.actorRoleService.assertActorRole(reviewedByUserId, [ACTOR_ROLE.LAB_STAFF, ACTOR_ROLE.DOCTOR]);
+
         const existing = await this.prisma.labResult.findUnique({
             where: { labResultId },
             include: { values: true },
@@ -139,6 +152,8 @@ export class LabResultService {
                 data: {
                     ...(dto.overallConclusion !== undefined ? { overallConclusion: dto.overallConclusion } : {}),
                     resultStatus: nextResultStatus,
+                    reviewedByUserId,
+                    reviewedAt: new Date(),
                 },
             });
 
@@ -157,7 +172,13 @@ export class LabResultService {
         return this.getById(labResultId);
     }
 
-    async addAttachment(labResultId: string, dto: AddLabAttachmentDto) {
+    /**
+     * Đính kèm thêm tệp/hình ảnh (VD: ảnh X-quang, PDF kết quả gốc từ máy) cho 1 kết quả xét nghiệm.
+     * `uploadedByUserId` (lấy từ JWT, xem LabResultController.addAttachment) phải có actorRole LAB_STAFF.
+     */
+    async addAttachment(labResultId: string, dto: AddLabAttachmentDto, uploadedByUserId: string) {
+        await this.actorRoleService.assertActorRole(uploadedByUserId, [ACTOR_ROLE.LAB_STAFF]);
+
         const labResult = await this.prisma.labResult.findUnique({ where: { labResultId } });
         if (!labResult) {
             throw new NotFoundException(`Không tìm thấy kết quả xét nghiệm ${labResultId}`);
@@ -169,7 +190,7 @@ export class LabResultService {
                 fileType: dto.fileType,
                 fileUrl: dto.fileUrl,
                 description: dto.description,
-                uploadedByUserId: dto.uploadedByUserId,
+                uploadedByUserId,
                 uploadedAt: new Date(),
             },
         });

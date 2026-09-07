@@ -1,4 +1,4 @@
-import { ArrayMinSize, IsArray, IsDateString, IsIn, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsDateString, IsIn, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { LabResultValueDto } from './lab-result-value.dto';
@@ -11,11 +11,6 @@ export type LabResultStatus = (typeof LAB_RESULT_STATUSES)[number];
  * khi nhiệm vụ đã qua ràng buộc thanh toán (được LabTaskService.assertReadyForResultEntry kiểm tra).
  */
 export class SubmitLabResultDto {
-    // TODO: khi có auth module, lấy từ req.user (JWT) thay vì client tự truyền lên.
-    @ApiProperty({ description: 'ID kỹ thuật viên nhập kết quả', format: 'uuid' })
-    @IsUUID()
-    enteredByUserId: string;
-
     @ApiProperty({ description: 'Danh sách chỉ số kết quả', type: [LabResultValueDto] })
     @IsArray()
     @ArrayMinSize(1, { message: 'Cần nhập ít nhất một chỉ số kết quả.' })
