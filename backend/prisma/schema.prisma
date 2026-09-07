@@ -282,6 +282,7 @@ model Patient {
   identityNumber     String?   @unique @map("identity_number") @db.VarChar(20)
   insuranceNumber    String?   @unique @map("insurance_number") @db.VarChar(20)
   phoneNumber        String    @map("phone_number") @db.VarChar(20)
+  status             String     @db.VarChar(10) // default: draft, official: main
   email              String?   @db.VarChar(255)
   address            String?   @db.VarChar(255)
   ethnicity          String?   @db.VarChar(50)
