@@ -19,6 +19,8 @@ import { PatientContactService } from '../patientContact/patient-contact.service
 import { QueueTicketService } from '../queue-ticket/queue-ticket.service';
 import { QueueTicketPrefix } from '../../../common/constants/queue-ticket.constants';
 import { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
+import { hasPermissionScope } from '../../../common/utils/permission.util';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appointment.dto';
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
@@ -180,7 +182,20 @@ export class AppointmentService {
   }
 
   async findById(appointmentId: string) {
-    const appointment = await this.prisma.appointment.findUnique({ where: { appointmentId } });
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { appointmentId },
+      include: {
+        patient: true,
+        doctor: {
+          include: {
+            user: true,
+          },
+        },
+        department: true,
+        slot: true,
+        queueTicket: true,
+      },
+    });
     if (!appointment) {
       throw new NotFoundException('Không tìm thấy lịch hẹn');
     }
@@ -188,21 +203,65 @@ export class AppointmentService {
   }
 
   // GET /appointments?patientId=&status=&from=&to=
-  findMany(query: FindAppointmentsQueryDto) {
+  async findMany(query: FindAppointmentsQueryDto, currentUser?: RequestUser) {
+    // Chỉ người dùng có quyền đọc lịch hẹn phạm vi ALL hoặc GROUP (Lễ tân, Bác sĩ, Admin) mới được xem lịch toàn viện
+    const isStaff =
+      currentUser &&
+      (hasPermissionScope(
+        currentUser.permissions,
+        Resource.APPOINTMENT,
+        Action.READ,
+        Scope.ALL,
+      ) ||
+        hasPermissionScope(
+          currentUser.permissions,
+          Resource.APPOINTMENT,
+          Action.READ,
+          Scope.GROUP,
+        ));
+
     const where: Prisma.AppointmentWhereInput = {
       patientId: query.patientId,
       status: query.status,
     };
 
+    // Nếu là bệnh nhân (không phải Staff/Admin xem tất cả), chỉ lấy lịch hẹn do user này đặt hoặc thuộc hồ sơ của user
+    if (!isStaff && currentUser) {
+      const myContacts = await this.prisma.patientContact.findMany({
+        where: { userId: currentUser.userId },
+        select: { patientId: true },
+      });
+      const myPatientIds = myContacts.map((c) => c.patientId);
+
+      where.OR = [
+        { bookedByUserId: currentUser.userId },
+        { patientId: { in: myPatientIds } },
+      ];
+    }
+
     if (query.from || query.to) {
+      const fromStr = query.from ? `${query.from.slice(0, 10)}T00:00:00.000Z` : undefined;
+      const toStr = query.to ? `${query.to.slice(0, 10)}T23:59:59.999Z` : undefined;
+
       where.appointmentDate = {
-        gte: query.from ? new Date(query.from) : undefined,
-        lte: query.to ? new Date(new Date(query.to).setHours(23, 59, 59, 999)) : undefined, // lấy đến cuối ngày hôm đó
+        gte: fromStr ? new Date(fromStr) : undefined,
+        lte: toStr ? new Date(toStr) : undefined,
       };
     }
 
     return this.prisma.appointment.findMany({
       where,
+      include: {
+        patient: true,
+        doctor: {
+          include: {
+            user: true,
+          },
+        },
+        department: true,
+        slot: true,
+        queueTicket: true,
+      },
       orderBy: { appointmentDate: 'desc' },
     });
   }
@@ -292,8 +351,20 @@ export class AppointmentService {
   }
 
   // PATCH /appointments/:id/cancel — chỉ cho phép từ pending/confirmed.
-  async cancel(appointmentId: string, dto: CancelAppointmentDto) {
+  async cancel(appointmentId: string, dto: CancelAppointmentDto, currentUser?: RequestUser) {
     const appointment = await this.findById(appointmentId);
+
+    if (currentUser) {
+      const isStaff = hasPermissionScope(
+        currentUser.permissions,
+        Resource.APPOINTMENT,
+        Action.UPDATE,
+        Scope.ALL,
+      );
+      if (!isStaff && appointment.bookedByUserId !== currentUser.userId) {
+        throw new ForbiddenException('Bạn chỉ có thể huỷ lịch hẹn do chính mình đặt');
+      }
+    }
 
     if (!canCancelAppointment(appointment.status)) {
       throw new BadRequestException(
