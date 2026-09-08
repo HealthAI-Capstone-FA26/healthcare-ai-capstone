@@ -10,9 +10,10 @@ import { AddLabAttachmentDto } from './dtos/add-lab-attachment.dto';
 import {
     LabResultSubmittedEvent,
     LAB_RESULT_SUBMITTED_EVENT,
-} from '../lab-anomaly/lab-result-submitted.event';
+} from '../lab-anomaly/events/lab-result-submitted.event';
 import { ActorRoleService } from '../../user/actor-role.service';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
+import { uploadImageToS3 } from '../../../common/configs/upload.config';
 
 /**
  * Nhập/tra cứu kết quả xét nghiệm (LabResult + LabResultValue) và tệp đính kèm.
@@ -29,7 +30,7 @@ export class LabResultService {
         private readonly labTaskService: LabTaskService,
         private readonly eventEmitter: EventEmitter2,
         private readonly actorRoleService: ActorRoleService,
-    ) {}
+    ) { }
 
     /** Validate + build dữ liệu Prisma cho danh sách value, đối chiếu đúng dataType của từng parameter. */
     private async resolveAndValidateValues(values: LabResultValueDto[]) {
@@ -123,8 +124,9 @@ export class LabResultService {
      *
      * `reviewedByUserId` (lấy từ JWT, xem LabResultController.update) phải có actorRole LAB_STAFF
      * hoặc DOCTOR — cả kỹ thuật viên tự sửa và bác sĩ xác nhận/đính chính kết quả đều hợp lệ.
-     * Được ghi lại vào reviewedByUserId/reviewedAt của bản ghi — trước đây field này tồn tại trên
-     * DTO nhưng chưa từng được lưu, giờ có actor thật từ JWT nên lưu luôn để có audit trail.
+     * LƯU Ý: model LabResult hiện KHÔNG có cột reviewedByUserId, nên actor ở đây chỉ dùng để
+     * authorization (assertActorRole), chưa được ghi vào bản ghi. Nếu cần audit trail "ai đã sửa/
+     * xác nhận kết quả", cần thêm migration cho cột này trước.
      */
     async updateResult(labResultId: string, dto: UpdateLabResultDto, reviewedByUserId: string) {
         await this.actorRoleService.assertActorRole(reviewedByUserId, [ACTOR_ROLE.LAB_STAFF, ACTOR_ROLE.DOCTOR]);
@@ -152,8 +154,6 @@ export class LabResultService {
                 data: {
                     ...(dto.overallConclusion !== undefined ? { overallConclusion: dto.overallConclusion } : {}),
                     resultStatus: nextResultStatus,
-                    reviewedByUserId,
-                    reviewedAt: new Date(),
                 },
             });
 
@@ -175,8 +175,17 @@ export class LabResultService {
     /**
      * Đính kèm thêm tệp/hình ảnh (VD: ảnh X-quang, PDF kết quả gốc từ máy) cho 1 kết quả xét nghiệm.
      * `uploadedByUserId` (lấy từ JWT, xem LabResultController.addAttachment) phải có actorRole LAB_STAFF.
+     *
+     * Nếu có `file` (multipart, xem LabResultController.addAttachment) thì upload thẳng lên S3 và
+     * lấy objectName làm fileUrl — bỏ qua `dto.fileUrl` nếu có. Nếu không có `file`, bắt buộc phải
+     * có sẵn `dto.fileUrl` (VD: link kết quả raw_export do hệ thống máy xét nghiệm cung cấp sẵn).
      */
-    async addAttachment(labResultId: string, dto: AddLabAttachmentDto, uploadedByUserId: string) {
+    async addAttachment(
+        labResultId: string,
+        dto: AddLabAttachmentDto,
+        uploadedByUserId: string,
+        file?: Express.Multer.File,
+    ) {
         await this.actorRoleService.assertActorRole(uploadedByUserId, [ACTOR_ROLE.LAB_STAFF]);
 
         const labResult = await this.prisma.labResult.findUnique({ where: { labResultId } });
@@ -184,11 +193,21 @@ export class LabResultService {
             throw new NotFoundException(`Không tìm thấy kết quả xét nghiệm ${labResultId}`);
         }
 
+        let fileUrl: string;
+        if (file) {
+            const uploadResult = await uploadImageToS3(file, 'lab-attachments');
+            fileUrl = uploadResult.objectName; // Lưu objectName (vd: lab-attachments/171000-1234.png)
+        } else if (dto.fileUrl) {
+            fileUrl = dto.fileUrl;
+        } else {
+            throw new BadRequestException('Phải cung cấp tệp đính kèm (file) hoặc fileUrl có sẵn.');
+        }
+
         const attachment = await this.prisma.labResultAttachment.create({
             data: {
                 labResultId,
                 fileType: dto.fileType,
-                fileUrl: dto.fileUrl,
+                fileUrl,
                 description: dto.description,
                 uploadedByUserId,
                 uploadedAt: new Date(),

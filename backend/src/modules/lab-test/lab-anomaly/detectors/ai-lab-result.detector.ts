@@ -1,4 +1,4 @@
-import { LabResultDetector, LabResultWithValues, LabDetectionResult } from './lab-result-detector.interface';
+import { LabResultDetector, LabResultWithValues, LabDetectionResult } from '../interfaces/lab-result-detector.interface';
 
 /**
  * Khung (stub) cho phát hiện bất thường dựa trên AI (VD: phân tích xu hướng nhiều lần

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { LabParameterThreshold } from '@prisma/client';
-import { PrismaService } from '../../../../prisma/prisma.service';
 import {
     LabResultDetector,
     LabResultWithValues,
     LabDetectionResult,
     LabRiskLevel,
-} from './lab-result-detector.interface';
+} from '../interfaces/lab-result-detector.interface';
+import { PrismaService } from 'prisma/prisma.service';
 
 const POSITIVE_TEXT_MARKERS = ['positive', 'dương tính', 'duong tinh', 'reactive'];
 
@@ -21,7 +21,7 @@ const POSITIVE_TEXT_MARKERS = ['positive', 'dương tính', 'duong tinh', 'react
 export class RuleBasedLabDetector implements LabResultDetector {
     readonly source = 'rule' as const;
 
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     private calculateAge(dateOfBirth: Date, at: Date): number {
         let age = at.getFullYear() - dateOfBirth.getFullYear();

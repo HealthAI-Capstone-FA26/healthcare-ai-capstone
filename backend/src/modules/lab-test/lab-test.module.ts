@@ -13,12 +13,11 @@ import { LabResultController } from './lab-result-entry/lab-result.controller';
 import { LabResultService } from './lab-result-entry/lab-result.service';
 
 import { LabResultAlertController } from './lab-anomaly/lab-result-alert.controller';
-import { LabResultDetectionOrchestrator } from './lab-anomaly/lab-result-detection.orchestrator';
-import { RuleBasedLabDetector } from './lab-anomaly/rule-based.detector';
-import { AiLabResultDetector } from './lab-anomaly/ai-lab-result.detector';
+import { LabResultDetectionOrchestrator } from './lab-anomaly/orchestrators/lab-result-detection.orchestrator';
+import { AiLabResultDetector } from './lab-anomaly/detectors/ai-lab-result.detector';
 import { LabAlertGateway } from './lab-anomaly/lab-alert.gateway';
-import { LabResultDetectionListener } from './lab-anomaly/lab-result-detection.listener';
-import { LabPatientContextResolver } from './lab-anomaly/lab-patient-context.resolver';
+import { LabResultDetectionListener } from './lab-anomaly/listeners/lab-result-detection.listener';
+import { LabPatientContextResolver } from './lab-anomaly/resolvers/lab-patient-context.resolver';
 
 import { LabAiAnalysisController } from './lab-ai-analysis/lab-ai-analysis.controller';
 import { AiLabAnalysisService } from './lab-ai-analysis/ai-lab-analysis.service';
@@ -30,6 +29,13 @@ import { LabCompletionNotificationService } from './lab-completion/lab-completio
 
 import { UserModule } from '../user/user.module';
 import { LabRoomService } from './lab-room-catalog/lab-room.service';
+import { RuleBasedLabDetector } from './lab-anomaly/detectors/rule-based.detector';
+import { DefaultEmailSenderAdapter, EMAIL_SENDER_PORT } from './notification/ports/email-sender.port';
+import { DefaultPushSenderAdapter, PUSH_SENDER_PORT } from './notification/ports/push-sender.port';
+import { InAppNotificationStrategy } from './notification/strategies/in-app-notification.strategy';
+import { EmailNotificationStrategy } from './notification/strategies/email-notification.strategy';
+import { PushNotificationStrategy } from './notification/strategies/push-notification.strategy';
+import { NotificationDispatcherService } from './notification/notification-dispatcher.service';
 
 /**
  * Mô-đun 7 — Xét nghiệm tại phòng Lab.
@@ -43,9 +49,13 @@ import { LabRoomService } from './lab-room-catalog/lab-room.service';
  *     (POST /lab-tasks/:id/receive) rồi nhập kết quả (POST /lab-tasks/:id/results).
  *  4. Sau khi nhập kết quả, hệ thống tự động (event-driven, chạy nền — không block API):
  *       - chạy phát hiện bất thường theo ngưỡng (lab-anomaly) và tạo LabResultAlert;
- *       - đẩy dữ liệu sang khung AI phân tích (lab-ai-analysis) — hiện là stub;
+ *       - đẩy TỪNG ảnh đính kèm sang khung AI phân tích (lab-ai-analysis) để kết luận
+ *         ảnh đó có bất thường (anomaly) hay không — CHỈ dựa trên bản thân ảnh, không đối
+ *         chiếu chéo với bảng số liệu hay yếu tố nào khác, và KHÔNG khoanh vùng tổn thương —
+ *         hiện là stub;
  *       - kiểm tra nếu đây là kết quả cuối cùng còn thiếu của lượt khám thì gửi Notification
- *         cho bác sĩ phụ trách và bệnh nhân (lab-completion).
+ *         cho bác sĩ phụ trách và bệnh nhân qua email + in-app (ưu tiên cao) và push (ưu tiên
+ *         thấp hơn, hiện là stub) — theo Strategy pattern (lab-completion/notification/).
  *
  * AUTH: mọi controller trong module này (trừ POST /lab-tasks/:id/verify-payment, được gọi bởi
  * module Thanh toán chứ không phải user đăng nhập) đã gắn JwtAuthGuard; các action ghi actor
@@ -81,6 +91,12 @@ import { LabRoomService } from './lab-room-catalog/lab-room.service';
         AiLabAnalysisService,
         LabReferenceRangeService,
         LabCompletionNotificationService,
+        { provide: EMAIL_SENDER_PORT, useClass: DefaultEmailSenderAdapter },
+        { provide: PUSH_SENDER_PORT, useClass: DefaultPushSenderAdapter },
+        InAppNotificationStrategy,
+        EmailNotificationStrategy,
+        PushNotificationStrategy,
+        NotificationDispatcherService,
     ],
     exports: [
         LabTaskService,

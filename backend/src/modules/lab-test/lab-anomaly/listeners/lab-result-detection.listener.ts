@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { LabResultDetectionOrchestrator } from './lab-result-detection.orchestrator';
-import { LabResultSubmittedEvent, LAB_RESULT_SUBMITTED_EVENT } from './lab-result-submitted.event';
-import { LabAlertGateway } from './lab-alert.gateway';
-import { LabPatientContextResolver } from './lab-patient-context.resolver';
-import { AiLabAnalysisService } from '../lab-ai-analysis/ai-lab-analysis.service';
-import { LabCompletionNotificationService } from '../lab-completion/lab-completion-notification.service';
+import { LabResultDetectionOrchestrator } from '../orchestrators/lab-result-detection.orchestrator';
+import { LabResultSubmittedEvent, LAB_RESULT_SUBMITTED_EVENT } from '../events/lab-result-submitted.event';
+import { LabAlertGateway } from '../lab-alert.gateway';
+import { LabPatientContextResolver } from '../resolvers/lab-patient-context.resolver';
+import { AiLabAnalysisService } from '../../lab-ai-analysis/ai-lab-analysis.service';
+import { LabCompletionNotificationService } from '../../lab-completion/lab-completion-notification.service';
 
 /**
  * Lắng nghe 'lab-result.submitted' và điều phối toàn bộ xử lý nền (fire-and-forget,
@@ -25,7 +25,7 @@ export class LabResultDetectionListener {
         private readonly patientContextResolver: LabPatientContextResolver,
         private readonly aiLabAnalysisService: AiLabAnalysisService,
         private readonly completionNotificationService: LabCompletionNotificationService,
-    ) {}
+    ) { }
 
     @OnEvent(LAB_RESULT_SUBMITTED_EVENT, { async: true })
     async handleLabResultSubmitted(event: LabResultSubmittedEvent): Promise<void> {

@@ -1,7 +1,10 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
     ApiBadRequestResponse,
     ApiBearerAuth,
+    ApiBody,
+    ApiConsumes,
     ApiCreatedResponse,
     ApiForbiddenResponse,
     ApiNotFoundResponse,
@@ -15,7 +18,7 @@ import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { LabResultService } from './lab-result.service';
 import { SubmitLabResultDto } from './dtos/submit-lab-result.dto';
 import { UpdateLabResultDto } from './dtos/update-lab-result.dto';
-import { AddLabAttachmentDto } from './dtos/add-lab-attachment.dto';
+import { AddLabAttachmentDto, LAB_ATTACHMENT_FILE_TYPES } from './dtos/add-lab-attachment.dto';
 
 /**
  * Nhập & tra cứu kết quả xét nghiệm — do Kỹ thuật viên phòng Lab thực hiện (riêng `update` cũng
@@ -31,7 +34,7 @@ import { AddLabAttachmentDto } from './dtos/add-lab-attachment.dto';
 @ApiBearerAuth()
 @Controller()
 export class LabResultController {
-    constructor(private readonly labResultService: LabResultService) {}
+    constructor(private readonly labResultService: LabResultService) { }
 
     /**
      * POST /lab-tasks/:id/results
@@ -113,23 +116,40 @@ export class LabResultController {
 
     /**
      * POST /lab-results/:id/attachments
-     * Tải lên tệp/hình ảnh đính kèm (VD: phim X-quang, PDF kết quả máy). Việc upload vật lý
-     * lên storage được xử lý trước khi gọi API này — DTO chỉ nhận URL cuối cùng.
+     * Tải lên tệp/hình ảnh đính kèm (VD: phim X-quang, PDF kết quả máy). Nhận multipart/form-data
+     * với field `file` — API tự upload lên S3 (xem LabResultService.addAttachment). Nếu không gửi
+     * `file`, phải cung cấp `fileUrl` sẵn có trong body.
      * Người tải lên (từ JWT) phải có actorRole LAB_STAFF.
      */
     @Post('lab-results/:id/attachments')
     @UseGuards(JwtAuthGuard)
+    @UseInterceptors(FileInterceptor('file'))
+    @ApiConsumes('multipart/form-data')
     @ApiOperation({ summary: 'Thêm tệp/hình ảnh đính kèm kết quả' })
     @ApiParam({ name: 'id', description: 'ID kết quả xét nghiệm (labResultId)', format: 'uuid' })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            required: ['fileType'],
+            properties: {
+                file: { type: 'string', format: 'binary', description: 'Tệp/hình ảnh tải lên trực tiếp' },
+                fileType: { type: 'string', enum: [...LAB_ATTACHMENT_FILE_TYPES] },
+                fileUrl: { type: 'string', description: 'Chỉ dùng khi KHÔNG gửi field `file`' },
+                description: { type: 'string' },
+            },
+        },
+    })
     @ApiCreatedResponse({ description: 'Tệp đính kèm đã lưu.' })
+    @ApiBadRequestResponse({ description: 'Thiếu cả `file` lẫn `fileUrl`.' })
     @ApiNotFoundResponse({ description: 'Không tìm thấy kết quả xét nghiệm.' })
     @ApiForbiddenResponse({ description: 'Người gọi API không có actorRole LAB_STAFF.' })
     async addAttachment(
         @Param('id') labResultId: string,
         @Body() dto: AddLabAttachmentDto,
         @CurrentUser('userId') uploadedByUserId: string,
+        @UploadedFile() file?: Express.Multer.File,
     ) {
-        return this.labResultService.addAttachment(labResultId, dto, uploadedByUserId);
+        return this.labResultService.addAttachment(labResultId, dto, uploadedByUserId, file);
     }
 
     @Get('lab-results/:id/attachments')
