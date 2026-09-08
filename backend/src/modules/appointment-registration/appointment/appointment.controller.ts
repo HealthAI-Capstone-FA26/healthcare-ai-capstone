@@ -12,6 +12,7 @@ import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appoint
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
+import { SyncPatientDto } from './dto/sync-patient.dto';
 
 @ApiTags('Appointment')
 @ApiBearerAuth()
@@ -39,6 +40,16 @@ export class AppointmentController {
   @ApiOperation({ summary: 'Danh sách lịch hẹn, lọc theo patientId/status/khoảng ngày' })
   findMany(@Query() query: FindAppointmentsQueryDto) {
     return this.appointmentService.findMany(query);
+  }
+
+  @Post('sync-patient')
+  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @ApiOperation({
+    summary:
+      'Lễ tân đối chiếu CCCD/CMND tại quầy cho case "matched" (appointment có suggestedPatientId, patientId=null)',
+  })
+  syncPatient(@Body() dto: SyncPatientDto) {
+    return this.appointmentService.syncPatient(dto);
   }
 
   @Get(':id')

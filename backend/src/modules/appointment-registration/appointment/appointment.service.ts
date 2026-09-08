@@ -16,6 +16,8 @@ import {
 import { RelationshipType } from '../../../common/constants/relationship.constants';
 import { isPendingRelationship } from '../../../common/constants/patient-contact.constants';
 import { PatientContactService } from '../patientContact/patient-contact.service';
+import { PatientService } from '../patient/patient.service';
+import { PatientGender } from '../patient/dto/create-patient.dto';
 import { QueueTicketService } from '../queue-ticket/queue-ticket.service';
 import { QueueTicketPrefix } from '../../../common/constants/queue-ticket.constants';
 import { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -24,6 +26,7 @@ import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appoint
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
+import { SyncPatientDto } from './dto/sync-patient.dto';
 
 const APPOINTMENT_CODE_PREFIX = 'LH';
 
@@ -32,6 +35,7 @@ export class AppointmentService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly patientContactService: PatientContactService,
+    private readonly patientService: PatientService,
     private readonly queueTicketService: QueueTicketService,
   ) { }
 
@@ -185,6 +189,39 @@ export class AppointmentService {
       throw new NotFoundException('Không tìm thấy lịch hẹn');
     }
     return appointment;
+  }
+
+  // POST /appointments/sync-patient — chỉ áp dụng cho case matched nhưng chưa xác nhận.
+  // Lễ tân phải xác nhận đồng thời CCCD và số điện thoại của suggestedPatient.
+  async syncPatient(dto: SyncPatientDto) {
+    const appointment = await this.findById(dto.appointmentId);
+
+    if (appointment.patientId) {
+      throw new BadRequestException('Lịch hẹn này đã có hồ sơ bệnh nhân, không cần đồng bộ');
+    }
+    if (!appointment.suggestedPatientId) {
+      throw new BadRequestException('Lịch hẹn này không có hồ sơ bệnh nhân được gợi ý để đối chiếu');
+    }
+
+    const suggestedPatient = await this.prisma.patient.findUnique({
+      where: { patientId: appointment.suggestedPatientId },
+    });
+    if (!suggestedPatient) {
+      throw new NotFoundException('Không tìm thấy hồ sơ bệnh nhân được gợi ý');
+    }
+
+    if (
+      suggestedPatient.fullName.trim().toLowerCase() !== dto.fullName.trim().toLowerCase() ||
+      suggestedPatient.identityNumber !== dto.identityNumber ||
+      suggestedPatient.phoneNumber !== dto.phoneNumber
+    ) {
+      throw new BadRequestException('Họ tên, CCCD/CMND hoặc số điện thoại không khớp với hồ sơ bệnh nhân được gợi ý');
+    }
+
+    return this.prisma.appointment.update({
+      where: { appointmentId: dto.appointmentId },
+      data: { patientId: suggestedPatient.patientId },
+    });
   }
 
   // GET /appointments?patientId=&status=&from=&to=

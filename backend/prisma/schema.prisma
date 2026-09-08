@@ -282,7 +282,7 @@ model Patient {
   identityNumber     String?   @unique @map("identity_number") @db.VarChar(20)
   insuranceNumber    String?   @unique @map("insurance_number") @db.VarChar(20)
   phoneNumber        String    @map("phone_number") @db.VarChar(20)
-  status             String     @db.VarChar(10) // default: draft, official: main
+  status             String    @default("draft") @db.VarChar(10) // draft: đặt lịch guest chưa xác nhận, main: hồ sơ chính thức
   email              String?   @db.VarChar(255)
   address            String?   @db.VarChar(255)
   ethnicity          String?   @db.VarChar(50)
@@ -294,7 +294,11 @@ model Patient {
 
   user            User?            @relation(fields: [userId], references: [userId])
   patientContacts PatientContact[]
-  appointments    Appointment[]
+  appointments    Appointment[]    @relation("AppointmentPatient")
+  // Appointment ở case "matched nhưng chưa xác nhận" (guest booking, xem GuestAppointmentService):
+  // patientId để null, chỉ set suggestedPatientId trỏ tới patient MAIN khớp nhất. Lễ tân xác nhận
+  // qua POST /appointment/sync-patient (Phase 3) rồi mới set patientId thật.
+  suggestedAppointments Appointment[] @relation("AppointmentSuggestedPatient")
   encounters      Encounter[]
   consents        Consent[]
   allergies       PatientAllergy[]
@@ -307,6 +311,7 @@ model Patient {
   notifications             Notification[]
   encounterSummaryDocuments EncounterSummaryDocument[]
 
+  @@index([status, createdAt])
   @@map("patients")
 }
 
@@ -328,7 +333,17 @@ model PatientContact {
 model Appointment {
   appointmentId   String    @id @default(uuid()) @map("appointment_id") @db.Char(36)
   appointmentCode String    @unique @map("appointment_code") @db.VarChar(20)
-  patientId       String    @map("patient_id") @db.Char(36)
+  // Nullable: case "matched nhưng chưa xác nhận" (guest booking match được ≥2 field với 1 patient
+  // MAIN có sẵn) để patientId=null, chỉ set suggestedPatientId — chờ lễ tân đối chiếu qua
+  // POST /appointment/sync-patient (Phase 3) rồi mới set patientId thật. Các thao tác giả định
+  // luôn có patientId (check-in, tạo encounter) phải tự chặn khi null — xem QueueTicketService.done()
+  // và EncounterService.createFromCheckin().
+  patientId          String?   @map("patient_id") @db.Char(36)
+  // Ứng viên Patient (status='main') khớp nhất tìm được lúc guest đặt lịch, kèm suggestedReason
+  // ghi rõ field nào khớp (vd 'fullName,phoneNumber'). Giữ nguyên kể cả sau khi patientId đã được
+  // set (sync-patient không xoá) để còn audit trail.
+  suggestedPatientId String?   @map("suggested_patient_id") @db.Char(36)
+  suggestedReason    String?   @map("suggested_reason") @db.VarChar(255)
   doctorId        String?   @map("doctor_id") @db.Char(36)
   departmentId    String    @map("department_id") @db.Char(36)
   slotId          String?   @map("slot_id") @db.Char(36)
@@ -345,7 +360,8 @@ model Appointment {
   cancelledAt     DateTime? @map("cancelled_at")
   cancelReason    String?   @map("cancel_reason") @db.VarChar(255)
 
-  patient      Patient          @relation(fields: [patientId], references: [patientId])
+  patient          Patient?         @relation("AppointmentPatient", fields: [patientId], references: [patientId])
+  suggestedPatient Patient?         @relation("AppointmentSuggestedPatient", fields: [suggestedPatientId], references: [patientId])
   doctor       Doctor?          @relation(fields: [doctorId], references: [doctorId])
   department   Department       @relation(fields: [departmentId], references: [departmentId])
   slot         AppointmentSlot? @relation(fields: [slotId], references: [slotId])
@@ -357,6 +373,7 @@ model Appointment {
 
   @@index([departmentId, appointmentDate, status])
   @@index([patientId, appointmentDate(sort: Desc)])
+  @@index([suggestedPatientId])
   @@map("appointments")
 }
 

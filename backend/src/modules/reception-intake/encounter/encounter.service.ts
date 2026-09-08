@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Appointment, Prisma, ReceptionCheckin } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../common/utils/code-generator.util';
@@ -39,6 +39,16 @@ export class EncounterService {
     appointment: Appointment,
     checkin: ReceptionCheckin,
   ) {
+    // Appointment ở case "matched nhưng chưa xác nhận" (guest booking, xem
+    // GuestAppointmentService/Phase 1-2) có patientId = null cho tới khi lễ tân đối chiếu qua
+    // POST /appointment/sync-patient (Phase 3). Encounter.patientId là bắt buộc (not null) nên
+    // KHÔNG được tạo encounter khi chưa có patientId thật.
+    if (!appointment.patientId) {
+      throw new BadRequestException(
+        'Lịch hẹn chưa xác nhận hồ sơ bệnh nhân, vui lòng đồng bộ (sync-patient) trước khi check-in',
+      );
+    }
+
     const priorFinishedCount = await tx.encounter.count({
       where: { patientId: appointment.patientId, status: EncounterStatus.FINISHED },
     });

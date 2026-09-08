@@ -173,6 +173,16 @@ export class QueueTicketService {
       throw new BadRequestException(`Không thể chuyển sang khám khi đang ở trạng thái '${ticket.status}'`);
     }
 
+    // Appointment ở case "matched nhưng chưa xác nhận" (guest booking, xem
+    // GuestAppointmentService/Phase 1-2) có patientId = null cho tới khi lễ tân đối chiếu qua
+    // POST /appointment/sync-patient (Phase 3). Chặn ngay tại đây (trước khi làm các bước check
+    // bác sĩ/ca trực tốn kém) thay vì để rớt xuống EncounterService.createFromCheckin giữa transaction.
+    if (!ticket.appointment.patientId) {
+      throw new BadRequestException(
+        'Lịch hẹn chưa xác nhận hồ sơ bệnh nhân, vui lòng đồng bộ (sync-patient) trước khi check-in',
+      );
+    }
+
     // Online đã chọn bác sĩ cụ thể ngay từ lúc đặt lịch -> LUÔN ƯU TIÊN doctorId đã có sẵn trên
     // appointment, không cho lễ tân đổi tuỳ tiện tại bước serve (tránh gán nhầm/đổi khác ý bệnh
     // nhân đã chọn). Chỉ khi appointment chưa có doctorId (at_hospital, chưa từng chọn bác sĩ)
