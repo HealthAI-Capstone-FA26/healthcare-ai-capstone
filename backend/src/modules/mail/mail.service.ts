@@ -82,6 +82,27 @@ export class MailService {
     this.logger.log(`Đã gửi OTP xác thực người liên hệ tới ${to}`);
   }
 
+  async sendGuestAppointmentOtpMail(to: string, otp: string): Promise<void> {
+    const from =
+      this.configService.get<string>('MAIL_FROM') ??
+      this.configService.getOrThrow<string>('MAIL_USER');
+    const expiresMinutes = this.configService.get<string>('OTP_EXPIRES_MINUTES') ?? '5';
+
+    await this.transporter.sendMail({
+      from,
+      to,
+      subject: 'Mã xác thực đặt lịch khám',
+      html: `
+        <p>Xin chào,</p>
+        <p>Mã OTP xác thực đặt lịch khám của bạn là:</p>
+        <h2 style="letter-spacing: 4px;">${otp}</h2>
+        <p>Mã có hiệu lực trong ${expiresMinutes} phút. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
+      `,
+    });
+
+    this.logger.log(`Đã gửi OTP đặt lịch guest tới ${to}`);
+  }
+
   async sendPasswordResetOtpMail(to: string, otp: string): Promise<void> {
     const from =
       this.configService.get<string>('MAIL_FROM') ??

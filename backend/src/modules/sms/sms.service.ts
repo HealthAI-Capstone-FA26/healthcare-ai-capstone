@@ -14,6 +14,13 @@ export class SmsService {
     );
   }
 
+  async sendGuestAppointmentOtpSms(phoneNumber: string, otp: string): Promise<void> {
+    await this.send(
+      phoneNumber,
+      `Ma OTP xac thuc dat lich kham cua ban la: ${otp}. Vui long khong chia se ma nay.`,
+    );
+  }
+
   private async send(phoneNumber: string, message: string): Promise<void> {
     // TODO: thay bằng tích hợp SMS provider thật (Twilio/eSMS/Speedsms/...).
     this.logger.log(`[MOCK SMS] -> ${phoneNumber}: ${message}`);
