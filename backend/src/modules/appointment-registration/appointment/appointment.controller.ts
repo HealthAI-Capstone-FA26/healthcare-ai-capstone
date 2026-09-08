@@ -28,7 +28,7 @@ export class AppointmentController {
   }
 
   @Post('at-hospital')
-  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.CREATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.CREATE}:${Scope.ALL}`)
   @ApiOperation({
     summary: 'Lễ tân tạo lịch tại quầy (bookingChannel = at_hospital), luôn kèm 1 QueueTicket prefix B',
   })
@@ -38,8 +38,8 @@ export class AppointmentController {
 
   @Get()
   @ApiOperation({ summary: 'Danh sách lịch hẹn, lọc theo patientId/status/khoảng ngày' })
-  findMany(@Query() query: FindAppointmentsQueryDto) {
-    return this.appointmentService.findMany(query);
+  findMany(@Query() query: FindAppointmentsQueryDto, @CurrentUser() user: RequestUser) {
+    return this.appointmentService.findMany(query, user);
   }
 
   @Post('sync-patient')
@@ -60,14 +60,14 @@ export class AppointmentController {
 
   // Nhóm transition thuộc quầy lễ tân: appointment:update:all
   @Patch(':id/confirm')
-  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Reception xác nhận lịch hẹn (pending -> confirmed)' })
   confirm(@Param('id') id: string) {
     return this.appointmentService.confirm(id);
   }
 
   @Patch(':id/check-in')
-  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({
     summary: 'Bệnh nhân đặt lịch online đã có mặt tại bệnh viện — phát số thứ tự (prefix A, ưu tiên hơn at_hospital)',
   })
@@ -76,7 +76,7 @@ export class AppointmentController {
   }
 
   @Patch(':id/no-show')
-  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Đánh dấu bệnh nhân không đến (-> no_show)' })
   markNoShow(@Param('id') id: string) {
     return this.appointmentService.markNoShow(id);
@@ -98,9 +98,13 @@ export class AppointmentController {
   }
 
   @Patch(':id/cancel')
-  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Huỷ lịch hẹn (chỉ cho phép từ pending/confirmed)' })
-  cancel(@Param('id') id: string, @Body() dto: CancelAppointmentDto) {
-    return this.appointmentService.cancel(id, dto);
+  cancel(
+    @Param('id') id: string,
+    @Body() dto: CancelAppointmentDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.appointmentService.cancel(id, dto, user);
   }
 }
