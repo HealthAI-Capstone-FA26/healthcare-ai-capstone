@@ -118,7 +118,19 @@ export class QueueTicketService {
   async findById(ticketId: string) {
     const ticket = await this.prisma.queueTicket.findUnique({
       where: { ticketId },
-      include: { appointment: true },
+      include: {
+        department: true,
+        appointment: {
+          include: {
+            patient: true,
+            doctor: {
+              include: { user: true },
+            },
+            department: true,
+            slot: true,
+          },
+        },
+      },
     });
     if (!ticket) {
       throw new NotFoundException('Không tìm thấy số thứ tự');
@@ -138,7 +150,19 @@ export class QueueTicketService {
 
     const tickets = await this.prisma.queueTicket.findMany({
       where,
-      include: { appointment: true },
+      include: {
+        department: true,
+        appointment: {
+          include: {
+            patient: true,
+            doctor: {
+              include: { user: true },
+            },
+            department: true,
+            slot: true,
+          },
+        },
+      },
     });
 
     // Sắp theo đúng thứ tự ưu tiên: online trước at_hospital, urgent lên đầu nhóm, FIFO nội bộ.
