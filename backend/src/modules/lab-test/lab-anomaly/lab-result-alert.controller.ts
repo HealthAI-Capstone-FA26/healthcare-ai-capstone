@@ -1,11 +1,11 @@
 import { Controller, Post, Param } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { LabResultDetectionOrchestrator } from './lab-result-detection.orchestrator';
+import { LabResultDetectionOrchestrator } from './orchestrators/lab-result-detection.orchestrator';
 
 @ApiTags('Lab Results')
 @Controller('lab-results')
 export class LabResultAlertController {
-    constructor(private readonly orchestrator: LabResultDetectionOrchestrator) {}
+    constructor(private readonly orchestrator: LabResultDetectionOrchestrator) { }
 
     /**
      * POST /lab-results/:id/detect-alerts

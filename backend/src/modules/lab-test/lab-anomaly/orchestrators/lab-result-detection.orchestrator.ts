@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../prisma/prisma.service';
-import { LabResultDetector, LabDetectionResult, LabRiskLevel, LabResultWithValues } from './lab-result-detector.interface';
-import { RuleBasedLabDetector } from './rule-based.detector';
-import { AiLabResultDetector } from './ai-lab-result.detector';
-import { LabPatientContextResolver } from './lab-patient-context.resolver';
+import { PrismaService } from '../../../../../prisma/prisma.service';
+import { LabResultDetector, LabDetectionResult, LabRiskLevel, LabResultWithValues } from '../interfaces/lab-result-detector.interface';
+import { RuleBasedLabDetector } from '../detectors/rule-based.detector';
+import { AiLabResultDetector } from '../detectors/ai-lab-result.detector';
+import { LabPatientContextResolver } from '../resolvers/lab-patient-context.resolver';
 
 const RISK_SEVERITY: Record<LabRiskLevel, number> = { low: 1, medium: 2, high: 3, critical: 4 };
 

@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { LabDetectionResult } from './lab-result-detector.interface';
+import { LabDetectionResult } from './interfaces/lab-result-detector.interface';
 
 export interface LabAlertPushPayload {
     labResultId: string;
