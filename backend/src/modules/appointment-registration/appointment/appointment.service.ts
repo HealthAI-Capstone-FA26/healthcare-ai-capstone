@@ -152,7 +152,11 @@ export class AppointmentService {
     }
 
     const appointmentCode = await this.generateAppointmentCode();
-    const today = new Date(new Date().toDateString());
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
 
     return this.prisma.$transaction(async (tx) => {
       const appointment = await tx.appointment.create({
@@ -166,6 +170,7 @@ export class AppointmentService {
           slotId: null,
           bookedByUserId: currentUser.userId,
           appointmentDate: today,
+          appointmentTime: null,
           reasonForVisit: dto.reasonForVisit,
           priority: dto.priority,
         },
