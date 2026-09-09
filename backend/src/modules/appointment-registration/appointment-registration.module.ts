@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 
 import { AppointmentController } from './appointment/appointment.controller';
 import { AppointmentService } from './appointment/appointment.service';
+import { GuestAppointmentController } from './appointment/guest-appointment.controller';
+import { GuestAppointmentService } from './appointment/guest-appointment.service';
+import { GuestAppointmentOtpStore } from './appointment/guest-appointment-otp.store';
 
 import { AppointmentSlotController } from '../shared/appointment-slot/appointment-slot.controller';
 import { AppointmentSlotService } from '../shared/appointment-slot/appointment-slot.service';
@@ -24,6 +27,7 @@ import { ContactRequestOtpStore } from './patientContact/contact-request-otp.sto
 
 import { WeeklyScheduleGenCron } from '../../common/cron/weekly-schedule-gen.cron';
 import { ExpireSlotsCron } from '../../common/cron/expire-slots.cron';
+import { CleanupDraftPatientsCron } from '../../common/cron/cleanup-draft-patients.cron';
 
 import { ReceptionIntakeModule } from '../reception-intake/reception-intake.module';
 
@@ -48,6 +52,7 @@ import { ReceptionIntakeModule } from '../reception-intake/reception-intake.modu
     DoctorScheduleController,
     AppointmentSlotController,
     AppointmentController,
+    GuestAppointmentController,
     QueueTicketController,
   ],
   providers: [
@@ -58,9 +63,12 @@ import { ReceptionIntakeModule } from '../reception-intake/reception-intake.modu
     DoctorScheduleService,
     AppointmentSlotService,
     AppointmentService,
+    GuestAppointmentService,
+    GuestAppointmentOtpStore,
     QueueTicketService,
     WeeklyScheduleGenCron,
     ExpireSlotsCron,
+    CleanupDraftPatientsCron,
   ],
   exports: [
     PatientService,

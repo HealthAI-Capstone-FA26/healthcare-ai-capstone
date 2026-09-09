@@ -118,7 +118,19 @@ export class QueueTicketService {
   async findById(ticketId: string) {
     const ticket = await this.prisma.queueTicket.findUnique({
       where: { ticketId },
-      include: { appointment: true },
+      include: {
+        department: true,
+        appointment: {
+          include: {
+            patient: true,
+            doctor: {
+              include: { user: true },
+            },
+            department: true,
+            slot: true,
+          },
+        },
+      },
     });
     if (!ticket) {
       throw new NotFoundException('Không tìm thấy số thứ tự');
@@ -138,7 +150,19 @@ export class QueueTicketService {
 
     const tickets = await this.prisma.queueTicket.findMany({
       where,
-      include: { appointment: true },
+      include: {
+        department: true,
+        appointment: {
+          include: {
+            patient: true,
+            doctor: {
+              include: { user: true },
+            },
+            department: true,
+            slot: true,
+          },
+        },
+      },
     });
 
     // Sắp theo đúng thứ tự ưu tiên: online trước at_hospital, urgent lên đầu nhóm, FIFO nội bộ.
@@ -171,6 +195,16 @@ export class QueueTicketService {
     const ticket = await this.findById(ticketId);
     if (ticket.status !== QueueTicketStatus.CALLED) {
       throw new BadRequestException(`Không thể chuyển sang khám khi đang ở trạng thái '${ticket.status}'`);
+    }
+
+    // Appointment ở case "matched nhưng chưa xác nhận" (guest booking, xem
+    // GuestAppointmentService/Phase 1-2) có patientId = null cho tới khi lễ tân đối chiếu qua
+    // POST /appointment/sync-patient (Phase 3). Chặn ngay tại đây (trước khi làm các bước check
+    // bác sĩ/ca trực tốn kém) thay vì để rớt xuống EncounterService.createFromCheckin giữa transaction.
+    if (!ticket.appointment.patientId) {
+      throw new BadRequestException(
+        'Lịch hẹn chưa xác nhận hồ sơ bệnh nhân, vui lòng đồng bộ (sync-patient) trước khi check-in',
+      );
     }
 
     // Online đã chọn bác sĩ cụ thể ngay từ lúc đặt lịch -> LUÔN ƯU TIÊN doctorId đã có sẵn trên

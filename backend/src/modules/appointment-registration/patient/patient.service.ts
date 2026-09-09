@@ -13,12 +13,24 @@ import { hasPermissionScope } from '../../../common/utils/permission.util';
 import { generateUniqueCode } from '../../../common/utils/code-generator.util';
 import { isPendingRelationship } from '../../../common/constants/patient-contact.constants';
 import { PatientContactService } from '../patientContact/patient-contact.service';
+import { PatientStatus } from '../../../common/constants/patient-status.constants';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { SearchPatientDto } from './dto/search-patient.dto';
 import { MatchSuggestionQueryDto } from './dto/match-suggestion-query.dto';
+import { ConfirmMainPatientDto } from './dto/confirm-main-patient.dto';
 
 const PATIENT_CODE_PREFIX = 'BN';
+
+// PATCH /patients/:id/confirm-main: insuranceNumber là thông tin bổ sung, không bắt buộc khi
+// đổi status draft -> main. Các field còn lại phải có đủ sau khi merge dữ liệu request.
+const CONFIRM_MAIN_REQUIRED_FIELDS: { field: 'fullName' | 'dateOfBirth' | 'gender' | 'identityNumber' | 'phoneNumber'; label: string }[] = [
+  { field: 'fullName', label: 'Họ tên' },
+  { field: 'dateOfBirth', label: 'Ngày sinh' },
+  { field: 'gender', label: 'Giới tính' },
+  { field: 'identityNumber', label: 'CCCD/CMND' },
+  { field: 'phoneNumber', label: 'Số điện thoại' },
+];
 
 @Injectable()
 export class PatientService {
@@ -123,6 +135,7 @@ export class PatientService {
     dto: CreatePatientDto,
     userId: string | null,
     tx: Prisma.TransactionClient | PrismaService = this.prisma,
+    status: PatientStatus = PatientStatus.MAIN,
   ) {
     const duplicateConditions: Prisma.PatientWhereInput[] = [
       { identityNumber: dto.identityNumber },
@@ -170,6 +183,11 @@ export class PatientService {
           email: dto.email,
           address: dto.address,
           ethnicity: dto.ethnicity,
+          // Tạo qua các luồng đã xác thực (tự đăng ký tài khoản / lễ tân tạo tại quầy) ->
+          // coi là hồ sơ chính thức ngay (status mặc định = MAIN). Chỉ luồng đặt lịch guest (đã
+          // xác thực OTP nhưng không đủ field khớp hồ sơ main có sẵn) mới truyền status=DRAFT
+          // qua createDraftPatientRecord — xem GuestAppointmentService.
+          status,
         },
       });
     } catch (error) {
@@ -185,6 +203,15 @@ export class PatientService {
       }
       throw error;
     }
+  }
+
+  // Dùng bởi GuestAppointmentService (Phase 2) khi guest đặt lịch nhưng KHÔNG đủ >=2 field khớp
+  // với 1 patient status='main' có sẵn — tạo patient mới với status='draft' (không có userId,
+  // không tạo PatientContact). Tái dùng nguyên logic check trùng identityNumber/insuranceNumber/
+  // email của createPatientRecord, chỉ khác status; PHẢI truyền `tx` để nằm trong cùng transaction
+  // với bước tạo Appointment.
+  async createDraftPatientRecord(dto: CreatePatientDto, tx: Prisma.TransactionClient) {
+    return this.createPatientRecord(dto, null, tx, PatientStatus.DRAFT);
   }
 
   async findById(patientId: string) {
@@ -388,6 +415,93 @@ export class PatientService {
 
     return updated;
   }
+
+  // PATCH /patients/:id/confirm-main — lễ tân xác nhận danh tính bệnh nhân (thường là bệnh nhân
+  // guest đặt lịch qua OTP, patient được tạo với status='draft') -> chuyển sang 'main' (hồ sơ
+  // chính thức). Từ lúc này patient KHÔNG còn bị CleanupDraftPatientsCron dọn dẹp nữa.
+  // Chỉ cho đổi status khi đang ở 'draft' (không cho gọi lại nếu đã 'main' hoặc trạng thái khác),
+  // và phải có đủ 5 field bắt buộc: fullName/dateOfBirth/gender/identityNumber/phoneNumber.
+  // insuranceNumber chỉ được cập nhật thêm nếu receptionist gửi lên, không bắt buộc phải có.
+  async confirmMain(patientId: string, dto: ConfirmMainPatientDto) {
+    const patient = await this.findById(patientId);
+
+    if (patient.status !== PatientStatus.DRAFT) {
+      throw new BadRequestException(
+        `Chỉ có thể xác nhận hồ sơ đang ở trạng thái 'draft', hồ sơ này hiện đang ở trạng thái '${patient.status}'`,
+      );
+    }
+
+    const mergedPatient = {
+      ...patient,
+      ...dto,
+    };
+    const missingLabels = CONFIRM_MAIN_REQUIRED_FIELDS.filter(({ field }) =>
+      isBlank(mergedPatient[field]),
+    ).map(({ label }) => label);
+
+    if (missingLabels.length > 0) {
+      throw new BadRequestException(`Thiếu: ${missingLabels.join(', ')}`);
+    }
+
+    const duplicateConditions: Prisma.PatientWhereInput[] = [];
+    if (dto.identityNumber && dto.identityNumber !== patient.identityNumber) {
+      duplicateConditions.push({ identityNumber: dto.identityNumber });
+    }
+    if (dto.insuranceNumber && dto.insuranceNumber !== patient.insuranceNumber) {
+      duplicateConditions.push({ insuranceNumber: dto.insuranceNumber });
+    }
+
+    if (duplicateConditions.length > 0) {
+      const duplicatePatient = await this.prisma.patient.findFirst({
+        where: {
+          patientId: { not: patientId },
+          OR: duplicateConditions,
+        },
+        select: { identityNumber: true, insuranceNumber: true },
+      });
+      if (duplicatePatient) {
+        if (duplicatePatient.identityNumber === dto.identityNumber) {
+          throw new ConflictException('Số CCCD/CMND đã được sử dụng');
+        }
+        throw new ConflictException('Số bảo hiểm đã được sử dụng');
+      }
+    }
+
+    const updateData: Prisma.PatientUpdateInput = { status: PatientStatus.MAIN };
+    if (dto.fullName !== undefined) updateData.fullName = dto.fullName;
+    if (dto.dateOfBirth !== undefined) updateData.dateOfBirth = new Date(dto.dateOfBirth);
+    if (dto.gender !== undefined) updateData.gender = dto.gender;
+    if (dto.identityNumber !== undefined) updateData.identityNumber = dto.identityNumber;
+    if (dto.insuranceNumber !== undefined) updateData.insuranceNumber = dto.insuranceNumber;
+    if (dto.phoneNumber !== undefined) updateData.phoneNumber = dto.phoneNumber;
+
+    try {
+      return await this.prisma.patient.update({
+        where: { patientId },
+        data: updateData,
+      });
+    } catch (error) {
+      // Khó xảy ra vì patient đã tồn tại từ trước (identityNumber/insuranceNumber không đổi ở
+      // bước này) — bắt cho chắc, không cần check trùng thêm vì DB đã có unique constraint.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const target = Array.isArray(error.meta?.target) ? error.meta.target.join(',') : '';
+        if (target.includes('identity_number')) {
+          throw new ConflictException('Số CCCD/CMND đã được sử dụng');
+        }
+        if (target.includes('insurance_number')) {
+          throw new ConflictException('Số bảo hiểm đã được sử dụng');
+        }
+        throw new ConflictException('Thông tin bệnh nhân đã tồn tại');
+      }
+      throw error;
+    }
+  }
+}
+
+function isBlank(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string') return value.trim().length === 0;
+  return false;
 }
 
 function maskTail(value: string | null | undefined, visibleTail = 3): string | null { // che để lộ 3 số cuối

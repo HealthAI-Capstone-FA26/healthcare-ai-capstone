@@ -6,6 +6,7 @@ import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { SearchPatientDto } from './dto/search-patient.dto';
 import { MatchSuggestionQueryDto } from './dto/match-suggestion-query.dto';
+import { ConfirmMainPatientDto } from './dto/confirm-main-patient.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
@@ -90,6 +91,16 @@ export class PatientController {
   @ApiOperation({ summary: 'Cập nhật hồ sơ bệnh nhân (lễ tân/admin)' })
   update(@Param('id') id: string, @Body() dto: UpdatePatientDto, @CurrentUser() user: RequestUser) {
     return this.patientService.update(id, dto, user);
+  }
+
+  @Patch(':id/confirm-main')
+  // @RequirePermissions(`${Resource.PATIENT}:${Action.UPDATE}:${Scope.GROUP}`)
+  @ApiOperation({
+    summary:  
+      'Lễ tân xác nhận danh tính bệnh nhân (thường là hồ sơ guest status=draft tạo từ đặt lịch OTP) -> chuyển status=main, không còn bị cronjob dọn dẹp',
+  })
+  confirmMain(@Param('id') id: string, @Body() dto: ConfirmMainPatientDto) {
+    return this.patientService.confirmMain(id, dto);
   }
 
   @Post(':id/link-user')

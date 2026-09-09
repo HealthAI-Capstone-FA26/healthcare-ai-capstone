@@ -16,6 +16,7 @@ import { RolePermissionModule } from './modules/auth/role-permission/role-permis
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { VitalModule } from './modules/vitals/vital.module';
 import { LabTestModule } from './modules/lab-test/lab-test.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
