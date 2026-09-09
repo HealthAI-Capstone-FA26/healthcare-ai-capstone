@@ -18,6 +18,7 @@ import { VitalModule } from './modules/vitals/vital.module';
 import { LabTestModule } from './modules/lab-test/lab-test.module';
 import { Icd10CatalogModule } from './modules/shared/icd10-catalog/icd10-catalog.module';
 import { DoctorExaminationModule } from './modules/pre-doctor-examination/doctor-examination.module';
+import { PostTestConsultationModule } from './modules/post-test-consultation/post-test-consultation.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { DoctorExaminationModule } from './modules/pre-doctor-examination/doctor
     VitalModule,
     LabTestModule,
     Icd10CatalogModule,
-    DoctorExaminationModule
+    DoctorExaminationModule,
+    PostTestConsultationModule
   ],
   controllers: [AppController],
   providers: [AppService],
