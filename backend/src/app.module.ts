@@ -16,6 +16,8 @@ import { RolePermissionModule } from './modules/auth/role-permission/role-permis
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { VitalModule } from './modules/vitals/vital.module';
 import { LabTestModule } from './modules/lab-test/lab-test.module';
+import { Icd10CatalogModule } from './modules/shared/icd10-catalog/icd10-catalog.module';
+import { DoctorExaminationModule } from './modules/pre-doctor-examination/doctor-examination.module';
 
 @Module({
   imports: [
@@ -33,7 +35,9 @@ import { LabTestModule } from './modules/lab-test/lab-test.module';
     ReceptionIntakeModule,
     RolePermissionModule,
     VitalModule,
-    LabTestModule
+    LabTestModule,
+    Icd10CatalogModule,
+    DoctorExaminationModule
   ],
   controllers: [AppController],
   providers: [AppService],
