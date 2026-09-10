@@ -78,6 +78,13 @@ export class EncounterService {
         identityVerifications: { orderBy: { verifiedAt: 'desc' } },
         doctorQueueEntry: true,
         consents: true,
+        patient: true,
+        department: true,
+        doctor: true,
+        vitalSignSessions: {
+          orderBy: { createdAt: 'desc' },
+          include: { observations: { include: { item: true } } },
+        },
       },
     });
     if (!encounter) {
@@ -97,7 +104,17 @@ export class EncounterService {
     return this.prisma.encounter.findMany({
       where,
       orderBy: { arrivedAt: 'desc' },
-      include: { chiefComplaint: true, doctorQueueEntry: true },
+      include: {
+        chiefComplaint: true,
+        doctorQueueEntry: true,
+        patient: true,
+        department: true,
+        doctor: true,
+        vitalSignSessions: {
+          orderBy: { createdAt: 'desc' },
+          include: { observations: { include: { item: true } } },
+        },
+      },
     });
   }
 }
