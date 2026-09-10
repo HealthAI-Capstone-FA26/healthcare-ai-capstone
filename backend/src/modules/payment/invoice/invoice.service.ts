@@ -243,11 +243,14 @@ export class InvoiceService {
       return invoice;
     }
 
-    // 1. Đã thu đủ tiền -> chuyển Invoice sang 'paid'.
-    const paidInvoice = await this.prisma.invoice.update({
-      where: { invoiceId },
+    // 1. Đã thu đủ tiền -> chuyển Invoice sang 'paid' atomically.
+    const paidResult = await this.prisma.invoice.updateMany({
+      where: { invoiceId, status: 'pending' },
       data: { status: 'paid' },
     });
+    if (paidResult.count === 0) {
+      return invoice;
+    }
 
     // 2. Với từng InvoiceItem itemType='tests' thuộc invoice vừa paid -> báo LabTask tương ứng.
     // Chạy song song, KHÔNG throw ra ngoài nếu 1 item lỗi (adapter đã tự log warn khi thiếu LabTask)
@@ -264,15 +267,15 @@ export class InvoiceService {
     );
 
     // 3. Generate + upload PDF nếu chưa có pdfFileUrl (§3.5).
-    await this.ensurePdfGenerated(paidInvoice.invoiceId).catch((err) => {
+    await this.ensurePdfGenerated(invoiceId).catch((err) => {
       this.logger.error(`Lỗi sinh PDF cho hoá đơn ${invoiceId}: ${(err as Error)?.message}`);
     });
 
     // 4. Emit event 'invoice.paid' -> listener riêng dispatch Notification 'payment_success',
     // tách khỏi luồng chính để không block API xác nhận thanh toán/webhook.
-    this.eventEmitter.emit(INVOICE_PAID_EVENT, new InvoicePaidEvent(paidInvoice.invoiceId, invoice.patientId));
+    this.eventEmitter.emit(INVOICE_PAID_EVENT, new InvoicePaidEvent(invoiceId, invoice.patientId));
 
-    return this.findById(paidInvoice.invoiceId);
+    return this.findById(invoiceId);
   }
 
   /**
