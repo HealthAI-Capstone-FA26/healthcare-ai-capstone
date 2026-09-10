@@ -20,16 +20,26 @@ export class ActorRoleService {
 
     /** Trả về actorRole hiện tại của user. Throws NotFoundException nếu user chưa có UserProfile. */
     async getActorRole(userId: string): Promise<ActorRole> {
-        const profile = await this.prisma.userProfile.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: { userId },
-            select: { actorRole: true },
+            select: {
+                userRoles: {
+                    take: 1,
+                    select: { role: { select: { roleCode: true } } },
+                },
+                profile: { select: { actorRole: true } },
+            },
         });
 
-        if (!profile) {
-            throw new NotFoundException(`Không tìm thấy hồ sơ (UserProfile) cho user ${userId}`);
+        if (!user) {
+            throw new NotFoundException(`Không tìm thấy user ${userId}`);
         }
 
-        const actorRole = profile.actorRole.trim();
+        const actorRole = (user.userRoles[0]?.role.roleCode ?? user.profile?.actorRole)?.trim();
+        if (!actorRole) {
+            throw new NotFoundException(`User ${userId} chưa được gán actorRole`);
+        }
+
         if (!isValidActorRole(actorRole)) {
             // Dữ liệu cũ/lỗi (VD: còn sót giá trị chưa chuẩn hoá trước khi có ACTOR_ROLE constant).
             // Ném lỗi rõ ràng thay vì âm thầm coi như hợp lệ, để phát hiện sớm thay vì assign nhầm người.

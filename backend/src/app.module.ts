@@ -16,6 +16,7 @@ import { RolePermissionModule } from './modules/auth/role-permission/role-permis
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { VitalModule } from './modules/vitals/vital.module';
 import { LabTestModule } from './modules/lab-test/lab-test.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -33,7 +34,8 @@ import { LabTestModule } from './modules/lab-test/lab-test.module';
     ReceptionIntakeModule,
     RolePermissionModule,
     VitalModule,
-    LabTestModule
+    LabTestModule,
+    PaymentModule
   ],
   controllers: [AppController],
   providers: [AppService],
