@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { VitalSignThreshold } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
+import { calculateAge, findApplicableThreshold } from '../common/vital-threshold.utils';
 
 export interface VitalReferenceRangeDto {
     itemCode: string;
@@ -8,20 +8,18 @@ export interface VitalReferenceRangeDto {
     unit: string;
     minNormal: number;
     maxNormal: number;
-    minCritical: number | null;
-    maxCritical: number | null;
     sourceReference: string | null;
 }
 
 /**
- * Trả về khoảng bình thường / nguy kịch của từng chỉ số sinh hiệu áp dụng cho 1 bệnh nhân
- * cụ thể (theo tuổi tại thời điểm đo + giới tính). Dùng để giao diện điều dưỡng hiển thị
- * ngay cạnh ô nhập liệu (VD: "HA tâm thu: bình thường 90–119 mmHg") — không cần đợi submit
- * mới biết chỉ số có bất thường hay không.
+ * Trả về khoảng bình thường của từng chỉ số sinh hiệu áp dụng cho 1 bệnh nhân cụ thể (theo
+ * tuổi tại thời điểm đo + giới tính). Dùng để giao diện điều dưỡng hiển thị ngay cạnh ô nhập
+ * liệu (VD: "HA tâm thu: bình thường 90–119 mmHg") — không cần đợi submit mới biết chỉ số có
+ * bất thường hay không.
  *
- * LƯU Ý: hàm tính tuổi + tìm ngưỡng áp dụng bên dưới được viết độc lập, KHÔNG import từ
- * vital-anomaly/rule-based.detector.ts, để không đụng vào module vital-anomaly hiện có.
- * Logic 2 bên đang giống nhau — nếu sau này cần, nên tách thành 1 shared util dùng chung.
+ * Không còn minCritical/maxCritical: chỉ có 1 khoảng normal duy nhất, ra khỏi khoảng này là
+ * bất thường (xem rule-based.detector.ts). Dùng chung calculateAge/findApplicableThreshold với
+ * detector qua common/vital-threshold.utils.ts để 2 nơi không lệch nhau.
  */
 @Injectable()
 export class VitalReferenceRangeService {
@@ -43,13 +41,13 @@ export class VitalReferenceRangeService {
         }
 
         const measuredAt = measuredAtInput ? new Date(measuredAtInput) : new Date();
-        const age = this.calculateAge(patient.dateOfBirth, measuredAt);
+        const age = calculateAge(patient.dateOfBirth, measuredAt);
 
         const items = await this.prisma.vitalSignItem.findMany({ where: { isActive: true } });
 
         const ranges: VitalReferenceRangeDto[] = [];
         for (const item of items) {
-            const threshold = await this.findApplicableThreshold(item.itemId, age, patient.gender, measuredAt);
+            const threshold = await findApplicableThreshold(this.prisma, item.itemId, age, patient.gender, measuredAt);
             if (!threshold) continue; // Chỉ số chưa có ngưỡng cấu hình (VD: HEIGHT, WEIGHT, BMI) — bỏ qua.
 
             ranges.push({
@@ -58,46 +56,10 @@ export class VitalReferenceRangeService {
                 unit: item.unit,
                 minNormal: Number(threshold.minNormal),
                 maxNormal: Number(threshold.maxNormal),
-                minCritical: threshold.minCritical !== null ? Number(threshold.minCritical) : null,
-                maxCritical: threshold.maxCritical !== null ? Number(threshold.maxCritical) : null,
                 sourceReference: threshold.sourceReference,
             });
         }
 
         return ranges;
-    }
-
-    private calculateAge(dateOfBirth: Date, measuredAt: Date): number {
-        let age = measuredAt.getFullYear() - dateOfBirth.getFullYear();
-        const monthDiff = measuredAt.getMonth() - dateOfBirth.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && measuredAt.getDate() < dateOfBirth.getDate())) {
-            age--;
-        }
-        return age;
-    }
-
-    private async findApplicableThreshold(
-        itemId: string,
-        age: number,
-        gender: string | null,
-        measuredAt: Date,
-    ): Promise<VitalSignThreshold | null> {
-        const thresholds = await this.prisma.vitalSignThreshold.findMany({
-            where: {
-                itemId,
-                isActive: true,
-                effectiveFrom: { lte: measuredAt },
-                AND: [
-                    { OR: [{ ageMin: null }, { ageMin: { lte: age } }] },
-                    { OR: [{ ageMax: null }, { ageMax: { gte: age } }] },
-                ],
-            },
-            orderBy: { effectiveFrom: 'desc' },
-        });
-
-        if (thresholds.length === 0) return null;
-
-        const genderMatch = gender ? thresholds.find((t) => t.gender === gender) : undefined;
-        return genderMatch ?? thresholds.find((t) => !t.gender) ?? thresholds[0];
     }
 }

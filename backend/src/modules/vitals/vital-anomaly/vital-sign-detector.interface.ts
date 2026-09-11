@@ -1,6 +1,8 @@
 import { VitalSignSession, VitalSignObservation, VitalSignItem } from '@prisma/client';
 
-export type AlertLevel = 'warning' | 'critical';
+// Chỉ còn 1 mức: 'critical' = giá trị nằm ngoài [minNormal, maxNormal].
+// Không còn 2 tầng normal/warning/critical - anomaly = out-of-range của normal, gọi thẳng là critical.
+export type AlertLevel = 'critical';
 export type AlertSource = 'rule' | 'ai';
 
 export interface DetectionResult {
