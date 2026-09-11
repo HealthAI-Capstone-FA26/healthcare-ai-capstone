@@ -1,14 +1,13 @@
-import { VitalSignDetector, DetectionResult, AlertLevel } from './vital-sign-detector.interface';
+import { VitalSignDetector, DetectionResult } from './vital-sign-detector.interface';
 import { RuleBasedDetector } from './rule-based.detector';
 import { AiVitalSignDetector } from './ai-vital-sign.detector';
 import { PrismaService } from '../../../../prisma/prisma.service';
 
-const LEVEL_SEVERITY: Record<AlertLevel, number> = { warning: 1, critical: 2 };
-
 /**
  * Chạy tất cả detector đã đăng ký (rule-based, ai-based, ...) cho 1 session,
  * gộp kết quả theo observationId (nếu nhiều detector cùng báo 1 observation
- * thì lấy mức độ nặng nhất), rồi ghi isAbnormal + tạo VitalSignAlert.
+ * thì ưu tiên kết quả isAbnormal=true — chỉ còn 1 mức 'critical' nên không cần
+ * so sánh độ nặng như trước), rồi ghi isAbnormal + tạo VitalSignAlert.
  */
 export class VitalSignDetectionOrchestrator {
     private readonly detectors: VitalSignDetector[];
@@ -32,17 +31,11 @@ export class VitalSignDetectionOrchestrator {
             await Promise.all(this.detectors.map((d) => d.detect(sessionForDetectors)))
         ).flat();
 
-        // Gộp theo observationId: giữ lại kết quả có mức độ nặng nhất
+        // Gộp theo observationId: nếu bất kỳ detector nào báo isAbnormal=true, ưu tiên giữ
         const merged = new Map<string, DetectionResult>();
         for (const result of allResults) {
             const existing = merged.get(result.observationId);
-            if (!existing) {
-                merged.set(result.observationId, result);
-                continue;
-            }
-            const existingSeverity = existing.alertLevel ? LEVEL_SEVERITY[existing.alertLevel] : 0;
-            const newSeverity = result.alertLevel ? LEVEL_SEVERITY[result.alertLevel] : 0;
-            if (newSeverity > existingSeverity) {
+            if (!existing || (result.isAbnormal && !existing.isAbnormal)) {
                 merged.set(result.observationId, result);
             }
         }
