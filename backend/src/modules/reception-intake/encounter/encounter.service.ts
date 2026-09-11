@@ -93,12 +93,14 @@ export class EncounterService {
     return encounter;
   }
 
-  // GET /encounters?patientId=&status= — tra cứu lịch sử lượt khám của 1 bệnh nhân, hoặc lọc
-  // theo trạng thái cho màn hình vận hành của lễ tân/bác sĩ.
+  // GET /encounters?patientId=&doctorId=&departmentId=&status= — tra cứu lịch sử lượt khám của 1 bệnh nhân, hoặc lọc
+  // theo trạng thái / bác sĩ / khoa phòng cho màn hình vận hành của lễ tân / bác sĩ.
   async findMany(query: FindEncountersQueryDto) {
     const where: Prisma.EncounterWhereInput = {
-      patientId: query.patientId,
-      status: query.status,
+      ...(query.patientId && { patientId: query.patientId }),
+      ...(query.doctorId && { doctorId: query.doctorId }),
+      ...(query.departmentId && { departmentId: query.departmentId }),
+      ...(query.status && { status: query.status }),
     };
 
     return this.prisma.encounter.findMany({

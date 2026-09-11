@@ -1,10 +1,10 @@
-import { IsUUID, IsOptional, IsInt, Min, Max } from 'class-validator';
+import { IsOptional, IsInt, IsString, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ListVitalSessionsQueryDto {
-    @ApiProperty({ description: 'ID lượt khám cần xem lịch sử ghi nhận sinh hiệu', format: 'uuid' })
-    @IsUUID()
+    @ApiProperty({ description: 'ID lượt khám (encounterId hoặc encounterCode) cần xem lịch sử' })
+    @IsString()
     encounterId: string;
 
     @ApiPropertyOptional({
