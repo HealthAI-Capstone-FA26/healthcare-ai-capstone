@@ -15,6 +15,11 @@ import { ReceptionIntakeModule } from './modules/reception-intake/reception-inta
 import { RolePermissionModule } from './modules/auth/role-permission/role-permission.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { VitalModule } from './modules/vitals/vital.module';
+import { LabTestModule } from './modules/lab-test/lab-test.module';
+import { Icd10CatalogModule } from './modules/shared/icd10-catalog/icd10-catalog.module';
+import { DoctorExaminationModule } from './modules/pre-doctor-examination/doctor-examination.module';
+import { PostTestConsultationModule } from './modules/post-test-consultation/post-test-consultation.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -31,7 +36,12 @@ import { VitalModule } from './modules/vitals/vital.module';
     AppointmentRegistrationModule,
     ReceptionIntakeModule,
     RolePermissionModule,
-    VitalModule
+    VitalModule,
+    LabTestModule,
+    Icd10CatalogModule,
+    DoctorExaminationModule,
+    PostTestConsultationModule,
+    PaymentModule
   ],
   controllers: [AppController],
   providers: [AppService],

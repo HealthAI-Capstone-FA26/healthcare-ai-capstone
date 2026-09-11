@@ -33,6 +33,8 @@ export enum Resource {
     USER = 'user',
     ROLE = 'role',
     SECURITY_CONFIG = 'security-config',
+    INVOICE = 'invoice',
+    PAYMENT = 'payment',
 }
 
 export enum Action {
