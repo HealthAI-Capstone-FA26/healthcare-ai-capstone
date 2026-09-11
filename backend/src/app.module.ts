@@ -19,6 +19,7 @@ import { LabTestModule } from './modules/lab-test/lab-test.module';
 import { Icd10CatalogModule } from './modules/shared/icd10-catalog/icd10-catalog.module';
 import { DoctorExaminationModule } from './modules/pre-doctor-examination/doctor-examination.module';
 import { PostTestConsultationModule } from './modules/post-test-consultation/post-test-consultation.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { PostTestConsultationModule } from './modules/post-test-consultation/pos
     LabTestModule,
     Icd10CatalogModule,
     DoctorExaminationModule,
-    PostTestConsultationModule
+    PostTestConsultationModule,
+    PaymentModule
   ],
   controllers: [AppController],
   providers: [AppService],
