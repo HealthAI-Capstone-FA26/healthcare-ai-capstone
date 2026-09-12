@@ -49,9 +49,33 @@ export class IdentityVerificationService {
   // GET /encounters/:encounterId/identity-verifications — dùng index (encounterId, verifiedAt DESC)
   // đã thêm ở Phase 0 để lấy nhanh lịch sử xác minh của 1 lượt khám.
   async findByEncounterId(encounterId: string) {
-    return this.prisma.patientIdentityVerification.findMany({
+    const verifications = await this.prisma.patientIdentityVerification.findMany({
       where: { encounterId },
+      include: {
+        verifiedByUser: {
+          select: {
+            userId: true,
+            email: true,
+            profile: {
+              select: {
+                fullName: true,
+              },
+            },
+          },
+        },
+      },
       orderBy: { verifiedAt: 'desc' },
     });
+
+    return verifications.map((v) => ({
+      ...v,
+      verifiedByUser: v.verifiedByUser
+        ? {
+            userId: v.verifiedByUser.userId,
+            email: v.verifiedByUser.email,
+            fullName: v.verifiedByUser.profile?.fullName || v.verifiedByUser.email,
+          }
+        : undefined,
+    }));
   }
 }
