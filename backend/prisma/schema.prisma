@@ -685,7 +685,7 @@ model VitalSignThreshold {
   maxNormal        Decimal  @map("max_normal") @db.Decimal(10, 2)
   effectiveFrom    DateTime @map("effective_from") @db.Date
   isActive         Boolean  @default(true) @map("is_active")
-  sourceReference  String?  @map("source_reference") @db.VarChar(255)
+  sourceReference  String?  @map("source_reference") @db.Text
   createdAt        DateTime @default(now()) @map("created_at")
 
   item VitalSignItem @relation(fields: [itemId], references: [itemId])
