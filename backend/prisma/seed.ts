@@ -27,13 +27,28 @@ async function main() {
 
   const files = fs.readdirSync(seedsDir);
 
-  const seedFiles = files.filter(
-    (file) =>
-      (file.endsWith('.seed.ts') || file.endsWith('.seed.js')) &&
-      !file.startsWith('.'),
-  );
+  // QUAN TRỌNG: fs.readdirSync() KHÔNG đảm bảo trả về theo thứ tự bảng chữ cái — thứ tự phụ
+  // thuộc filesystem/OS (đã thực tế gặp lỗi do thứ tự sai trên Windows, dù các seed đã được
+  // đặt tên với tiền tố số 01-, 02-, ... theo đúng chuỗi phụ thuộc). Vì vậy PHẢI tự sort() rõ
+  // ràng ở đây, không được tin vào thứ tự trả về của readdirSync.
+  //
+  // Quy ước tiền tố số (xem comment đầu mỗi file *.seed.ts để biết lý do thứ tự):
+  //   01 role -> 02 permission -> 03 department -> 04 consent-policy -> 05 lab-room ->
+  //   06 test-catalog -> 07 lab-result-parameter -> 08 vital-sign-item ->
+  //   09 vital-sign-threshold -> 10 icd10 -> 20 lab-parameter-threshold ->
+  //   70 diagnosis-test-recommendation.
+  // Khi thêm seed mới, đặt tên theo dạng "<NN>-ten-bang.seed.ts" với NN lớn hơn số của mọi
+  // seed mà nó phụ thuộc (để dành khoảng trống chèn seed mới ở giữa mà không phải đổi tên
+  // hàng loạt, không nhất thiết phải liền số).
+  const seedFiles = files
+    .filter(
+      (file) =>
+        (file.endsWith('.seed.ts') || file.endsWith('.seed.js')) &&
+        !file.startsWith('.'),
+    )
+    .sort((a, b) => a.localeCompare(b, 'en'));
 
-  console.log(`Tìm thấy ${seedFiles.length} file seed:`, seedFiles);
+  console.log(`Tìm thấy ${seedFiles.length} file seed (theo thứ tự sẽ chạy):`, seedFiles);
 
   for (const file of seedFiles) {
     const filePath = path.join(seedsDir, file);

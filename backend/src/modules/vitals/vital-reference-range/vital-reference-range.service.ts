@@ -1,6 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { calculateAge, findApplicableThreshold } from '../common/vital-threshold.utils';
+import { calculateAgeInMonths, getBmiNormalRange, normalizePatientSex } from '../common/pediatric-bmi.utils';
+
+const BMI_ITEM_CODE = 'BMI';
 
 export interface VitalReferenceRangeDto {
     itemCode: string;
@@ -47,8 +50,30 @@ export class VitalReferenceRangeService {
 
         const ranges: VitalReferenceRangeDto[] = [];
         for (const item of items) {
+            // BMI không tra bảng VitalSignThreshold như các chỉ số khác: khoảng bình thường của
+            // BMI phụ thuộc liên tục vào tuổi (đặc biệt ở trẻ em) nên không thể mô tả bằng vài
+            // dải ageMin/ageMax cố định. Với trẻ 2–<20 tuổi, dùng percentile BMI-for-age theo
+            // chuẩn CDC (5th–85th percentile, cùng phương pháp peditools.org/growthpedi và BCM
+            // BMI-calculator-kids); với >=20 tuổi, dùng ngưỡng BMI người lớn cố định (18.5–24.9).
+            if (item.itemCode === BMI_ITEM_CODE) {
+                const ageMonths = calculateAgeInMonths(patient.dateOfBirth, measuredAt);
+                const sex = normalizePatientSex(patient.gender);
+                const bmiRange = getBmiNormalRange(ageMonths, sex);
+                if (!bmiRange) continue; // <2 tuổi (chưa áp dụng BMI-for-age) hoặc thiếu giới tính để tra percentile.
+
+                ranges.push({
+                    itemCode: item.itemCode,
+                    itemName: item.itemName,
+                    unit: item.unit,
+                    minNormal: bmiRange.minNormal,
+                    maxNormal: bmiRange.maxNormal,
+                    sourceReference: bmiRange.sourceReference,
+                });
+                continue;
+            }
+
             const threshold = await findApplicableThreshold(this.prisma, item.itemId, age, patient.gender, measuredAt);
-            if (!threshold) continue; // Chỉ số chưa có ngưỡng cấu hình (VD: HEIGHT, WEIGHT, BMI) — bỏ qua.
+            if (!threshold) continue; // Chỉ số chưa có ngưỡng cấu hình (VD: HEIGHT, WEIGHT) — bỏ qua.
 
             ranges.push({
                 itemCode: item.itemCode,
