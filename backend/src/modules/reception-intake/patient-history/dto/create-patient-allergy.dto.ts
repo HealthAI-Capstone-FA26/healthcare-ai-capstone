@@ -38,6 +38,6 @@ export class CreatePatientAllergyDto {
   // khai báo, nên optional (đúng ghi chú module3.md mục 5).
   @ApiPropertyOptional()
   @IsOptional()
-  @IsUUID()
+  @IsString()
   encounterId?: string;
 }
