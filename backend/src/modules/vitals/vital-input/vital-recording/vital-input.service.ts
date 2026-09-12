@@ -45,6 +45,61 @@ export class VitalInputService {
             );
         }
 
+        const isUuid = (str?: string) =>
+            Boolean(str && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str));
+
+        let targetEncounterId = dto.encounterId;
+        let targetPatientId = dto.patientId;
+        let targetRecordedByUserId = isUuid(dto.recordedByUserId)
+            ? dto.recordedByUserId
+            : '00000000-0000-0000-0000-000000000000';
+
+        // Lookup encounter by UUID or encounterCode
+        const encounter = await this.prisma.encounter.findFirst({
+            where: {
+                OR: [
+                    ...(isUuid(dto.encounterId) ? [{ encounterId: dto.encounterId }] : []),
+                    { encounterCode: dto.encounterId },
+                ],
+            },
+        });
+
+        if (encounter) {
+            targetEncounterId = encounter.encounterId;
+            targetPatientId = encounter.patientId;
+        } else {
+            // Lookup patient by UUID or patientCode if encounter was not found
+            const patient = await this.prisma.patient.findFirst({
+                where: {
+                    OR: [
+                        ...(isUuid(dto.patientId) ? [{ patientId: dto.patientId }] : []),
+                        { patientCode: dto.patientId },
+                    ],
+                },
+            });
+
+            if (patient) {
+                targetPatientId = patient.patientId;
+            }
+
+            if (!isUuid(targetEncounterId)) {
+                // Check if patient has any existing encounter
+                const latestEnc = await this.prisma.encounter.findFirst({
+                    where: { patientId: targetPatientId },
+                    orderBy: { arrivedAt: 'desc' },
+                });
+                if (latestEnc) {
+                    targetEncounterId = latestEnc.encounterId;
+                } else {
+                    targetEncounterId = '00000000-0000-0000-0000-000000000000';
+                }
+            }
+
+            if (!isUuid(targetPatientId)) {
+                targetPatientId = '00000000-0000-0000-0000-000000000000';
+            }
+        }
+
         const itemCodes = observations.map((o) => o.itemCode);
         const items = await this.prisma.vitalSignItem.findMany({
             where: { itemCode: { in: itemCodes }, isActive: true },
@@ -62,9 +117,9 @@ export class VitalInputService {
 
         const session = await this.prisma.vitalSignSession.create({
             data: {
-                encounterId: dto.encounterId,
-                patientId: dto.patientId,
-                recordedByUserId: dto.recordedByUserId,
+                encounterId: targetEncounterId,
+                patientId: targetPatientId,
+                recordedByUserId: targetRecordedByUserId,
                 measuredAt,
                 notes: dto.notes,
                 observations: {
@@ -86,7 +141,7 @@ export class VitalInputService {
         );
 
         this.logger.log(
-            `Đã ghi nhận ${observations.length} chỉ số cho encounter ${dto.encounterId} (session ${session.vitalSessionId})`,
+            `Đã ghi nhận ${observations.length} chỉ số cho encounter ${targetEncounterId} (session ${session.vitalSessionId})`,
         );
 
         return session;

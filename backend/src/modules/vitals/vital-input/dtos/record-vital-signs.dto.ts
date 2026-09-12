@@ -1,4 +1,4 @@
-import { IsUUID, IsOptional, IsString, IsDateString, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsDateString, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { VitalMeasurementsDto } from './vital-measurements.dto';
 
@@ -10,17 +10,16 @@ import { VitalMeasurementsDto } from './vital-measurements.dto';
  * BMI KHÔNG có field riêng ở đây — được hệ thống tự tính từ height + weight nếu cả 2 đều có.
  */
 export class RecordVitalSignsDto extends VitalMeasurementsDto {
-    @ApiProperty({ description: 'ID lượt khám (encounter)', format: 'uuid' })
-    @IsUUID()
+    @ApiProperty({ description: 'ID lượt khám (encounterId hoặc encounterCode)' })
+    @IsString()
     encounterId: string;
 
-    @ApiProperty({ description: 'ID bệnh nhân', format: 'uuid' })
-    @IsUUID()
+    @ApiProperty({ description: 'ID bệnh nhân (patientId hoặc patientCode)' })
+    @IsString()
     patientId: string;
 
-    // TODO: khi có auth module, lấy từ req.user (JWT) thay vì client tự truyền lên.
-    @ApiProperty({ description: 'ID người dùng (điều dưỡng) thực hiện ghi nhận', format: 'uuid' })
-    @IsUUID()
+    @ApiProperty({ description: 'ID người dùng (điều dưỡng) thực hiện ghi nhận' })
+    @IsString()
     recordedByUserId: string;
 
     @ApiPropertyOptional({
