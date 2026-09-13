@@ -94,6 +94,17 @@ export class DoctorService {
     return doctor;
   }
 
+  // Resolve Doctor record từ userId đang đăng nhập (JWT chỉ có userId, không có doctorId sẵn) —
+  // dùng khi 1 module khác (vd: Prescription) cần biết "bác sĩ hiện tại" ứng với request.user.
+  async findByUserId(userId: string) {
+    const doctor = await this.prisma.doctor.findUnique({ where: { userId } });
+
+    if (!doctor) {
+      throw new NotFoundException('Tài khoản hiện tại không gắn với hồ sơ bác sĩ nào');
+    }
+    return doctor;
+  }
+
   findAll(query: SearchDoctorDto) {
     const where: Prisma.DoctorWhereInput = {};
 

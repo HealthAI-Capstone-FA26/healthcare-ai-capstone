@@ -26,6 +26,7 @@ export enum Resource {
     PATIENT_CONTACT = 'patient-contact',
     PAYER = 'payer',
     PAYER_TRANSITION = 'payer-transition',
+    PRESCRIPTION = 'prescription',
     PROCEDURE = 'procedure',
     PROVIDER = 'provider',
     QUEUE_TICKET = 'queue-ticket',

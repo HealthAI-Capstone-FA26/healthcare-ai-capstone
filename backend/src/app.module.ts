@@ -17,6 +17,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { VitalModule } from './modules/vitals/vital.module';
 import { LabTestModule } from './modules/lab-test/lab-test.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { PrescriptionModule } from './modules/prescription/prescription.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { PaymentModule } from './modules/payment/payment.module';
     RolePermissionModule,
     VitalModule,
     LabTestModule,
-    PaymentModule
+    PaymentModule,
+    PrescriptionModule
   ],
   controllers: [AppController],
   providers: [AppService],
