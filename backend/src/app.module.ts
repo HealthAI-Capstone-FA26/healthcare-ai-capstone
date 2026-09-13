@@ -20,6 +20,7 @@ import { Icd10CatalogModule } from './modules/shared/icd10-catalog/icd10-catalog
 import { DoctorExaminationModule } from './modules/pre-doctor-examination/doctor-examination.module';
 import { PostTestConsultationModule } from './modules/post-test-consultation/post-test-consultation.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { PrescriptionModule } from './modules/prescription/prescription.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { PaymentModule } from './modules/payment/payment.module';
     RolePermissionModule,
     VitalModule,
     LabTestModule,
+    PrescriptionModule,
     Icd10CatalogModule,
     DoctorExaminationModule,
     PostTestConsultationModule,
