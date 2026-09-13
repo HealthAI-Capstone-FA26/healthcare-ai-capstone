@@ -1,6 +1,16 @@
 import { PrismaService } from 'prisma/prisma.service';
 
 /**
+ * file này tra `parameterCode` qua `prisma.labResultParameter.findMany()` bên dưới, nhưng
+ * trước đây KHÔNG có seed nào tạo dữ liệu LabResultParameter (bảng này không có endpoint tạo
+ * qua API) và fs.readdirSync() không đảm bảo thứ tự chạy — nên trên thực tế `paramMap` luôn
+ * RỖNG, seed "chạy thành công" nhưng 0 dòng nào được tạo. Đã bổ sung 05-lab-room.seed.ts ->
+ * 06-test-catalog.seed.ts -> 07-lab-result-parameter.seed.ts (đúng chuỗi phụ thuộc
+ * LabRoom -> TestCatalog -> LabResultParameter) và đổi tên file này thêm tiền tố "20-" để
+ * đảm bảo chạy SAU (xem cơ chế sort theo tiền tố số trong prisma/seed.ts). Với parameterCode
+ * mẫu GLU/HGB/WBC/PLT/CREA đã khớp với 07-lab-result-parameter.seed.ts, seed dưới đây giờ sẽ
+ * thực sự tạo được dữ liệu.
+ *
  * Seed ngưỡng cảnh báo cho các tham số xét nghiệm phổ biến (LabParameterThreshold),
  * theo đúng tinh thần của seedVitalSignThresholds (vital-sign-threshold.seed.ts):
  * mỗi dòng khai báo 1 dải nguy cơ (riskLevel) cho 1 khoảng tuổi, kèm nguồn tham chiếu.
@@ -13,12 +23,6 @@ import { PrismaService } from 'prisma/prisma.service';
  * Đội ngũ dev sẽ cập nhật nguồn chính thống và bổ sung thêm các tham số/xét nghiệm khác.
  * Ví dụ dưới đây chỉ minh hoạ cho 1 nhóm xét nghiệm mẫu (Công thức máu + Sinh hoá cơ bản)
  * — cần đối chiếu parameterCode với danh mục LabResultParameter thật đã seed cho từng TestCatalog.
- *
- * ⚠️ LƯU Ý SCHEMA: model LabParameterThreshold (schema.prisma cung cấp) CHƯA có cột lưu nguồn
- * tham chiếu (khác với VitalSignThreshold.sourceReference). `sourceReference` bên dưới vì vậy
- * chỉ được log ra console khi seed để đội ngũ dev đối chiếu, KHÔNG được ghi vào DB. Khuyến nghị:
- * thêm cột `sourceReference String? @map("source_reference") @db.VarChar(255)` vào model
- * LabParameterThreshold để nhất quán với vital_threshold và để truy vết nguồn trên UI/audit sau này.
  */
 export async function seedLabParameterThresholds(prisma: PrismaService) {
     const parameters = await prisma.labResultParameter.findMany();

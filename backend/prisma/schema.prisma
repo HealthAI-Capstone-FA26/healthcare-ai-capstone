@@ -683,11 +683,9 @@ model VitalSignThreshold {
   gender           String?  @db.VarChar(10)
   minNormal        Decimal  @map("min_normal") @db.Decimal(10, 2)
   maxNormal        Decimal  @map("max_normal") @db.Decimal(10, 2)
-  minCritical      Decimal? @map("min_critical") @db.Decimal(10, 2)
-  maxCritical      Decimal? @map("max_critical") @db.Decimal(10, 2)
   effectiveFrom    DateTime @map("effective_from") @db.Date
   isActive         Boolean  @default(true) @map("is_active")
-  sourceReference  String?  @map("source_reference") @db.VarChar(255)
+  sourceReference  String?  @map("source_reference") @db.Text
   createdAt        DateTime @default(now()) @map("created_at")
 
   item VitalSignItem @relation(fields: [itemId], references: [itemId])
@@ -702,7 +700,7 @@ model VitalSignAlert {
   observationId     String    @map("observation_id") @db.Char(36)
   encounterId       String    @map("encounter_id") @db.Char(36)
   vitalThresholdId  String?   @map("vital_threshold_id") @db.Char(36)
-  alertLevel        String    @map("alert_level") @db.VarChar(20) // warning | critical
+  alertLevel        String    @map("alert_level") @db.VarChar(20) // critical (out-of-range của normal - không còn "warning")
   alertSource       String    @map("alert_source") @db.VarChar(20) // rule | ai
   measuredValue     Decimal   @map("measured_value") @db.Decimal(10, 2)
   expectedMin       Decimal?  @map("expected_min") @db.Decimal(10, 2)

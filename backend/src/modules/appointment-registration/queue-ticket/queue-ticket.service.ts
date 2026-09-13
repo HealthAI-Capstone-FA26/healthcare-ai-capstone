@@ -160,6 +160,9 @@ export class QueueTicketService {
             },
             department: true,
             slot: true,
+            encounter: {
+              select: { encounterId: true, encounterCode: true },
+            },
           },
         },
       },
