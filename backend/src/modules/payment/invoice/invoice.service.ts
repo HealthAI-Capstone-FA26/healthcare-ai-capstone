@@ -44,10 +44,13 @@ export class InvoiceService {
       throw new NotFoundException(`Không tìm thấy lượt khám ${dto.encounterId}`);
     }
 
-    // Những orderItemId đã có InvoiceItem type='tests' ở BẤT KỲ hoá đơn nào của encounter này
+    // Những orderItemId đã có InvoiceItem type='tests' ở BẤT KỲ hoá đơn nào CHƯA HỦY của encounter này
     // trước đó -> loại trừ, không tính trùng lần generate sau.
     const alreadyInvoicedItems = await this.prisma.invoiceItem.findMany({
-      where: { itemType: 'tests', invoice: { encounterId: dto.encounterId } },
+      where: {
+        itemType: 'tests',
+        invoice: { encounterId: dto.encounterId, status: { not: 'cancelled' } },
+      },
       select: { sourceId: true },
     });
     const alreadyInvoicedOrderItemIds = new Set(alreadyInvoicedItems.map((i) => i.sourceId));
@@ -62,10 +65,13 @@ export class InvoiceService {
     };
     const newItems: NewItem[] = [];
 
-    // 2. Phí khám — chỉ tính nếu encounter CHƯA từng có item 'consultation' ở hoá đơn nào trước đó
+    // 2. Phí khám — chỉ tính nếu encounter CHƯA từng có item 'consultation' ở hoá đơn CHƯA HỦY nào trước đó
     // (tránh tính trùng phí khám nếu gọi generate nhiều lần cho cùng 1 encounter).
     const hasConsultationItem = await this.prisma.invoiceItem.findFirst({
-      where: { itemType: 'consultation', invoice: { encounterId: dto.encounterId } },
+      where: {
+        itemType: 'consultation',
+        invoice: { encounterId: dto.encounterId, status: { not: 'cancelled' } },
+      },
     });
     if (!hasConsultationItem) {
       const fee = await this.examinationFeeService.findActiveFeeForDepartment(encounter.departmentId);
@@ -82,9 +88,12 @@ export class InvoiceService {
       }
     }
 
-    // 3. Phí xét nghiệm — TestOrderItem thuộc encounter, loại trừ orderItemId đã lập hoá đơn.
+    // 3. Phí xét nghiệm — TestOrderItem thuộc encounter, loại trừ orderItemId đã lập hoá đơn hoặc đã bị bác sĩ huỷ.
     const testOrderItems = await this.prisma.testOrderItem.findMany({
-      where: { order: { encounterId: dto.encounterId } },
+      where: {
+        order: { encounterId: dto.encounterId },
+        status: { not: 'cancelled' },
+      },
       include: { testType: true },
     });
     for (const item of testOrderItems) {
