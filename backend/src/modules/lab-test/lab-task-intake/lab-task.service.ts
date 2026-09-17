@@ -65,9 +65,48 @@ export class LabTaskService {
             take: query.limit ?? 50,
             include: {
                 labRoom: true,
-                assignedLabStaff: true,
-                orderItem: true,
-                labResult: true,
+                assignedLabStaff: {
+                    include: {
+                        profile: true,
+                    },
+                },
+                orderItem: {
+                    include: {
+                        testType: {
+                            include: {
+                                labResultParameters: {
+                                    where: { isActive: true },
+                                    orderBy: { displayOrder: 'asc' },
+                                    include: { labParameterThresholds: true },
+                                },
+                            },
+                        },
+                        order: {
+                            include: {
+                                orderedByUser: {
+                                    include: {
+                                        profile: true,
+                                    },
+                                },
+                                encounter: {
+                                    include: {
+                                        patient: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                labResult: {
+                    include: {
+                        values: {
+                            include: {
+                                parameter: true,
+                            },
+                        },
+                        attachments: true,
+                    },
+                },
             },
         });
     }
@@ -77,9 +116,50 @@ export class LabTaskService {
             where: { labTaskId },
             include: {
                 labRoom: true,
-                assignedLabStaff: true,
-                orderItem: true,
-                labResult: { include: { values: { include: { parameter: true } }, attachments: true } },
+                assignedLabStaff: {
+                    include: {
+                        profile: true,
+                    },
+                },
+                orderItem: {
+                    include: {
+                        testType: {
+                            include: {
+                                labResultParameters: {
+                                    where: { isActive: true },
+                                    orderBy: { displayOrder: 'asc' },
+                                    include: { labParameterThresholds: true },
+                                },
+                            },
+                        },
+                        order: {
+                            include: {
+                                orderedByUser: {
+                                    include: {
+                                        profile: true,
+                                    },
+                                },
+                                encounter: {
+                                    include: {
+                                        patient: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                labResult: {
+                    include: {
+                        values: {
+                            include: {
+                                parameter: true,
+                                labResultAlerts: true,
+                            },
+                        },
+                        attachments: true,
+                        aiLabAnalyses: true,
+                    },
+                },
             },
         });
         if (!task) {
