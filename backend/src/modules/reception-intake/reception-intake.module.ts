@@ -19,11 +19,15 @@ import { PatientAllergyService } from './patient-history/patient-allergy.service
 import { PatientMedicalHistoryController } from './patient-history/patient-medical-history.controller';
 import { PatientMedicalHistoryService } from './patient-history/patient-medical-history.service';
 
+import { TriageQueueController } from './triage-queue/triage-queue.controller';
+import { TriageQueueService } from './triage-queue/triage-queue.service';
+
 /**
  * Gom domain nghiệp vụ Tiếp đón & Đăng ký khám (Module 3): Encounter, ChiefComplaint,
- * PatientIdentityVerification, Consent/ConsentPolicy, PatientAllergy, PatientMedicalHistory.
- * DoctorQueueEntry và bước orchestration complete-registration (Phase 6-7) sẽ thêm sau (xem
- * module3-implementation-plan.md).
+ * PatientIdentityVerification, Consent/ConsentPolicy, PatientAllergy, PatientMedicalHistory,
+ * TriageQueueEntry. `EncounterService.completeRegistration` (module3.md mục 5 PHASE 1-2) đã
+ * implement: kiểm tra đủ điều kiện tiếp đón, chuyển Encounter arrived -> registered và xếp vào
+ * hàng đợi triage qua TriageQueueService.enqueue, nối sang module vitals ở giai đoạn sau.
  *
  * EncounterService được export để QueueTicketService (module appointment-registration) gọi
  * `createFromCheckin` ngay trong bước `done()` — AppointmentRegistrationModule import module này,
@@ -39,6 +43,7 @@ import { PatientMedicalHistoryService } from './patient-history/patient-medical-
     ConsentPolicyController,
     PatientAllergyController,
     PatientMedicalHistoryController,
+    TriageQueueController,
   ],
   providers: [
     EncounterService,
@@ -48,6 +53,7 @@ import { PatientMedicalHistoryService } from './patient-history/patient-medical-
     ConsentPolicyService,
     PatientAllergyService,
     PatientMedicalHistoryService,
+    TriageQueueService,
   ],
   exports: [EncounterService],
 })
