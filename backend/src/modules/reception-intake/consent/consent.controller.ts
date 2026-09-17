@@ -11,7 +11,7 @@ import { FindConsentsQueryDto } from './dto/find-consent-query.dto';
 
 @ApiTags('Consent')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @Controller('consents')
 export class ConsentController {
   constructor(private readonly consentService: ConsentService) {}

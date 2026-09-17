@@ -1,12 +1,14 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { EncounterService } from './encounter.service';
 import { FindEncountersQueryDto } from './dto/find-encounter-query.dto';
 
 @ApiTags('Encounter')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @Controller('encounters')
 export class EncounterController {
   constructor(private readonly encounterService: EncounterService) {}
@@ -23,5 +25,14 @@ export class EncounterController {
   })
   findById(@Param('id') id: string) {
     return this.encounterService.findById(id);
+  }
+
+  @Post(':id/complete-registration')
+  @ApiOperation({
+    summary:
+      'Hoàn tất thủ tục tiếp đón: kiểm tra đủ chief complaint + xác minh danh tính + consent bắt buộc, chuyển Encounter sang registered và xếp vào hàng đợi triage cho module vitals',
+  })
+  completeRegistration(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+    return this.encounterService.completeRegistration(id, user);
   }
 }

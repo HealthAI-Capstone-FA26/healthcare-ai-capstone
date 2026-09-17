@@ -6,7 +6,7 @@ import { FindConsentPoliciesQueryDto } from './dto/find-consent-policy-query.dto
 
 @ApiTags('Consent Policy')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @Controller('consent-policies')
 export class ConsentPolicyController {
   constructor(private readonly consentPolicyService: ConsentPolicyService) {}

@@ -13,6 +13,7 @@ import {
   isValidAppointmentTransition,
 } from '../../../common/utils/appointment-status.util';
 import { combineDateWithTimeOfDay } from '../../../common/utils/schedule-time.util';
+import { getHospitalWallClockNow } from '../../../common/utils/hospital-clock.util';
 import { EncounterService } from '../../reception-intake/encounter/encounter.service';
 import { CallQueueTicketDto } from './dto/call-queue-ticket.dto';
 import { ServeQueueTicketDto } from './dto/serve-queue-ticket.dto';
@@ -283,22 +284,4 @@ export class QueueTicketService {
       return { queueTicket: updatedTicket, appointment: updatedAppointment, encounter };
     });
   }
-}
-
-function getHospitalWallClockNow(): Date {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(new Date());
-  const values = Object.fromEntries(parts.map(({ type, value }) => [type, Number(value)]));
-
-  return new Date(
-    Date.UTC(values.year, values.month - 1, values.day, values.hour, values.minute, values.second),
-  );
 }
