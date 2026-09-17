@@ -15,6 +15,9 @@ import { DoctorScheduleService } from '../shared/doctor-schedule/doctor-schedule
 import { DoctorDepartmentController } from '../shared/doctor-department/doctor-department.controller';
 import { DoctorDepartmentService } from '../shared/doctor-department/doctor-department.service';
 
+import { StaffDepartmentController } from '../shared/staff-department/staff-department.controller';
+import { StaffDepartmentService } from '../shared/staff-department/staff-department.service';
+
 import { QueueTicketController } from './queue-ticket/queue-ticket.controller';
 import { QueueTicketService } from './queue-ticket/queue-ticket.service';
 
@@ -30,6 +33,7 @@ import { ExpireSlotsCron } from '../../common/cron/expire-slots.cron';
 import { CleanupDraftPatientsCron } from '../../common/cron/cleanup-draft-patients.cron';
 
 import { ReceptionIntakeModule } from '../reception-intake/reception-intake.module';
+import { UserModule } from '../user/user.module';
 
 /**
  * Gom toàn bộ domain nghiệp vụ đăng ký khám (Module 2 — Đăng ký khám chữa bệnh):
@@ -44,11 +48,12 @@ import { ReceptionIntakeModule } from '../reception-intake/reception-intake.modu
  * ngay tại bước done() — xem comment trong ReceptionIntakeModule.
  */
 @Module({
-  imports: [ReceptionIntakeModule],
+  imports: [ReceptionIntakeModule, UserModule],
   controllers: [
     PatientController,
     PatientContactController,
     DoctorDepartmentController,
+    StaffDepartmentController,
     DoctorScheduleController,
     AppointmentSlotController,
     AppointmentController,
@@ -60,6 +65,7 @@ import { ReceptionIntakeModule } from '../reception-intake/reception-intake.modu
     PatientContactService,
     ContactRequestOtpStore,
     DoctorDepartmentService,
+    StaffDepartmentService,
     DoctorScheduleService,
     AppointmentSlotService,
     AppointmentService,
@@ -74,6 +80,7 @@ import { ReceptionIntakeModule } from '../reception-intake/reception-intake.modu
     PatientService,
     PatientContactService,
     DoctorDepartmentService,
+    StaffDepartmentService,
     DoctorScheduleService,
     AppointmentSlotService,
     AppointmentService,

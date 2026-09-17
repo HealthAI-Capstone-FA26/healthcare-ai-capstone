@@ -433,7 +433,7 @@ model ChiefComplaint {
   symptoms         String?   @db.Text
   symptomOnsetDate DateTime? @map("symptom_onset_date") @db.Date
   painLevel        Int?      @map("pain_level")
-  inputChannel     String    @map("input_channel") @db.VarChar(20) // self_kiosk | receptionist_assisted | online_pre_visit
+  inputChannel     String    @map("input_channel") @db.VarChar(50) // self_kiosk | receptionist_assisted | online_pre_visit
   recordedByUserId String?   @map("recorded_by_user_id") @db.Char(36) // NULL khi bệnh nhân tự nhập qua kiosk/app (self_kiosk)
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
@@ -448,7 +448,7 @@ model PatientIdentityVerification {
   verificationId     String   @id @default(uuid()) @map("verification_id") @db.Char(36)
   encounterId        String   @map("encounter_id") @db.Char(36)
   verifiedByUserId   String   @map("verified_by_user_id") @db.Char(36)
-  verificationMethod String   @map("verification_method") @db.VarChar(20) // national_id_card | health_insurance_card | patient_card | manual
+  verificationMethod String   @map("verification_method") @db.VarChar(50) // national_id_card | health_insurance_card | patient_card | manual
   verificationStatus String   @map("verification_status") @db.VarChar(20) // verified | failed | pending
   mismatchNotes      String?  @map("mismatch_notes") @db.VarChar(255)
   verifiedAt         DateTime @map("verified_at")
@@ -1166,7 +1166,7 @@ model LabResultParameter {
   testTypeId    String   @map("test_type_id") @db.Char(36)
   parameterCode String   @map("parameter_code") @db.VarChar(20)
   parameterName String?  @map("parameter_name") @db.VarChar(100)
-  loincCode     String   @map("loinc_code") @db.VarChar(20)
+  loincCode     String?  @map("loinc_code") @db.VarChar(20)
   unit          String?  @db.VarChar(20)
   dataType      String?  @map("data_type") @db.VarChar(20) // numeric | positive_negative | text
   displayOrder  Int      @map("display_order")
@@ -1207,7 +1207,7 @@ model LabResultValue {
   labResultId   String   @map("lab_result_id") @db.Char(36)
   parameterId   String   @map("parameter_id") @db.Char(36)
   valueNumeric  Decimal? @map("value_numeric") @db.Decimal(12, 4)
-  valueText     String?  @map("value_text") @db.VarChar(255)
+  valueText     String?  @map("value_text") @db.Text
   isAbnormal    Boolean  @default(false) @map("is_abnormal")
   createdAt     DateTime @default(now()) @map("created_at")
 
@@ -1221,16 +1221,17 @@ model LabResultValue {
 }
 
 model LabParameterThreshold {
-  labThresholdId String   @id @default(uuid()) @map("lab_threshold_id") @db.Char(36)
-  parameterId    String   @map("parameter_id") @db.Char(36)
-  ageMin         Int?     @map("age_min")
-  ageMax         Int?     @map("age_max")
-  gender         String?  @db.VarChar(10)
-  riskLevel      String   @map("risk_level") @db.VarChar(20) // normal | low | medium | high | critical
-  rangeMin       Decimal? @map("range_min") @db.Decimal(12, 4)
-  rangeMax       Decimal? @map("range_max") @db.Decimal(12, 4)
-  isActive       Boolean  @default(true) @map("is_active")
-  effectiveFrom  DateTime @map("effective_from") @db.Date
+  labThresholdId  String   @id @default(uuid()) @map("lab_threshold_id") @db.Char(36)
+  parameterId     String   @map("parameter_id") @db.Char(36)
+  ageMin          Int?     @map("age_min")
+  ageMax          Int?     @map("age_max")
+  gender          String?  @db.VarChar(10)
+  riskLevel       String   @map("risk_level") @db.VarChar(20) // normal | low | medium | high | critical
+  rangeMin        Decimal? @map("range_min") @db.Decimal(12, 4)
+  rangeMax        Decimal? @map("range_max") @db.Decimal(12, 4)
+  isActive        Boolean  @default(true) @map("is_active")
+  effectiveFrom   DateTime @map("effective_from") @db.Date
+  sourceReference String?  @map("source_reference") @db.Text
 
   parameter LabResultParameter @relation(fields: [parameterId], references: [parameterId])
 
