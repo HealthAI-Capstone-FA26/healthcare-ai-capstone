@@ -57,12 +57,12 @@ export class LabTaskService {
     async listWorklist(query: ListLabTasksQueryDto) {
         return this.prisma.labTask.findMany({
             where: {
-                labRoomId: query.labRoomId,
+                ...(query.labRoomId ? { labRoomId: query.labRoomId } : {}),
                 ...(query.status ? { status: query.status } : {}),
                 ...(query.assignedLabStaffId ? { assignedLabStaffId: query.assignedLabStaffId } : {}),
             },
             orderBy: [{ status: 'asc' }, { createdAt: 'asc' }],
-            take: query.limit ?? 50,
+            take: query.limit ?? 200,
             include: {
                 labRoom: true,
                 assignedLabStaff: {
@@ -91,6 +91,7 @@ export class LabTaskService {
                                 encounter: {
                                     include: {
                                         patient: true,
+                                        department: true,
                                     },
                                 },
                             },
@@ -142,6 +143,7 @@ export class LabTaskService {
                                 encounter: {
                                     include: {
                                         patient: true,
+                                        department: true,
                                     },
                                 },
                             },

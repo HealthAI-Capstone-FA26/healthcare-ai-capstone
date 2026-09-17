@@ -20,9 +20,10 @@ export type LabTaskStatus = (typeof LAB_TASK_STATUSES)[number];
  * chỉ được phân quyền theo phòng chuyên môn của mình (LabStaffRoomAssignment).
  */
 export class ListLabTasksQueryDto {
-    @ApiProperty({ description: 'ID phòng Lab cần xem worklist', format: 'uuid' })
+    @ApiPropertyOptional({ description: 'ID phòng Lab cần xem worklist (để trống nếu muốn lấy tất cả phòng)', format: 'uuid' })
+    @IsOptional()
     @IsUUID()
-    labRoomId: string;
+    labRoomId?: string;
 
     @ApiPropertyOptional({ description: 'Lọc theo trạng thái nhiệm vụ', enum: LAB_TASK_STATUSES })
     @IsOptional()
