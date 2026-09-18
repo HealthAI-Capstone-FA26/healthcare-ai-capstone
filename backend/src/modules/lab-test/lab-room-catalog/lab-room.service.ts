@@ -30,6 +30,16 @@ export class LabRoomService {
         });
     }
 
+    async listMyAssignments(userId: string) {
+        return this.prisma.labStaffRoomAssignment.findMany({
+            where: { userId },
+            include: {
+                labRoom: true,
+            },
+            orderBy: [{ isPrimary: 'desc' }, { assignedAt: 'asc' }],
+        });
+    }
+
     /**
      * Phân công 1 kỹ thuật viên vào 1 phòng Lab. Idempotent (upsert theo khoá phức hợp
      * userId+labRoomId) — gọi lại với isPrimary khác sẽ cập nhật thay vì báo lỗi trùng.

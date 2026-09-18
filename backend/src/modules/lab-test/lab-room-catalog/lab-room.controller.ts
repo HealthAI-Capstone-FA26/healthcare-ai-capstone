@@ -1,5 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
-import { ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { LabRoomService } from './lab-room.service';
 import { AssignLabStaffToRoomDto } from './dtos/assign-lab-staff-to-room.dto';
 
@@ -21,6 +23,22 @@ export class LabRoomController {
     @ApiOkResponse({ description: 'Danh sách phòng Lab đang active.' })
     async list() {
         return this.labRoomService.listActive();
+    }
+
+    /**
+     * GET /lab-rooms/my-assignments
+     * Trả về danh sách phòng Lab mà kỹ thuật viên đang đăng nhập được phân công.
+     */
+    @Get('my-assignments')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Danh sách phòng Lab của KTV đang đăng nhập',
+        description: 'Trả về các phòng Lab mà user hiện tại được phân công.',
+    })
+    @ApiOkResponse({ description: 'Danh sách phân công phòng của KTV.' })
+    async myAssignments(@CurrentUser('userId') userId: string) {
+        return this.labRoomService.listMyAssignments(userId);
     }
 
     /**
