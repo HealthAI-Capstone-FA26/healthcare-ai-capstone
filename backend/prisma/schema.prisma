@@ -163,6 +163,7 @@ model Department {
   description    String?  @db.VarChar(255)
   roomLocation   String?  @map("room_location") @db.VarChar(100)
   isActive       Boolean  @default(true) @map("is_active")
+  symptomKeywords String[] @default([]) @map("symptom_keywords")
   createdAt      DateTime @default(now()) @map("created_at")
 
   staffDepartments StaffDepartment[]
