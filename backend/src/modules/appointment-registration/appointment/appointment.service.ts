@@ -29,6 +29,7 @@ import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { SyncPatientDto } from './dto/sync-patient.dto';
+import { DepartmentSuggestionService } from '../department-suggestion/department-suggestion.service';
 
 const APPOINTMENT_CODE_PREFIX = 'LH';
 
@@ -39,6 +40,7 @@ export class AppointmentService {
     private readonly patientContactService: PatientContactService,
     private readonly patientService: PatientService,
     private readonly queueTicketService: QueueTicketService,
+    private readonly departmentSuggestionService: DepartmentSuggestionService,
   ) { }
 
   private generateAppointmentCode(): Promise<string> {
@@ -148,8 +150,21 @@ export class AppointmentService {
       throw new NotFoundException('Không tìm thấy hồ sơ bệnh nhân');
     }
 
+    // departmentId có thể được lễ tân truyền thẳng (đã biết chắc khoa), hoặc để trống và suy ra
+    // từ `symptoms` qua DepartmentSuggestionService — người đặt lịch (đặc biệt là bệnh nhân) thường
+    // không tự biết mình cần khám khoa nào theo triệu chứng của mình.
+    let departmentId = dto.departmentId;
+    if (!departmentId) {
+      if (!dto.symptoms) {
+        throw new BadRequestException(
+          'Cần cung cấp departmentId, hoặc symptoms để hệ thống tự gợi ý khoa phù hợp',
+        );
+      }
+      departmentId = await this.departmentSuggestionService.suggestTopDepartmentId(dto.symptoms);
+    }
+
     const department = await this.prisma.department.findUnique({
-      where: { departmentId: dto.departmentId },
+      where: { departmentId },
     });
     if (!department) {
       throw new NotFoundException('Không tìm thấy khoa');
@@ -170,12 +185,12 @@ export class AppointmentService {
           status: AppointmentStatus.PENDING,
           patientId,
           doctorId: null,
-          departmentId: dto.departmentId,
+          departmentId,
           slotId: null,
           bookedByUserId: currentUser.userId,
           appointmentDate: today,
           appointmentTime: null,
-          reasonForVisit: dto.reasonForVisit,
+          reasonForVisit: dto.reasonForVisit ?? dto.symptoms,
           priority: dto.priority,
         },
       });
