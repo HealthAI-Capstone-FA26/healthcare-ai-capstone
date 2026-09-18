@@ -109,10 +109,40 @@ export class StaffDepartmentService {
       throw new NotFoundException('Không tìm thấy khoa');
     }
 
-    return this.prisma.staffDepartment.findMany({
+    const list = await this.prisma.staffDepartment.findMany({
       where: { departmentId },
       include: { user: { include: { profile: true } }, department: true },
       orderBy: [{ isPrimary: 'desc' }, { assignedAt: 'asc' }],
     });
+
+    return list.map((item) => ({
+      ...item,
+      id: encodeStaffDepartmentId(item.userId, item.departmentId),
+    }));
+  }
+
+  async findAll() {
+    const list = await this.prisma.staffDepartment.findMany({
+      include: { user: { include: { profile: true } }, department: true },
+      orderBy: [{ assignedAt: 'desc' }],
+    });
+
+    return list.map((item) => ({
+      ...item,
+      id: encodeStaffDepartmentId(item.userId, item.departmentId),
+    }));
+  }
+
+  async findDepartmentsByUser(userId: string) {
+    const list = await this.prisma.staffDepartment.findMany({
+      where: { userId },
+      include: { department: true },
+      orderBy: [{ isPrimary: 'desc' }, { assignedAt: 'asc' }],
+    });
+
+    return list.map((item) => ({
+      ...item,
+      id: encodeStaffDepartmentId(item.userId, item.departmentId),
+    }));
   }
 }
