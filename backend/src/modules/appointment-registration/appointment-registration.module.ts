@@ -21,6 +21,8 @@ import { StaffDepartmentService } from '../shared/staff-department/staff-departm
 import { QueueTicketController } from './queue-ticket/queue-ticket.controller';
 import { QueueTicketService } from './queue-ticket/queue-ticket.service';
 
+import { DepartmentSuggestionController } from './department-suggestion/department-suggestion.controller';
+
 import { PatientController } from './patient/patient.controller';
 import { PatientService } from './patient/patient.service';
 
@@ -34,15 +36,18 @@ import { CleanupDraftPatientsCron } from '../../common/cron/cleanup-draft-patien
 
 import { ReceptionIntakeModule } from '../reception-intake/reception-intake.module';
 import { UserModule } from '../user/user.module';
+import { DepartmentSuggestionService } from './department-suggestion/department-suggestion.service';
+import { DepartmentEmbeddingService } from './department-suggestion/department-embedding.service';
 
 /**
  * Gom toàn bộ domain nghiệp vụ đăng ký khám (Module 2 — Đăng ký khám chữa bệnh):
  * Patient, PatientContact, DoctorDepartment, DoctorSchedule, AppointmentSlot,
- * Appointment, QueueTicket. Các domain này phụ thuộc chặt vào nhau (đặt lịch
+ * Appointment, QueueTicket, DepartmentSuggestion. Các domain này phụ thuộc chặt vào nhau (đặt lịch
  * cho hồ sơ bệnh nhân qua PatientContact, DoctorSchedule sinh AppointmentSlot,
  * AppointmentSlot được Appointment đặt, Appointment at-hospital sinh
- * QueueTicket, bác sĩ gán chuyên khoa qua DoctorDepartment) nên được hợp nhất
- * thành 1 module duy nhất thay vì tách rời như trước.
+ * QueueTicket, bác sĩ gán chuyên khoa qua DoctorDepartment, Appointment at-hospital tự suy ra
+ * departmentId từ triệu chứng qua DepartmentSuggestion khi lễ tân không truyền sẵn) nên được hợp
+ * nhất thành 1 module duy nhất thay vì tách rời như trước.
  *
  * Import ReceptionIntakeModule (Module 3) để QueueTicketService gọi được EncounterService
  * ngay tại bước done() — xem comment trong ReceptionIntakeModule.
@@ -59,6 +64,7 @@ import { UserModule } from '../user/user.module';
     AppointmentController,
     GuestAppointmentController,
     QueueTicketController,
+    DepartmentSuggestionController,
   ],
   providers: [
     PatientService,
@@ -72,6 +78,8 @@ import { UserModule } from '../user/user.module';
     GuestAppointmentService,
     GuestAppointmentOtpStore,
     QueueTicketService,
+    DepartmentSuggestionService,
+    DepartmentEmbeddingService,
     WeeklyScheduleGenCron,
     ExpireSlotsCron,
     CleanupDraftPatientsCron,
@@ -85,6 +93,7 @@ import { UserModule } from '../user/user.module';
     AppointmentSlotService,
     AppointmentService,
     QueueTicketService,
+    DepartmentSuggestionService,
   ],
 })
 export class AppointmentRegistrationModule { }

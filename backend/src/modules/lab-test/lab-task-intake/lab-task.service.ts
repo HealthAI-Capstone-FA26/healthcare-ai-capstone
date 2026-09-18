@@ -57,17 +57,57 @@ export class LabTaskService {
     async listWorklist(query: ListLabTasksQueryDto) {
         return this.prisma.labTask.findMany({
             where: {
-                labRoomId: query.labRoomId,
+                ...(query.labRoomId ? { labRoomId: query.labRoomId } : {}),
                 ...(query.status ? { status: query.status } : {}),
                 ...(query.assignedLabStaffId ? { assignedLabStaffId: query.assignedLabStaffId } : {}),
             },
             orderBy: [{ status: 'asc' }, { createdAt: 'asc' }],
-            take: query.limit ?? 50,
+            take: query.limit ?? 200,
             include: {
                 labRoom: true,
-                assignedLabStaff: true,
-                orderItem: true,
-                labResult: true,
+                assignedLabStaff: {
+                    include: {
+                        profile: true,
+                    },
+                },
+                orderItem: {
+                    include: {
+                        testType: {
+                            include: {
+                                labResultParameters: {
+                                    where: { isActive: true },
+                                    orderBy: { displayOrder: 'asc' },
+                                    include: { labParameterThresholds: true },
+                                },
+                            },
+                        },
+                        order: {
+                            include: {
+                                orderedByUser: {
+                                    include: {
+                                        profile: true,
+                                    },
+                                },
+                                encounter: {
+                                    include: {
+                                        patient: true,
+                                        department: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                labResult: {
+                    include: {
+                        values: {
+                            include: {
+                                parameter: true,
+                            },
+                        },
+                        attachments: true,
+                    },
+                },
             },
         });
     }
@@ -77,9 +117,51 @@ export class LabTaskService {
             where: { labTaskId },
             include: {
                 labRoom: true,
-                assignedLabStaff: true,
-                orderItem: true,
-                labResult: { include: { values: { include: { parameter: true } }, attachments: true } },
+                assignedLabStaff: {
+                    include: {
+                        profile: true,
+                    },
+                },
+                orderItem: {
+                    include: {
+                        testType: {
+                            include: {
+                                labResultParameters: {
+                                    where: { isActive: true },
+                                    orderBy: { displayOrder: 'asc' },
+                                    include: { labParameterThresholds: true },
+                                },
+                            },
+                        },
+                        order: {
+                            include: {
+                                orderedByUser: {
+                                    include: {
+                                        profile: true,
+                                    },
+                                },
+                                encounter: {
+                                    include: {
+                                        patient: true,
+                                        department: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                labResult: {
+                    include: {
+                        values: {
+                            include: {
+                                parameter: true,
+                                labResultAlerts: true,
+                            },
+                        },
+                        attachments: true,
+                        aiLabAnalyses: true,
+                    },
+                },
             },
         });
         if (!task) {
