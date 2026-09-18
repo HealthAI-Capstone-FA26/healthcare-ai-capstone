@@ -20,6 +20,11 @@ export interface CreatePaymentLinkInput {
 export interface CreatePaymentLinkOutput {
   checkoutUrl: string;
   paymentLinkId: string;
+  qrCode?: string;
+  accountNumber?: string;
+  accountName?: string;
+  bin?: string;
+  description?: string;
 }
 
 export interface PaymentGatewayPort {
@@ -32,6 +37,9 @@ export interface PaymentGatewayPort {
    * gửi kèm field khác nhau tuỳ loại giao dịch — không hard-code danh sách field ở đây.
    */
   verifyWebhookSignature(data: Record<string, any>, signature: string): boolean;
+
+  /** Tra cứu trực tiếp thông tin thanh toán từ PayOS qua orderCode. */
+  getPaymentLinkInformation(orderCode: number | string): Promise<any>;
 }
 
 /**
@@ -75,7 +83,15 @@ export class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
       throw new InternalServerErrorException('PayOS từ chối tạo link thanh toán.');
     }
 
-    return { checkoutUrl: body.data.checkoutUrl, paymentLinkId: body.data.paymentLinkId };
+    return {
+      checkoutUrl: body.data.checkoutUrl,
+      paymentLinkId: body.data.paymentLinkId,
+      qrCode: body.data.qrCode,
+      accountNumber: body.data.accountNumber,
+      accountName: body.data.accountName,
+      bin: body.data.bin,
+      description: body.data.description || description,
+    };
   }
 
   verifyWebhookSignature(data: Record<string, any>, signature: string): boolean {
@@ -84,6 +100,26 @@ export class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
     }
     const expected = this.sign(data ?? {});
     return expected === signature;
+  }
+
+  async getPaymentLinkInformation(orderCode: number | string): Promise<any> {
+    try {
+      const response = await fetch(`${this.baseUrl}/v2/payment-requests/${orderCode}`, {
+        method: 'GET',
+        headers: {
+          'x-client-id': this.clientId,
+          'x-api-key': this.apiKey,
+        },
+      });
+      const body = await response.json().catch(() => null);
+      if (response.ok && body?.code === '00') {
+        return body.data;
+      }
+      return null;
+    } catch (err) {
+      this.logger.warn(`Lỗi gọi PayOS getPaymentLinkInformation cho orderCode=${orderCode}: ${(err as Error)?.message}`);
+      return null;
+    }
   }
 
   /** HMAC_SHA256(checksumKey, "k1=v1&k2=v2&..."), field sort alphabet — đúng tài liệu PayOS. */
