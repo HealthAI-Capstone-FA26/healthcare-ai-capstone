@@ -41,4 +41,16 @@ export class StaffDepartmentController {
   findStaffByDepartment(@Param('id') departmentId: string) {
     return this.staffDepartmentService.findStaffByDepartment(departmentId);
   }
+
+  @Get('users/:id/departments')
+  @ApiOperation({ summary: 'Liệt kê các khoa được gán cho điều dưỡng' })
+  findDepartmentsByUser(@Param('id') userId: string) {
+    return this.staffDepartmentService.findDepartmentsByUser(userId);
+  }
+
+  @Get('staff-departments')
+  @ApiOperation({ summary: 'Liệt kê tất cả phân bổ nhân viên - khoa' })
+  findAll() {
+    return this.staffDepartmentService.findAll();
+  }
 }
