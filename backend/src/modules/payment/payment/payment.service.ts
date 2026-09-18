@@ -153,6 +153,11 @@ export class PaymentService {
 
     let checkoutUrl: string;
     let paymentLinkId: string;
+    let qrCode: string | undefined;
+    let accountNumber: string | undefined;
+    let accountName: string | undefined;
+    let bin: string | undefined;
+    let transferDescription: string = description;
     try {
       const link = await this.paymentGateway.createPaymentLink({
         orderCode,
@@ -163,6 +168,13 @@ export class PaymentService {
       });
       checkoutUrl = link.checkoutUrl;
       paymentLinkId = link.paymentLinkId;
+      qrCode = link.qrCode;
+      accountNumber = link.accountNumber;
+      accountName = link.accountName;
+      bin = link.bin;
+      if (link.description) {
+        transferDescription = link.description;
+      }
     } catch (err) {
       // Tạo link PayOS thất bại -> đánh dấu luôn Payment 'pending' vừa tạo thành 'failed' để
       // không để lại rác, cho phép người dùng bấm thử lại (tạo Payment mới).
@@ -176,14 +188,29 @@ export class PaymentService {
         paymentId: payment.paymentId,
         provider: 'payos',
         providerTransactionRef: paymentLinkId,
-        qrCodeData: checkoutUrl,
-        requestPayload: { orderCode, amount: remaining, description, cancelUrl, returnUrl },
+        qrCodeData: qrCode ? qrCode.slice(0, 255) : checkoutUrl.slice(0, 255),
+        requestPayload: { orderCode, amount: remaining, description: transferDescription, cancelUrl, returnUrl },
+        responsePayload: {
+          bin,
+          accountNumber,
+          accountName,
+          qrCode,
+          description: transferDescription,
+        },
         status: 'initiated',
         initiatedAt: new Date(),
       },
     });
 
-    return { paymentId: payment.paymentId, checkoutUrl };
+    return {
+      paymentId: payment.paymentId,
+      checkoutUrl,
+      qrCode,
+      accountNumber,
+      accountName,
+      bin,
+      description: transferDescription,
+    };
   }
 
   /**
@@ -244,13 +271,78 @@ export class PaymentService {
 
   /** GET /payments/:id — đã login. */
   async getById(paymentId: string) {
-    const payment = await this.prisma.payment.findUnique({
+    let payment = await this.prisma.payment.findUnique({
       where: { paymentId },
       include: { gatewayTransaction: true },
     });
     if (!payment) {
       throw new NotFoundException(`Không tìm thấy giao dịch thanh toán ${paymentId}`);
     }
+
+    // Nếu là bank_transfer và đang pending -> chủ động kiểm tra trạng thái từ PayOS
+    if (payment.paymentMethod === 'bank_transfer' && payment.status === 'pending') {
+      const orderCode = (payment.gatewayTransaction?.requestPayload as any)?.orderCode;
+      if (orderCode) {
+        const payosInfo = await this.paymentGateway.getPaymentLinkInformation(orderCode);
+        if (payosInfo?.status === 'PAID') {
+          await this.prisma.paymentGatewayTransaction.updateMany({
+            where: { paymentId: payment.paymentId },
+            data: {
+              responsePayload: payosInfo,
+              completedAt: new Date(),
+              status: 'success',
+            },
+          });
+          payment = await this.prisma.payment.update({
+            where: { paymentId: payment.paymentId },
+            data: { status: 'success', paidAt: new Date() },
+            include: { gatewayTransaction: true },
+          });
+          await this.invoiceService.markPaidIfSettled(payment.invoiceId);
+          return payment;
+        }
+      }
+
+      // Kiểm tra thêm trường hợp đặc biệt: người dùng quét mã trước đó của hoá đơn này và đã thanh toán
+      const invoice = await this.prisma.invoice.findUnique({
+        where: { invoiceId: payment.invoiceId },
+        include: { payments: { include: { gatewayTransaction: true } } },
+      });
+
+      if (invoice) {
+        for (const siblingPayment of invoice.payments) {
+          if (siblingPayment.paymentId === payment.paymentId) continue;
+          if (siblingPayment.status === 'success') {
+            await this.invoiceService.markPaidIfSettled(invoice.invoiceId);
+            return siblingPayment;
+          }
+          if (siblingPayment.paymentMethod === 'bank_transfer' && siblingPayment.status === 'pending') {
+            const siblingOrderCode = (siblingPayment.gatewayTransaction?.requestPayload as any)?.orderCode;
+            if (siblingOrderCode) {
+              const siblingPayos = await this.paymentGateway.getPaymentLinkInformation(siblingOrderCode);
+              if (siblingPayos?.status === 'PAID') {
+                await this.prisma.paymentGatewayTransaction.updateMany({
+                  where: { paymentId: siblingPayment.paymentId },
+                  data: {
+                    responsePayload: siblingPayos,
+                    completedAt: new Date(),
+                    status: 'success',
+                  },
+                });
+                const updatedSibling = await this.prisma.payment.update({
+                  where: { paymentId: siblingPayment.paymentId },
+                  data: { status: 'success', paidAt: new Date() },
+                  include: { gatewayTransaction: true },
+                });
+                await this.invoiceService.markPaidIfSettled(invoice.invoiceId);
+                return updatedSibling;
+              }
+            }
+          }
+        }
+      }
+    }
+
     return payment;
   }
 
