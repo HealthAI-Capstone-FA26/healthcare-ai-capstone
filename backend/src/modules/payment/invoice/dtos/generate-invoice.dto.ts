@@ -2,9 +2,15 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class GenerateInvoiceDto {
-  @ApiProperty({ description: 'Lượt khám cần lập hoá đơn' })
+  @ApiPropertyOptional({ description: 'Lượt khám cần lập hoá đơn; dùng cho invoice bổ sung xét nghiệm' })
+  @IsOptional()
   @IsUUID()
-  encounterId: string;
+  encounterId?: string;
+
+  @ApiPropertyOptional({ description: 'Lịch hẹn cần lập hoá đơn phí khám trước khi tạo encounter' })
+  @IsOptional()
+  @IsUUID()
+  appointmentId?: string;
 
   /**
    * BHYT/discountAmount: schema Patient hiện chưa có field phân loại BHYT (xem §9 spec),

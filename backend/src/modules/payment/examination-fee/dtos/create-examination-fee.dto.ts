@@ -1,12 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsDateString, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
 
 export class CreateExaminationFeeDto {
-  @ApiPropertyOptional({ description: 'Khoa áp dụng — bỏ trống nếu là phí chung cho mọi khoa' })
-  @IsOptional()
-  @IsUUID()
-  departmentId?: string;
-
   @ApiProperty({ example: 'Khám tổng quát' })
   @IsString()
   @MaxLength(100)

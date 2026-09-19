@@ -30,7 +30,7 @@ export class InvoiceService {
     private readonly invoicePdfGenerator: InvoicePdfGeneratorPort,
     private readonly notificationDispatcher: NotificationDispatcherService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   /**
    * POST /invoices/generate — §3.1.
@@ -38,18 +38,44 @@ export class InvoiceService {
    * để Phase 5 làm khi module notification/** đã tồn tại).
    */
   async generate(dto: GenerateInvoiceDto) {
-    // 1. Load Encounter -> 404 nếu không có.
-    const encounter = await this.prisma.encounter.findUnique({ where: { encounterId: dto.encounterId } });
-    if (!encounter) {
+    if (!dto.encounterId && !dto.appointmentId) {
+      throw new BadRequestException('Cần cung cấp encounterId hoặc appointmentId');
+    }
+    if (dto.encounterId && dto.appointmentId) {
+      throw new BadRequestException('Chỉ được cung cấp một trong encounterId hoặc appointmentId');
+    }
+
+    const encounter = dto.encounterId
+      ? await this.prisma.encounter.findUnique({ where: { encounterId: dto.encounterId } })
+      : null;
+    if (dto.encounterId && !encounter) {
       throw new NotFoundException(`Không tìm thấy lượt khám ${dto.encounterId}`);
     }
+
+    const appointment = encounter
+      ? await this.prisma.appointment.findUnique({
+        where: { appointmentId: encounter.appointmentId },
+        include: { patient: true },
+      })
+      : await this.prisma.appointment.findUnique({
+        where: { appointmentId: dto.appointmentId },
+        include: { patient: true },
+      });
+    if (!appointment || !appointment.patientId || !appointment.patient) {
+      throw new NotFoundException('Không tìm thấy lịch hẹn hoặc lịch hẹn chưa có hồ sơ bệnh nhân');
+    }
+
+    const isConsultationInvoice = Boolean(dto.appointmentId);
 
     // Những orderItemId đã có InvoiceItem type='tests' ở BẤT KỲ hoá đơn nào CHƯA HỦY của encounter này
     // trước đó -> loại trừ, không tính trùng lần generate sau.
     const alreadyInvoicedItems = await this.prisma.invoiceItem.findMany({
       where: {
         itemType: 'tests',
-        invoice: { encounterId: dto.encounterId, status: { not: 'cancelled' } },
+        invoice: {
+          ...(encounter ? { encounterId: encounter.encounterId } : { appointmentId: appointment.appointmentId }),
+          status: { not: 'cancelled' },
+        },
       },
       select: { sourceId: true },
     });
@@ -65,16 +91,20 @@ export class InvoiceService {
     };
     const newItems: NewItem[] = [];
 
-    // 2. Phí khám — chỉ tính nếu encounter CHƯA từng có item 'consultation' ở hoá đơn CHƯA HỦY nào trước đó
-    // (tránh tính trùng phí khám nếu gọi generate nhiều lần cho cùng 1 encounter).
-    const hasConsultationItem = await this.prisma.invoiceItem.findFirst({
-      where: {
-        itemType: 'consultation',
-        invoice: { encounterId: dto.encounterId, status: { not: 'cancelled' } },
-      },
-    });
-    if (!hasConsultationItem) {
-      const fee = await this.examinationFeeService.findActiveFeeForDepartment(encounter.departmentId);
+    // 2. Invoice phí khám chỉ được tạo từ appointmentId, trước khi có Encounter.
+    if (isConsultationInvoice) {
+      const hasConsultationItem = await this.prisma.invoiceItem.findFirst({
+        where: {
+          itemType: 'consultation',
+          invoice: { appointmentId: appointment.appointmentId, status: { not: 'cancelled' } },
+        },
+      });
+
+      if (hasConsultationItem) {
+        throw new BadRequestException('Lịch hẹn này đã có invoice phí khám chưa bị huỷ');
+      }
+
+      const fee = await this.examinationFeeService.findActiveFeeForDepartment(appointment.departmentId);
       if (fee) {
         const price = Number(fee.price);
         newItems.push({
@@ -88,14 +118,13 @@ export class InvoiceService {
       }
     }
 
-    // 3. Phí xét nghiệm — TestOrderItem thuộc encounter, loại trừ orderItemId đã lập hoá đơn hoặc đã bị bác sĩ huỷ.
-    const testOrderItems = await this.prisma.testOrderItem.findMany({
-      where: {
-        order: { encounterId: dto.encounterId },
-        status: { not: 'cancelled' },
-      },
-      include: { testType: true },
-    });
+    // 3. Invoice xét nghiệm chỉ được tạo từ encounterId.
+    const testOrderItems = encounter
+      ? await this.prisma.testOrderItem.findMany({
+        where: { order: { encounterId: encounter.encounterId }, status: { not: 'cancelled' } },
+        include: { testType: true },
+      })
+      : [];
     for (const item of testOrderItems) {
       if (alreadyInvoicedOrderItemIds.has(item.orderItemId)) {
         continue;
@@ -139,8 +168,9 @@ export class InvoiceService {
       const created = await tx.invoice.create({
         data: {
           invoiceCode,
-          encounterId: encounter.encounterId,
-          patientId: encounter.patientId,
+          encounterId: encounter?.encounterId,
+          appointmentId: appointment.appointmentId,
+          patientId: appointment.patientId!,
           invoiceType,
           subtotalAmount,
           discountAmount,
@@ -168,7 +198,7 @@ export class InvoiceService {
 
     // 8. Dispatch Notification 'invoice_issued' qua email + in_app (Phase 5) — không chặn nếu lỗi
     // (NotificationDispatcherService tự log lỗi từng kênh, không throw ra ngoài).
-    await this.dispatchInvoiceIssuedNotification(invoice.invoiceId, encounter.patientId);
+    await this.dispatchInvoiceIssuedNotification(invoice.invoiceId, appointment.patientId);
 
     return this.findById(invoice.invoiceId);
   }
@@ -207,6 +237,7 @@ export class InvoiceService {
   async findMany(query: ListInvoicesQueryDto) {
     return this.prisma.invoice.findMany({
       where: {
+        ...(query.appointmentId ? { appointmentId: query.appointmentId } : {}),
         ...(query.patientId ? { patientId: query.patientId } : {}),
         ...(query.encounterId ? { encounterId: query.encounterId } : {}),
         ...(query.status ? { status: query.status } : {}),

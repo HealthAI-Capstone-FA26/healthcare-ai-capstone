@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../common/utils/code-generator.util';
 import { CreateExaminationFeeDto } from './dtos/create-examination-fee.dto';
@@ -11,9 +11,16 @@ import { FindExaminationFeesQueryDto } from './dtos/find-examination-fees-query.
  */
 @Injectable()
 export class ExaminationFeeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(dto: CreateExaminationFeeDto) {
+    const existingActiveFee = await this.prisma.examinationFeeCatalog.findFirst({
+      where: { departmentId: null, isActive: true },
+    });
+    if (existingActiveFee) {
+      throw new ConflictException('Đã tồn tại phí khám chung đang hoạt động; hãy cập nhật phí hiện tại');
+    }
+
     const feeCode = await generateUniqueCode('PK', (code) =>
       this.prisma.examinationFeeCatalog.findUnique({ where: { feeCode: code } }).then(Boolean),
     );
@@ -21,7 +28,7 @@ export class ExaminationFeeService {
     return this.prisma.examinationFeeCatalog.create({
       data: {
         feeCode,
-        departmentId: dto.departmentId,
+        departmentId: null,
         feeName: dto.feeName,
         feeType: dto.feeType ?? 'standard',
         price: dto.price,
@@ -34,7 +41,7 @@ export class ExaminationFeeService {
   async findAll(query: FindExaminationFeesQueryDto) {
     return this.prisma.examinationFeeCatalog.findMany({
       where: {
-        ...(query.departmentId ? { departmentId: query.departmentId } : {}),
+        departmentId: null,
         ...(query.isActive !== undefined ? { isActive: query.isActive } : {}),
       },
       orderBy: [{ departmentId: 'asc' }, { effectiveFrom: 'desc' }],
@@ -59,7 +66,7 @@ export class ExaminationFeeService {
     return this.prisma.examinationFeeCatalog.update({
       where: { feeId },
       data: {
-        ...(dto.departmentId !== undefined ? { departmentId: dto.departmentId } : {}),
+        departmentId: null,
         ...(dto.feeName !== undefined ? { feeName: dto.feeName } : {}),
         ...(dto.feeType !== undefined ? { feeType: dto.feeType } : {}),
         ...(dto.price !== undefined ? { price: dto.price } : {}),
@@ -74,18 +81,10 @@ export class ExaminationFeeService {
    * mới nhất theo effectiveFrom, cho đúng departmentId (hoặc phí chung departmentId=null nếu
    * khoa đó chưa có mức phí riêng).
    */
-  async findActiveFeeForDepartment(departmentId: string) {
+  async findActiveFeeForDepartment(_departmentId: string) {
     const now = new Date();
 
-    const specific = await this.prisma.examinationFeeCatalog.findFirst({
-      where: { departmentId, isActive: true, effectiveFrom: { lte: now } },
-      orderBy: { effectiveFrom: 'desc' },
-    });
-    if (specific) {
-      return specific;
-    }
-
-    // Không có mức phí riêng cho khoa này -> dùng mức phí chung (departmentId = null) nếu có.
+    // Chỉ có một bảng giá chung cho mọi khoa và mọi người.
     return this.prisma.examinationFeeCatalog.findFirst({
       where: { departmentId: null, isActive: true, effectiveFrom: { lte: now } },
       orderBy: { effectiveFrom: 'desc' },
