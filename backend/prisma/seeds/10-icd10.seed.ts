@@ -126,7 +126,7 @@ export async function seedIcd10(prisma: PrismaClient) {
 
     console.log(`Đã đọc thành công ${records.length} mã ICD-10.`);
 
-    const BATCH_SIZE = 3000;
+    const BATCH_SIZE = 1000;
     console.log(`Đang chèn dữ liệu vào DB theo batch (${BATCH_SIZE} bản ghi/lần)...`);
 
     for (let i = 0; i < records.length; i += BATCH_SIZE) {
