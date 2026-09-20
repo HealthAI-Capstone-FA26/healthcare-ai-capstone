@@ -14,18 +14,23 @@ import { CancelInvoiceDto } from './dtos/cancel-invoice.dto';
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('invoices')
 export class InvoiceController {
-  constructor(private readonly invoiceService: InvoiceService) {}
+  constructor(private readonly invoiceService: InvoiceService) { }
 
   @Post('generate')
-  // @RequirePermissions(`${Resource.INVOICE}:${Action.CREATE}:${Scope.ALL}`)
-  @ApiOperation({ summary: 'Tự động tính chi phí khám + xét nghiệm, sinh hoá đơn mới — RECEPTIONIST' })
+  @RequirePermissions(`${Resource.INVOICE}:${Action.CREATE}:${Scope.ALL}`)
+  @ApiOperation({
+    summary: 'Sinh hoá đơn phí khám hoặc phí xét nghiệm — RECEPTIONIST',
+    description:
+      'Gửi appointmentId để sinh hoá đơn phí khám trước khi tạo encounter. Gửi encounterId để sinh ' +
+      'hoá đơn các xét nghiệm của encounter; LabTask chỉ được tiếp nhận sau khi invoice xét nghiệm được paid.',
+  })
   generate(@Body() dto: GenerateInvoiceDto) {
     return this.invoiceService.generate(dto);
   }
 
   @Get()
-  // @RequirePermissions(`${Resource.INVOICE}:${Action.READ}:${Scope.ALL}`)
-  @ApiOperation({ summary: 'Danh sách hoá đơn, lọc theo patientId/encounterId/status — RECEPTIONIST/ADMIN' })
+  @RequirePermissions(`${Resource.INVOICE}:${Action.READ}:${Scope.ALL}`)
+  @ApiOperation({ summary: 'Danh sách hoá đơn, lọc theo appointmentId/patientId/encounterId/status — RECEPTIONIST/ADMIN' })
   findMany(@Query() query: ListInvoicesQueryDto) {
     return this.invoiceService.findMany(query);
   }

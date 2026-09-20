@@ -3,6 +3,7 @@ import { Appointment, Prisma, ReceptionCheckin } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../common/utils/code-generator.util';
 import { EncounterStatus } from '../../../common/utils/encounter-status.util';
+import { AppointmentStatus } from '../../../common/utils/appointment-status.util';
 import { MANDATORY_CONSENT_POLICY_TYPES } from '../../../common/constants/triage-queue.constants';
 import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { ConsentService } from '../consent/consent.service';
@@ -17,7 +18,7 @@ export class EncounterService {
     private readonly prisma: PrismaService,
     private readonly consentService: ConsentService,
     private readonly triageQueueService: TriageQueueService,
-  ) {}
+  ) { }
 
   private generateEncounterCode(): Promise<string> {
     return generateUniqueCode(ENCOUNTER_CODE_PREFIX, async (code) => {
@@ -54,6 +55,27 @@ export class EncounterService {
     if (!appointment.patientId) {
       throw new BadRequestException(
         'Lịch hẹn chưa xác nhận hồ sơ bệnh nhân, vui lòng đồng bộ (sync-patient) trước khi check-in',
+      );
+    }
+
+    if (appointment.status !== AppointmentStatus.CHECKED_IN) {
+      throw new BadRequestException(
+        `Chỉ có thể tạo encounter khi appointment đang ở trạng thái '${AppointmentStatus.CHECKED_IN}'`,
+      );
+    }
+
+    const paidConsultationInvoice = await tx.invoice.findFirst({
+      where: {
+        appointmentId: appointment.appointmentId,
+        invoiceType: 'consultation',
+        status: 'paid',
+        items: { some: { itemType: 'consultation' } },
+      },
+      select: { invoiceId: true },
+    });
+    if (!paidConsultationInvoice) {
+      throw new BadRequestException(
+        'Bệnh nhân chưa thanh toán phí khám, không thể tạo encounter',
       );
     }
 

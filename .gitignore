@@ -24,3 +24,5 @@ venv/
 .DS_Store
 
 rag-diagnosis/
+# Generated archives
+*.zip
