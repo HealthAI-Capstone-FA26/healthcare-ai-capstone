@@ -23,5 +23,6 @@ venv/
 # OS
 .DS_Store
 
+rag-diagnosis/
 # Generated archives
 *.zip
