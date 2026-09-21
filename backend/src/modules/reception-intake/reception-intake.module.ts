@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { EncounterController } from './encounter/encounter.controller';
 import { EncounterService } from './encounter/encounter.service';
+import { EncounterDepartmentRoutingService } from './encounter/encounter-department-routing.service';
+import { UserModule } from '../user/user.module';
 
 import { ChiefComplaintController } from './chief-complaint/chief-complaint.controller';
 import { ChiefComplaintService } from './chief-complaint/chief-complaint.service';
@@ -21,6 +22,7 @@ import { PatientMedicalHistoryService } from './patient-history/patient-medical-
 
 import { TriageQueueController } from './triage-queue/triage-queue.controller';
 import { TriageQueueService } from './triage-queue/triage-queue.service';
+import { EncounterController } from './encounter/encounter.controller';
 
 /**
  * Gom domain nghiệp vụ Tiếp đón & Đăng ký khám (Module 3): Encounter, ChiefComplaint,
@@ -35,6 +37,7 @@ import { TriageQueueService } from './triage-queue/triage-queue.service';
  * nên không phát sinh circular dependency.
  */
 @Module({
+  imports: [UserModule], // ActorRoleService cho EncounterDepartmentRoutingService
   controllers: [
     EncounterController,
     ChiefComplaintController,
@@ -47,6 +50,7 @@ import { TriageQueueService } from './triage-queue/triage-queue.service';
   ],
   providers: [
     EncounterService,
+    EncounterDepartmentRoutingService,
     ChiefComplaintService,
     IdentityVerificationService,
     ConsentService,
