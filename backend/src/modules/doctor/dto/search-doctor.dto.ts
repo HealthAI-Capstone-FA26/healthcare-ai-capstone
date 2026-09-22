@@ -11,4 +11,9 @@ export class SearchDoctorDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({ description: 'Lọc bác sĩ theo userId (dùng để tra doctorId sau khi login)' })
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
 }
