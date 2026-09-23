@@ -106,9 +106,8 @@ export class TriageQueueService {
       // pg_advisory_xact_lock tự release khi transaction kết thúc (commit/rollback).
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
 
-      // Chỉ lấy entry mà encounter còn 'registered' — encounter đã bị huỷ/đổi trạng thái thì
-      // entry đó không còn hợp lệ để gọi, tránh gọi nhầm bệnh nhân đã bị huỷ lượt khám.
-      const waitingEntries = await tx.triageQueueEntry.findMany({
+      // 1. Ưu tiên lấy ca đã phân bổ cho chính y tá này
+      let waitingEntries = await tx.triageQueueEntry.findMany({
         where: {
           assignedNurseUserId: nurseUserId,
           triageQueueDate,
@@ -116,12 +115,32 @@ export class TriageQueueService {
           encounter: { status: EncounterStatus.REGISTERED },
         },
       });
+
+      // 2. Nếu không có ca nào được gán riêng, tự động tiếp nhận ca WAITING đang chờ chung trong hệ thống
       if (waitingEntries.length === 0) {
-        throw new NotFoundException('Hàng đợi triage của bạn hiện không có bệnh nhân nào đang chờ');
+        waitingEntries = await tx.triageQueueEntry.findMany({
+          where: {
+            triageQueueDate,
+            status: TriageQueueStatus.WAITING,
+            encounter: { status: EncounterStatus.REGISTERED },
+          },
+        });
+      }
+
+      if (waitingEntries.length === 0) {
+        throw new NotFoundException('Hàng đợi triage hiện không có bệnh nhân nào đang chờ');
       }
 
       // Cùng thứ tự với findMany: emergency lên đầu, rồi urgent -> normal, cùng priority thì FIFO.
       const [nextEntry] = waitingEntries.sort(compareTriageQueueEntries);
+
+      // Cập nhật gán y tá hiện tại cho entry này nếu cần
+      if (nextEntry.assignedNurseUserId !== nurseUserId) {
+        await tx.triageQueueEntry.update({
+          where: { queueEntryId: nextEntry.queueEntryId },
+          data: { assignedNurseUserId: nurseUserId },
+        });
+      }
 
       await this.transition(
         tx,
@@ -139,28 +158,41 @@ export class TriageQueueService {
     });
   }
 
-  // called -> in_progress: y tá bắt đầu đo sinh hiệu cho bệnh nhân vừa gọi.
+  // y tá bắt đầu đo sinh hiệu cho bệnh nhân (waiting / called -> in_progress).
   async startProcessing(queueEntryId: string, nurseUserId: string): Promise<TriageQueueEntry> {
+    const existing = await this.prisma.triageQueueEntry.findUnique({ where: { queueEntryId } });
+    if (!existing) {
+      throw new NotFoundException('Không tìm thấy hàng đợi triage');
+    }
+
+    if (existing.status === TriageQueueStatus.IN_PROGRESS) {
+      return existing;
+    }
+
+    const fromStatus =
+      existing.status === TriageQueueStatus.WAITING
+        ? TriageQueueStatus.WAITING
+        : TriageQueueStatus.CALLED;
+
     return this.prisma.$transaction((tx) =>
       this.transition(
         tx,
         queueEntryId,
         nurseUserId,
-        TriageQueueStatus.CALLED,
+        fromStatus,
         TriageQueueStatus.IN_PROGRESS,
-        { startedAt: new Date() },
+        { startedAt: existing.startedAt || new Date() },
       ),
     );
   }
 
   /**
-   * Bước cuối của dequeue (in_progress -> done). PHẢI gọi trong CÙNG transaction với bước tạo
+   * Bước cuối của dequeue (waiting / called / in_progress -> done). PHẢI gọi trong CÙNG transaction với bước tạo
    * VitalSignSession (xem VitalInputService.recordVitalSigns) nên nhận `tx` giống enqueue: 3 việc
-   * dưới đây hoặc cùng thành công, hoặc rollback hết (không có cảnh session đã lưu mà encounter
-   * vẫn kẹt ở 'registered' hay entry vẫn 'in_progress'):
-   *  1. entry in_progress -> done, gắn sessionId + completedAt
+   * dưới đây hoặc cùng thành công, hoặc rollback hết:
+   *  1. entry -> done, gắn sessionId + completedAt
    *  2. đối chiếu entry đúng là của encounter đang đo
-   *  3. Encounter registered -> waiting_for_doctor (transition hợp lệ theo ENCOUNTER_STATUS_TRANSITIONS)
+   *  3. Encounter registered -> waiting_for_doctor
    */
   async complete(
     tx: Prisma.TransactionClient,
@@ -169,13 +201,20 @@ export class TriageQueueService {
     sessionId: string,
     encounterId: string,
   ): Promise<TriageQueueEntry> {
+    const existing = await tx.triageQueueEntry.findUnique({ where: { queueEntryId } });
+    if (!existing) {
+      throw new NotFoundException('Không tìm thấy hàng đợi triage');
+    }
+
+    const fromStatus = existing.status as TriageQueueStatus;
+
     const entry = await this.transition(
       tx,
       queueEntryId,
       nurseUserId,
-      TriageQueueStatus.IN_PROGRESS,
+      fromStatus,
       TriageQueueStatus.DONE,
-      { completedAt: new Date(), sessionId },
+      { completedAt: new Date(), sessionId, startedAt: existing.startedAt || new Date() },
     );
 
     // Tránh ghi sinh hiệu của bệnh nhân này vào entry của bệnh nhân khác — throw trong

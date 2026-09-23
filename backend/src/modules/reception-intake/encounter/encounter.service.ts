@@ -84,6 +84,19 @@ export class EncounterService {
     });
     const patientType = priorFinishedCount > 0 ? 'returning' : 'new';
 
+    const existingEncounter = await tx.encounter.findUnique({
+      where: { appointmentId: appointment.appointmentId },
+    });
+    if (existingEncounter) {
+      return tx.encounter.update({
+        where: { encounterId: existingEncounter.encounterId },
+        data: {
+          doctorId: appointment.doctorId,
+          departmentId: appointment.departmentId,
+        },
+      });
+    }
+
     const encounterCode = await this.generateEncounterCode();
 
     return tx.encounter.create({

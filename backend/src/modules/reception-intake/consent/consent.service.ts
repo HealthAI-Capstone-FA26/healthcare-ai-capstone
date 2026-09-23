@@ -33,7 +33,7 @@ export class ConsentService {
         signatureType: dto.signatureType,
         signatureDataUrl: dto.signatureDataUrl,
         signedAt: new Date(),
-        witnessedByUserId: dto.witnessedAtCounter ? currentUser.userId : null,
+        witnessedByUserId: dto.witnessedAtCounter ? (currentUser?.userId || null) : null,
         ipAddress: req.ip,
         deviceInfo: req.headers['user-agent'],
         status: CONSENT_STATUS_ACTIVE,
