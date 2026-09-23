@@ -544,7 +544,7 @@ model Consent {
   encounterId       String?   @map("encounter_id") @db.Char(36)
   policyId          String    @map("policy_id") @db.Char(36)
   signatureType     String    @map("signature_type") @db.VarChar(20) // e_signature_draw | otp_confirmed | checkbox_click
-  signatureDataUrl  String?   @map("signature_data_url") @db.VarChar(255)
+  signatureDataUrl  String?   @map("signature_data_url") @db.Text
   signedAt          DateTime  @default(now()) @map("signed_at")
   checkedAt         DateTime? @map("checked_at") // bổ sung theo LogicalDB.drawio (CONSENTS.checked_at)
   witnessedByUserId String?   @map("witnessed_by_user_id") @db.Char(36)
