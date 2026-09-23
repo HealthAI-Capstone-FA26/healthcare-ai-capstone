@@ -170,10 +170,22 @@ export class EncounterService {
           })
         )?.priority ?? 'normal';
 
-      const updatedEncounter = await tx.encounter.update({
-        where: { encounterId },
-        data: { status: EncounterStatus.REGISTERED, registeredAt: new Date() },
-      });
+      // CAS: kiểm tra lại status = ARRIVED NGAY TRONG transaction. Check ở đầu hàm nằm ngoài
+      // transaction nên 2 request đồng thời đều có thể vượt qua; request đến sau sẽ chờ row lock,
+      // thấy status đã đổi -> không khớp where -> bị từ chối, không enqueue trùng.
+      const updatedEncounter = await tx.encounter
+        .update({
+          where: { encounterId, status: EncounterStatus.ARRIVED },
+          data: { status: EncounterStatus.REGISTERED, registeredAt: new Date() },
+        })
+        .catch((error) => {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+            throw new BadRequestException(
+              "Encounter vừa được hoàn tất đăng ký bởi thao tác khác (không còn ở trạng thái 'arrived')",
+            );
+          }
+          throw error;
+        });
 
       const triageQueueEntry = await this.triageQueueService.enqueue(
         tx,

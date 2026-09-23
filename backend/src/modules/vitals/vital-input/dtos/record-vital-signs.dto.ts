@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsDateString, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsDateString, IsUUID, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { VitalMeasurementsDto } from './vital-measurements.dto';
 
@@ -35,4 +35,14 @@ export class RecordVitalSignsDto extends VitalMeasurementsDto {
     @IsString()
     @MaxLength(255)
     notes?: string;
+
+    @ApiPropertyOptional({
+        description:
+            'ID entry hàng đợi triage (đang in_progress) mà lần đo này xử lý. Nếu truyền: ghi nhận sinh hiệu + ' +
+            'entry -> done + encounter -> waiting_for_doctor chạy trong cùng 1 transaction.',
+        format: 'uuid',
+    })
+    @IsOptional()
+    @IsUUID()
+    queueEntryId?: string;
 }
