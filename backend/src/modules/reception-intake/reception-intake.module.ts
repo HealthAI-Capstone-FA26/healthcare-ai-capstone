@@ -59,6 +59,6 @@ import { EncounterController } from './encounter/encounter.controller';
     PatientMedicalHistoryService,
     TriageQueueService,
   ],
-  exports: [EncounterService],
+  exports: [EncounterService, TriageQueueService], // TriageQueueService: module vitals gọi complete() trong transaction ghi sinh hiệu
 })
 export class ReceptionIntakeModule { }

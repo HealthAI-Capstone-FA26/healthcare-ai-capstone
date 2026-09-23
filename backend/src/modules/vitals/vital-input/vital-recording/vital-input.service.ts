@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { VitalSignItem, VitalSignObservation } from '@prisma/client';
 import { PrismaService } from '../../../../../prisma/prisma.service';
+import { TriageQueueService } from '../../../reception-intake/triage-queue/triage-queue.service';
 import { RecordVitalSignsDto } from '../dtos/record-vital-signs.dto';
 import { UpdateVitalSignsDto } from '../dtos/update-vital-signs.dto';
 import { VitalMeasurementsDto } from '../dtos/vital-measurements.dto';
@@ -34,6 +35,7 @@ export class VitalInputService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly eventEmitter: EventEmitter2,
+        private readonly triageQueueService: TriageQueueService,
     ) { }
 
     async recordVitalSigns(dto: RecordVitalSignsDto) {
@@ -115,23 +117,39 @@ export class VitalInputService {
 
         const measuredAt = dto.measuredAt ? new Date(dto.measuredAt) : new Date();
 
-        const session = await this.prisma.vitalSignSession.create({
-            data: {
-                encounterId: targetEncounterId,
-                patientId: targetPatientId,
-                recordedByUserId: targetRecordedByUserId,
-                measuredAt,
-                notes: dto.notes,
-                observations: {
-                    create: observations.map((o) => ({
-                        itemId: itemByCode.get(o.itemCode)!.itemId,
-                        observationValue: o.value,
-                    })),
+        // Transaction: tạo session + (nếu đang xử lý hàng đợi triage) hoàn tất entry và chuyển encounter.
+        // Lỗi ở bất kỳ bước nào -> rollback cả session vừa tạo. Event bên dưới chỉ emit SAU khi commit.
+        const session = await this.prisma.$transaction(async (tx) => {
+            const created = await tx.vitalSignSession.create({
+                data: {
+                    encounterId: targetEncounterId,
+                    patientId: targetPatientId,
+                    recordedByUserId: targetRecordedByUserId,
+                    measuredAt,
+                    notes: dto.notes,
+                    observations: {
+                        create: observations.map((o) => ({
+                            itemId: itemByCode.get(o.itemCode)!.itemId,
+                            observationValue: o.value,
+                        })),
+                    },
                 },
-            },
-            include: {
-                observations: { include: { item: true } },
-            },
+                include: {
+                    observations: { include: { item: true } },
+                },
+            });
+
+            if (dto.queueEntryId) {
+                await this.triageQueueService.complete(
+                    tx,
+                    dto.queueEntryId,
+                    targetRecordedByUserId,
+                    created.vitalSessionId,
+                    targetEncounterId,
+                );
+            }
+
+            return created;
         });
 
         // Fire-and-forget: không await — tránh làm chậm response ghi nhận sinh hiệu của điều dưỡng.
