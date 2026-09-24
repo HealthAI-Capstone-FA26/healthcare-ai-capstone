@@ -30,6 +30,7 @@ import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto'
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 import { SyncPatientDto } from './dto/sync-patient.dto';
 import { DepartmentSuggestionService } from '../department-suggestion/department-suggestion.service';
+import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 
 const APPOINTMENT_CODE_PREFIX = 'LH';
 
@@ -341,8 +342,48 @@ export class AppointmentService {
     });
   }
 
+  /**
+   * Kiểm tra xem khoa đã có điều dưỡng (NURSE) được phân công trong StaffDepartment hay chưa.
+   * Chặn không cho xác nhận lịch hẹn nếu khoa chưa có điều dưỡng tiếp nhận đo sinh hiệu.
+   */
+  private async assertNurseInDepartment(departmentId: string, departmentName?: string) {
+    const staffInDepartment = await this.prisma.staffDepartment.findMany({
+      where: { departmentId },
+      include: {
+        user: {
+          include: {
+            profile: true,
+            userRoles: { include: { role: true } },
+          },
+        },
+      },
+    });
+
+    const hasNurse = staffInDepartment.some((staff) => {
+      const actorRole = (
+        staff.user.userRoles[0]?.role.roleCode ?? staff.user.profile?.actorRole
+      )?.trim();
+      return actorRole === ACTOR_ROLE.NURSE;
+    });
+
+    if (!hasNurse) {
+      const deptDisplay = departmentName ? `khoa "${departmentName}"` : `khoa này`;
+      throw new BadRequestException(
+        `Hiện tại ${deptDisplay} chưa có điều dưỡng (Nurse) được phân công tiếp nhận. Vui lòng phân công điều dưỡng cho khoa trước khi xác nhận lịch hẹn.`,
+      );
+    }
+  }
+
   // PATCH /appointments/:id/confirm — reception xác nhận lịch (pending -> confirmed).
   async confirm(appointmentId: string) {
+    const appointment = await this.findById(appointmentId);
+
+    // Chặn nếu khoa chưa có điều dưỡng được phân công
+    await this.assertNurseInDepartment(
+      appointment.departmentId,
+      appointment.department?.departmentName,
+    );
+
     return this.transitionTo(appointmentId, AppointmentStatus.CONFIRMED);
   }
 
