@@ -103,7 +103,15 @@ export class LabResultService {
                     resultStatus: dto.resultStatus ?? 'preliminary',
                     values: { create: values },
                 },
-                include: { values: { include: { parameter: true } } },
+                include: {
+                    values: {
+                        include: {
+                            parameter: {
+                                include: { labParameterThresholds: true },
+                            },
+                        },
+                    },
+                },
             });
 
             await this.labTaskService.markCompleted(labTaskId);
@@ -231,7 +239,14 @@ export class LabResultService {
         const labResult = await this.prisma.labResult.findUnique({
             where: { labResultId },
             include: {
-                values: { include: { parameter: true, labResultAlerts: true } },
+                values: {
+                    include: {
+                        parameter: {
+                            include: { labParameterThresholds: true },
+                        },
+                        labResultAlerts: true,
+                    },
+                },
                 attachments: true,
                 aiLabAnalyses: true,
                 labTask: true,
@@ -247,7 +262,14 @@ export class LabResultService {
         const labResult = await this.prisma.labResult.findUnique({
             where: { labTaskId },
             include: {
-                values: { include: { parameter: true, labResultAlerts: true } },
+                values: {
+                    include: {
+                        parameter: {
+                            include: { labParameterThresholds: true },
+                        },
+                        labResultAlerts: true,
+                    },
+                },
                 attachments: true,
                 aiLabAnalyses: true,
             },
