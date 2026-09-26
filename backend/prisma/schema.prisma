@@ -657,6 +657,8 @@ model VitalSignSession {
   observations       VitalSignObservation[]
   triageQueueEntries TriageQueueEntry[]
 
+  @@index([encounterId, measuredAt(sort: Desc)])
+  @@index([patientId, measuredAt(sort: Desc)])
   @@map("vital_sign_sessions")
 }
 
@@ -694,6 +696,7 @@ model VitalSignThreshold {
 
   vitalSignAlerts VitalSignAlert[]
 
+  @@index([itemId, ageMin, ageMax, gender])
   @@map("vital_sign_thresholds")
 }
 
@@ -718,6 +721,7 @@ model VitalSignAlert {
   vitalThreshold  VitalSignThreshold?  @relation(fields: [vitalThresholdId], references: [vitalThresholdId])
   confirmedByUser User?                @relation("VitalAlertConfirmedByUser", fields: [confirmedByUserId], references: [userId])
 
+  @@index([status, alertLevel, createdAt(sort: Desc)])
   @@map("vital_sign_alerts")
 }
 
@@ -801,6 +805,8 @@ model Diagnosis {
   testOrders    TestOrder[]
   prescriptions Prescription[]
 
+  @@index([encounterId, isPrimary])
+  @@index([encounterId, diagnosisType])
   @@map("diagnoses")
 }
 
@@ -831,6 +837,7 @@ model AiReferenceSource {
 
   sourceEncounter Encounter? @relation(fields: [sourceEncounterId], references: [encounterId])
 
+  @@index([ownerType, ownerId])
   @@map("ai_reference_sources")
 }
 
@@ -859,6 +866,8 @@ model AiDiagnosisSuggestion {
 
   diagnoses Diagnosis[]
 
+  @@index([encounterId, rank])
+  @@index([doctorFeedback, generatedAt])
   @@map("ai_diagnosis_suggestions")
 }
 
@@ -953,6 +962,7 @@ model DiagnosisTestRecommendation {
   icd10    Icd10Code   @relation(fields: [icd10Code], references: [icd10Code])
   testType TestCatalog @relation(fields: [testTypeId], references: [testTypeId])
 
+  @@index([icd10Code, priority])
   @@map("diagnosis_test_recommendations")
 }
 
@@ -990,6 +1000,7 @@ model TestOrderItem {
 
   labTask LabTask?
 
+  @@index([orderId])
   @@map("test_order_items")
 }
 
@@ -1036,6 +1047,8 @@ model Invoice {
   items    InvoiceItem[]
   payments Payment[]
 
+  @@index([patientId, status])
+  @@index([encounterId])
   @@map("invoices")
 }
 
@@ -1070,6 +1083,7 @@ model Payment {
 
   gatewayTransaction PaymentGatewayTransaction?
 
+  @@index([invoiceId, status])
   @@map("payment")
 }
 
@@ -1088,6 +1102,7 @@ model PaymentGatewayTransaction {
 
   payment Payment @relation(fields: [paymentId], references: [paymentId], onDelete: Cascade)
 
+  @@index([providerTransactionRef])
   @@map("payment_gateway_transactions")
 }
 
@@ -1104,12 +1119,15 @@ model Notification {
   title              String    @db.VarChar(255)
   content            String    @db.Text
   status             String    @default("queued") @db.VarChar(20) // queued | sent | failed
+  scheduledAt        DateTime? @map("scheduled_at") // bổ sung theo module9.md mục 6: cho phép lên lịch gửi trong tương lai (chuỗi nhắc lịch tái khám), khác sentAt (thời điểm gửi thực tế)
   sentAt             DateTime? @map("sent_at")
   createdAt          DateTime  @default(now()) @map("created_at")
 
   recipientUser    User?    @relation("NotificationRecipientUser", fields: [recipientUserId], references: [userId])
   recipientPatient Patient? @relation(fields: [recipientPatientId], references: [patientId])
 
+  @@index([recipientPatientId, status, createdAt(sort: Desc)])
+  @@index([scheduledAt, status])
   @@map("notifications")
 }
 
@@ -1162,6 +1180,7 @@ model LabTask {
 
   labResult LabResult?
 
+  @@index([labRoomId, status])
   @@map("lab_tasks")
 }
 
@@ -1220,7 +1239,11 @@ model LabResultValue {
 
   labResultAlerts LabResultAlert[]
 
+  // @@unique([labResultId, parameterId]) đã tự đóng vai trò index cho truy vấn chỉ lọc
+  // theo lab_result_id (Postgres dùng được leftmost prefix của composite index), nên
+  // module7.md mục 8 đề xuất index (lab_result_id) riêng không cần thêm nữa.
   @@unique([labResultId, parameterId])
+  @@index([parameterId, isAbnormal])
   @@map("lab_result_values")
 }
 
@@ -1241,6 +1264,7 @@ model LabParameterThreshold {
 
   labResultAlerts LabResultAlert[]
 
+  @@index([parameterId, ageMin, ageMax, gender])
   @@map("lab_parameter_thresholds")
 }
 
@@ -1278,6 +1302,7 @@ model LabResultAlert {
   threshold       LabParameterThreshold? @relation(fields: [thresholdId], references: [labThresholdId])
   confirmedByUser User?                  @relation("LabAlertConfirmedByUser", fields: [confirmedByUserId], references: [userId])
 
+  @@index([riskLevel, status, createdAt(sort: Desc)])
   @@map("lab_result_alerts")
 }
 
@@ -1352,6 +1377,8 @@ model DrugCatalog {
   interactionsA     DrugInteraction[]  @relation("DrugA")
   interactionsB     DrugInteraction[]  @relation("DrugB")
 
+  @@index([genericName])
+  @@index([therapeuticClass])
   @@map("drug_catalog")
 }
 
@@ -1419,6 +1446,7 @@ model PrescriptionItem {
   relatedAlertsA PrescriptionSafetyAlert[] @relation("RelatedItemA")
   relatedAlertsB PrescriptionSafetyAlert[] @relation("RelatedItemB")
 
+  @@index([prescriptionId])
   @@map("prescription_items")
 }
 
@@ -1441,6 +1469,7 @@ model PrescriptionSafetyAlert {
   relatedItemB    PrescriptionItem? @relation("RelatedItemB", fields: [relatedItemIdB], references: [prescriptionItemId])
   confirmedByUser User?             @relation("PrescriptionAlertConfirmedByUser", fields: [confirmedByUserId], references: [userId])
 
+  @@index([prescriptionId, status, severity])
   @@map("prescription_safety_alerts")
 }
 
@@ -1459,5 +1488,6 @@ model EncounterSummaryDocument {
   encounter Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
   patient   Patient   @relation(fields: [patientId], references: [patientId])
 
+  @@index([patientId, generatedAt(sort: Desc)])
   @@map("encounter_summary_documents")
 }
