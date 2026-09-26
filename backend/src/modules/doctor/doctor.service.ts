@@ -110,6 +110,11 @@ export class DoctorService {
   findAll(query: SearchDoctorDto) {
     const where: Prisma.DoctorWhereInput = {};
 
+    // Lọc theo userId — dùng để tra doctorId sau khi bác sĩ đăng nhập
+    if (query.userId) {
+      where.userId = query.userId;
+    }
+
     if (query.search) {
       where.OR = [
         { fullName: { contains: query.search, mode: 'insensitive' } },

@@ -38,25 +38,25 @@ model User {
   patientIdentityVerifications PatientIdentityVerification[] @relation("IdentityVerifiedByUser")
   consentsWitnessed            Consent[]                     @relation("ConsentWitnessedByUser")
   allergiesRecorded            PatientAllergy[]              @relation("AllergyRecordedByUser")
-  allergiesVerified             PatientAllergy[]              @relation("AllergyVerifiedByUser")
-  medicalHistoriesRecorded     PatientMedicalHistory[]        @relation("MedicalHistoryRecordedByUser")
+  allergiesVerified            PatientAllergy[]              @relation("AllergyVerifiedByUser")
+  medicalHistoriesRecorded     PatientMedicalHistory[]       @relation("MedicalHistoryRecordedByUser")
 
   // --- bổ sung theo LogicalDB.drawio ---
-  vitalSignSessionsRecorded     VitalSignSession[]             @relation("VitalSessionRecordedByUser")
-  vitalSignAlertsConfirmed      VitalSignAlert[]                @relation("VitalAlertConfirmedByUser")
-  triageQueueEntriesAssigned    TriageQueueEntry[]              @relation("TriageAssignedNurse")
-  diagnosesRecorded             Diagnosis[]                     @relation("DiagnosedByUser")
-  aiDiagnosisSuggestionsReviewed AiDiagnosisSuggestion[]        @relation("SuggestionReviewedByUser")
-  medicalImagesUploaded         MedicalImage[]                  @relation("ImageUploadedByUser")
-  testOrdersOrdered             TestOrder[]                     @relation("TestOrderedByUser")
-  paymentsReceived              Payment[]                       @relation("PaymentReceivedByUser")
-  notificationsReceived         Notification[]                  @relation("NotificationRecipientUser")
-  labStaffRoomAssignments       LabStaffRoomAssignment[]        @relation("LabStaffAssignments")
-  labTasksAssigned              LabTask[]                       @relation("LabTaskAssignedStaff")
-  labResultsEntered             LabResult[]                     @relation("LabResultEnteredByUser")
-  labResultAttachmentsUploaded  LabResultAttachment[]           @relation("LabAttachmentUploadedByUser")
-  labResultAlertsConfirmed      LabResultAlert[]                @relation("LabAlertConfirmedByUser")
-  prescriptionAlertsConfirmed   PrescriptionSafetyAlert[]       @relation("PrescriptionAlertConfirmedByUser")
+  vitalSignSessionsRecorded      VitalSignSession[]        @relation("VitalSessionRecordedByUser")
+  vitalSignAlertsConfirmed       VitalSignAlert[]          @relation("VitalAlertConfirmedByUser")
+  triageQueueEntriesAssigned     TriageQueueEntry[]        @relation("TriageAssignedNurse")
+  diagnosesRecorded              Diagnosis[]               @relation("DiagnosedByUser")
+  aiDiagnosisSuggestionsReviewed AiDiagnosisSuggestion[]   @relation("SuggestionReviewedByUser")
+  medicalImagesUploaded          MedicalImage[]            @relation("ImageUploadedByUser")
+  testOrdersOrdered              TestOrder[]               @relation("TestOrderedByUser")
+  paymentsReceived               Payment[]                 @relation("PaymentReceivedByUser")
+  notificationsReceived          Notification[]            @relation("NotificationRecipientUser")
+  labStaffRoomAssignments        LabStaffRoomAssignment[]  @relation("LabStaffAssignments")
+  labTasksAssigned               LabTask[]                 @relation("LabTaskAssignedStaff")
+  labResultsEntered              LabResult[]               @relation("LabResultEnteredByUser")
+  labResultAttachmentsUploaded   LabResultAttachment[]     @relation("LabAttachmentUploadedByUser")
+  labResultAlertsConfirmed       LabResultAlert[]          @relation("LabAlertConfirmedByUser")
+  prescriptionAlertsConfirmed    PrescriptionSafetyAlert[] @relation("PrescriptionAlertConfirmedByUser")
 
   @@map("users")
 }
@@ -157,16 +157,16 @@ model SecuritySetting {
 }
 
 model Department {
-  departmentId   String   @id @default(uuid()) @map("department_id") @db.Char(36)
-  departmentCode String   @unique @map("department_code") @db.VarChar(20)
-  departmentName String   @map("department_name") @db.VarChar(100)
-  description    String?  @db.VarChar(255)
-  roomLocation   String?  @map("room_location") @db.VarChar(100)
-  isActive       Boolean  @default(true) @map("is_active")
+  departmentId    String   @id @default(uuid()) @map("department_id") @db.Char(36)
+  departmentCode  String   @unique @map("department_code") @db.VarChar(20)
+  departmentName  String   @map("department_name") @db.VarChar(100)
+  description     String?  @db.VarChar(255)
+  roomLocation    String?  @map("room_location") @db.VarChar(100)
+  isActive        Boolean  @default(true) @map("is_active")
   symptomKeywords String[] @default([]) @map("symptom_keywords")
-  createdAt      DateTime @default(now()) @map("created_at")
+  createdAt       DateTime @default(now()) @map("created_at")
 
-  staffDepartments StaffDepartment[]
+  staffDepartments   StaffDepartment[]
   doctorDepartments  DoctorDepartment[]
   doctorSchedules    DoctorSchedule[]
   appointments       Appointment[]
@@ -175,8 +175,8 @@ model Department {
   queueTickets       QueueTicket[]
 
   // --- bổ sung theo LogicalDB.drawio ---
-  triageQueueEntries      TriageQueueEntry[]
-  examinationFeeCatalogs  ExaminationFeeCatalog[]
+  triageQueueEntries     TriageQueueEntry[]
+  examinationFeeCatalogs ExaminationFeeCatalog[]
 
   @@map("departments")
 }
@@ -293,17 +293,17 @@ model Patient {
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
 
-  user            User?            @relation(fields: [userId], references: [userId])
-  patientContacts PatientContact[]
-  appointments    Appointment[]    @relation("AppointmentPatient")
+  user                  User?                   @relation(fields: [userId], references: [userId])
+  patientContacts       PatientContact[]
+  appointments          Appointment[]           @relation("AppointmentPatient")
   // Appointment ở case "matched nhưng chưa xác nhận" (guest booking, xem GuestAppointmentService):
   // patientId để null, chỉ set suggestedPatientId trỏ tới patient MAIN khớp nhất. Lễ tân xác nhận
   // qua POST /appointment/sync-patient (Phase 3) rồi mới set patientId thật.
-  suggestedAppointments Appointment[] @relation("AppointmentSuggestedPatient")
-  encounters      Encounter[]
-  consents        Consent[]
-  allergies       PatientAllergy[]
-  medicalHistories PatientMedicalHistory[]
+  suggestedAppointments Appointment[]           @relation("AppointmentSuggestedPatient")
+  encounters            Encounter[]
+  consents              Consent[]
+  allergies             PatientAllergy[]
+  medicalHistories      PatientMedicalHistory[]
 
   // --- bổ sung theo LogicalDB.drawio ---
   vitalSignSessions         VitalSignSession[]
@@ -332,8 +332,8 @@ model PatientContact {
 }
 
 model Appointment {
-  appointmentId   String    @id @default(uuid()) @map("appointment_id") @db.Char(36)
-  appointmentCode String    @unique @map("appointment_code") @db.VarChar(20)
+  appointmentId      String    @id @default(uuid()) @map("appointment_id") @db.Char(36)
+  appointmentCode    String    @unique @map("appointment_code") @db.VarChar(20)
   // Nullable: case "matched nhưng chưa xác nhận" (guest booking match được ≥2 field với 1 patient
   // MAIN có sẵn) để patientId=null, chỉ set suggestedPatientId — chờ lễ tân đối chiếu qua
   // POST /appointment/sync-patient (Phase 3) rồi mới set patientId thật. Các thao tác giả định
@@ -345,30 +345,31 @@ model Appointment {
   // set (sync-patient không xoá) để còn audit trail.
   suggestedPatientId String?   @map("suggested_patient_id") @db.Char(36)
   suggestedReason    String?   @map("suggested_reason") @db.VarChar(255)
-  doctorId        String?   @map("doctor_id") @db.Char(36)
-  departmentId    String    @map("department_id") @db.Char(36)
-  slotId          String?   @map("slot_id") @db.Char(36)
-  bookedByUserId  String?   @map("booked_by_user_id") @db.Char(36)
-  bookingChannel  String    @map("booking_channel") @db.VarChar(20) // online | at_hospital
-  appointmentDate DateTime  @map("appointment_date") @db.Date
-  appointmentTime DateTime? @map("appointment_time") @db.Time
-  status          String    @default("pending") @db.VarChar(20)
+  doctorId           String?   @map("doctor_id") @db.Char(36)
+  departmentId       String    @map("department_id") @db.Char(36)
+  slotId             String?   @map("slot_id") @db.Char(36)
+  bookedByUserId     String?   @map("booked_by_user_id") @db.Char(36)
+  bookingChannel     String    @map("booking_channel") @db.VarChar(20) // online | at_hospital
+  appointmentDate    DateTime  @map("appointment_date") @db.Date
+  appointmentTime    DateTime? @map("appointment_time") @db.Time
+  status             String    @default("pending") @db.VarChar(20)
   // pending -> confirmed -> checked_in -> in_progress -> completed || cancelled || no_show
-  reasonForVisit  String?   @map("reason_for_visit") @db.VarChar(255)
-  priority        String    @default("normal") @db.VarChar(20) // normal | urgent | emergency
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  cancelledAt     DateTime? @map("cancelled_at")
-  cancelReason    String?   @map("cancel_reason") @db.VarChar(255)
+  reasonForVisit     String?   @map("reason_for_visit") @db.VarChar(255)
+  priority           String    @default("normal") @db.VarChar(20) // normal | urgent | emergency
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  cancelledAt        DateTime? @map("cancelled_at")
+  cancelReason       String?   @map("cancel_reason") @db.VarChar(255)
 
   patient          Patient?         @relation("AppointmentPatient", fields: [patientId], references: [patientId])
   suggestedPatient Patient?         @relation("AppointmentSuggestedPatient", fields: [suggestedPatientId], references: [patientId])
-  doctor       Doctor?          @relation(fields: [doctorId], references: [doctorId])
-  department   Department       @relation(fields: [departmentId], references: [departmentId])
-  slot         AppointmentSlot? @relation(fields: [slotId], references: [slotId])
-  bookedByUser User?            @relation("AppointmentBookedBy", fields: [bookedByUserId], references: [userId])
+  doctor           Doctor?          @relation(fields: [doctorId], references: [doctorId])
+  department       Department       @relation(fields: [departmentId], references: [departmentId])
+  slot             AppointmentSlot? @relation(fields: [slotId], references: [slotId])
+  bookedByUser     User?            @relation("AppointmentBookedBy", fields: [bookedByUserId], references: [userId])
 
   encounter         Encounter?
+  invoices          Invoice[]
   queueTicket       QueueTicket?
   receptionCheckins ReceptionCheckin[]
 
@@ -406,20 +407,20 @@ model Encounter {
   medicalHistories      PatientMedicalHistory[]
 
   // --- bổ sung theo LogicalDB.drawio ---
-  vitalSignSessions       VitalSignSession[]
-  vitalSignAlerts         VitalSignAlert[]
-  triageQueueEntry        TriageQueueEntry?
-  clinicalExamination     ClinicalExamination?
-  diagnoses               Diagnosis[]
-  aiClinicalSummary       AiClinicalSummary?
-  aiDiagnosisSuggestions  AiDiagnosisSuggestion[]
-  aiReferenceSources      AiReferenceSource[]
-  medicalImages           MedicalImage[]
-  testOrders              TestOrder[]
-  invoices                Invoice[]
-  labResultAlerts         LabResultAlert[]
-  treatmentConsultation   TreatmentConsultation?
-  prescriptions           Prescription[]
+  vitalSignSessions         VitalSignSession[]
+  vitalSignAlerts           VitalSignAlert[]
+  triageQueueEntry          TriageQueueEntry?
+  clinicalExamination       ClinicalExamination?
+  diagnoses                 Diagnosis[]
+  aiClinicalSummary         AiClinicalSummary?
+  aiDiagnosisSuggestions    AiDiagnosisSuggestion[]
+  aiReferenceSources        AiReferenceSource[]
+  medicalImages             MedicalImage[]
+  testOrders                TestOrder[]
+  invoices                  Invoice[]
+  labResultAlerts           LabResultAlert[]
+  treatmentConsultation     TreatmentConsultation?
+  prescriptions             Prescription[]
   encounterSummaryDocuments EncounterSummaryDocument[]
 
   @@index([patientId, arrivedAt(sort: Desc)])
@@ -462,26 +463,26 @@ model PatientIdentityVerification {
 }
 
 model DoctorQueueEntry {
-  queueEntryId   String    @id @default(uuid()) @map("queue_entry_id") @db.Char(36)
-  encounterId    String    @unique @map("encounter_id") @db.Char(36)
-  doctorId       String    @map("doctor_id") @db.Char(36)
-  departmentId   String    @map("department_id") @db.Char(36)
-  queueOrder     Int       @map("queue_order")
-  priority       String    @default("normal") @db.VarChar(20) // normal | urgent | emergency
-  status         String    @default("waiting") @db.VarChar(20) // waiting | called | in_progress | done | skipped | cancelled
-  enteredQueueAt DateTime  @default(now()) @map("entered_queue_at")
-  doctorQueueDate DateTime @map("doctor_queue_date") @db.Date // bổ sung theo LogicalDB.drawio
-  calledAt       DateTime? @map("called_at")
-  examStartedAt  DateTime? @map("exam_started_at")
-  routedByUserId String?   @map("routed_by_user_id") @db.Char(36)
+  queueEntryId    String    @id @default(uuid()) @map("queue_entry_id") @db.Char(36)
+  encounterId     String    @unique @map("encounter_id") @db.Char(36)
+  doctorId        String    @map("doctor_id") @db.Char(36)
+  departmentId    String    @map("department_id") @db.Char(36)
+  queueOrder      Int       @map("queue_order")
+  priority        String    @default("normal") @db.VarChar(20) // normal | urgent | emergency
+  status          String    @default("waiting") @db.VarChar(20) // waiting | called | in_progress | done | skipped | cancelled
+  enteredQueueAt  DateTime  @default(now()) @map("entered_queue_at")
+  doctorQueueDate DateTime  @map("doctor_queue_date") @db.Date // bổ sung theo LogicalDB.drawio
+  calledAt        DateTime? @map("called_at")
+  examStartedAt   DateTime? @map("exam_started_at")
+  routedByUserId  String?   @map("routed_by_user_id") @db.Char(36)
 
   encounter    Encounter  @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
   doctor       Doctor     @relation(fields: [doctorId], references: [doctorId])
   department   Department @relation(fields: [departmentId], references: [departmentId])
   routedByUser User?      @relation("QueueRoutedByUser", fields: [routedByUserId], references: [userId])
 
-  @@index([doctorId, status, queueOrder])
   @@unique([departmentId, doctorQueueDate, queueOrder]) // bổ sung theo LogicalDB.drawio
+  @@index([doctorId, status, queueOrder])
   @@map("doctor_queue_entries")
 }
 
@@ -543,7 +544,7 @@ model Consent {
   encounterId       String?   @map("encounter_id") @db.Char(36)
   policyId          String    @map("policy_id") @db.Char(36)
   signatureType     String    @map("signature_type") @db.VarChar(20) // e_signature_draw | otp_confirmed | checkbox_click
-  signatureDataUrl  String?   @map("signature_data_url") @db.VarChar(255)
+  signatureDataUrl  String?   @map("signature_data_url") @db.Text
   signedAt          DateTime  @default(now()) @map("signed_at")
   checkedAt         DateTime? @map("checked_at") // bổ sung theo LogicalDB.drawio (CONSENTS.checked_at)
   witnessedByUserId String?   @map("witnessed_by_user_id") @db.Char(36)
@@ -582,10 +583,10 @@ model PatientAllergy {
   status              String   @default("active") @db.VarChar(20) // active | resolved | entered_in_error
   createdAt           DateTime @default(now()) @map("created_at")
 
-  patient         Patient    @relation(fields: [patientId], references: [patientId])
-  encounter       Encounter? @relation(fields: [encounterId], references: [encounterId])
-  recordedByUser  User?      @relation("AllergyRecordedByUser", fields: [recordedByUserId], references: [userId])
-  verifiedByUser  User?      @relation("AllergyVerifiedByUser", fields: [verifiedByUserId], references: [userId])
+  patient        Patient    @relation(fields: [patientId], references: [patientId])
+  encounter      Encounter? @relation(fields: [encounterId], references: [encounterId])
+  recordedByUser User?      @relation("AllergyRecordedByUser", fields: [recordedByUserId], references: [userId])
+  verifiedByUser User?      @relation("AllergyVerifiedByUser", fields: [verifiedByUserId], references: [userId])
 
   @@index([patientId, status])
   @@map("patient_allergies")
@@ -654,8 +655,10 @@ model VitalSignSession {
   recordedByUser User      @relation("VitalSessionRecordedByUser", fields: [recordedByUserId], references: [userId])
 
   observations       VitalSignObservation[]
-  triageQueueEntries  TriageQueueEntry[]
+  triageQueueEntries TriageQueueEntry[]
 
+  @@index([encounterId, measuredAt(sort: Desc)])
+  @@index([patientId, measuredAt(sort: Desc)])
   @@map("vital_sign_sessions")
 }
 
@@ -693,6 +696,7 @@ model VitalSignThreshold {
 
   vitalSignAlerts VitalSignAlert[]
 
+  @@index([itemId, ageMin, ageMax, gender])
   @@map("vital_sign_thresholds")
 }
 
@@ -717,6 +721,7 @@ model VitalSignAlert {
   vitalThreshold  VitalSignThreshold?  @relation(fields: [vitalThresholdId], references: [vitalThresholdId])
   confirmedByUser User?                @relation("VitalAlertConfirmedByUser", fields: [confirmedByUserId], references: [userId])
 
+  @@index([status, alertLevel, createdAt(sort: Desc)])
   @@map("vital_sign_alerts")
 }
 
@@ -800,6 +805,8 @@ model Diagnosis {
   testOrders    TestOrder[]
   prescriptions Prescription[]
 
+  @@index([encounterId, isPrimary])
+  @@index([encounterId, diagnosisType])
   @@map("diagnoses")
 }
 
@@ -830,6 +837,7 @@ model AiReferenceSource {
 
   sourceEncounter Encounter? @relation(fields: [sourceEncounterId], references: [encounterId])
 
+  @@index([ownerType, ownerId])
   @@map("ai_reference_sources")
 }
 
@@ -858,6 +866,8 @@ model AiDiagnosisSuggestion {
 
   diagnoses Diagnosis[]
 
+  @@index([encounterId, rank])
+  @@index([doctorFeedback, generatedAt])
   @@map("ai_diagnosis_suggestions")
 }
 
@@ -934,8 +944,8 @@ model TestCatalog {
   defaultLabRoom LabRoom @relation(fields: [defaultLabRoomId], references: [labRoomId])
 
   diagnosisTestRecommendations DiagnosisTestRecommendation[]
-  testOrderItems                TestOrderItem[]
-  labResultParameters           LabResultParameter[]
+  testOrderItems               TestOrderItem[]
+  labResultParameters          LabResultParameter[]
 
   @@map("test_catalog")
 }
@@ -952,6 +962,7 @@ model DiagnosisTestRecommendation {
   icd10    Icd10Code   @relation(fields: [icd10Code], references: [icd10Code])
   testType TestCatalog @relation(fields: [testTypeId], references: [testTypeId])
 
+  @@index([icd10Code, priority])
   @@map("diagnosis_test_recommendations")
 }
 
@@ -989,6 +1000,7 @@ model TestOrderItem {
 
   labTask LabTask?
 
+  @@index([orderId])
   @@map("test_order_items")
 }
 
@@ -1013,7 +1025,8 @@ model ExaminationFeeCatalog {
 model Invoice {
   invoiceId      String    @id @default(uuid()) @map("invoice_id") @db.Char(36)
   invoiceCode    String    @unique @map("invoice_code") @db.VarChar(20)
-  encounterId    String    @map("encounter_id") @db.Char(36)
+  encounterId    String?   @map("encounter_id") @db.Char(36)
+  appointmentId  String?   @map("appointment_id") @db.Char(36)
   patientId      String    @map("patient_id") @db.Char(36)
   invoiceType    String    @map("invoice_type") @db.VarChar(20) // consultation | tests | combined | other
   subtotalAmount Decimal   @map("subtotal_amount") @db.Decimal(14, 2)
@@ -1027,12 +1040,15 @@ model Invoice {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  encounter Encounter @relation(fields: [encounterId], references: [encounterId])
-  patient   Patient   @relation(fields: [patientId], references: [patientId])
+  encounter   Encounter?   @relation(fields: [encounterId], references: [encounterId])
+  appointment Appointment? @relation(fields: [appointmentId], references: [appointmentId])
+  patient     Patient      @relation(fields: [patientId], references: [patientId])
 
   items    InvoiceItem[]
   payments Payment[]
 
+  @@index([patientId, status])
+  @@index([encounterId])
   @@map("invoices")
 }
 
@@ -1067,24 +1083,26 @@ model Payment {
 
   gatewayTransaction PaymentGatewayTransaction?
 
+  @@index([invoiceId, status])
   @@map("payment")
 }
 
 model PaymentGatewayTransaction {
-  gatewayTransactionId  String    @id @default(uuid()) @map("gateway_transaction_id") @db.Char(36)
-  paymentId             String    @unique @map("payment_id") @db.Char(36)
-  provider              String    @db.VarChar(30) // vnpay | momo | zalopay | napas | ...
-  providerTransactionRef String   @map("provider_transaction_ref") @db.VarChar(100)
-  qrCodeData            String?   @map("qr_code_data") @db.VarChar(255)
-  requestPayload        Json?     @map("request_payload") @db.JsonB
-  responsePayload       Json?     @map("response_payload") @db.JsonB
-  status                String    @default("initiated") @db.VarChar(20) // initiated | pending | success | failed | expired
-  initiatedAt           DateTime  @map("initiated_at")
-  completedAt           DateTime? @map("completed_at")
-  createdAt             DateTime  @default(now()) @map("created_at")
+  gatewayTransactionId   String    @id @default(uuid()) @map("gateway_transaction_id") @db.Char(36)
+  paymentId              String    @unique @map("payment_id") @db.Char(36)
+  provider               String    @db.VarChar(30) // vnpay | momo | zalopay | napas | ...
+  providerTransactionRef String    @map("provider_transaction_ref") @db.VarChar(100)
+  qrCodeData             String?   @map("qr_code_data") @db.VarChar(255)
+  requestPayload         Json?     @map("request_payload") @db.JsonB
+  responsePayload        Json?     @map("response_payload") @db.JsonB
+  status                 String    @default("initiated") @db.VarChar(20) // initiated | pending | success | failed | expired
+  initiatedAt            DateTime  @map("initiated_at")
+  completedAt            DateTime? @map("completed_at")
+  createdAt              DateTime  @default(now()) @map("created_at")
 
   payment Payment @relation(fields: [paymentId], references: [paymentId], onDelete: Cascade)
 
+  @@index([providerTransactionRef])
   @@map("payment_gateway_transactions")
 }
 
@@ -1101,12 +1119,15 @@ model Notification {
   title              String    @db.VarChar(255)
   content            String    @db.Text
   status             String    @default("queued") @db.VarChar(20) // queued | sent | failed
+  scheduledAt        DateTime? @map("scheduled_at") // bổ sung theo module9.md mục 6: cho phép lên lịch gửi trong tương lai (chuỗi nhắc lịch tái khám), khác sentAt (thời điểm gửi thực tế)
   sentAt             DateTime? @map("sent_at")
   createdAt          DateTime  @default(now()) @map("created_at")
 
   recipientUser    User?    @relation("NotificationRecipientUser", fields: [recipientUserId], references: [userId])
   recipientPatient Patient? @relation(fields: [recipientPatientId], references: [patientId])
 
+  @@index([recipientPatientId, status, createdAt(sort: Desc)])
+  @@index([scheduledAt, status])
   @@map("notifications")
 }
 
@@ -1159,6 +1180,7 @@ model LabTask {
 
   labResult LabResult?
 
+  @@index([labRoomId, status])
   @@map("lab_tasks")
 }
 
@@ -1217,7 +1239,11 @@ model LabResultValue {
 
   labResultAlerts LabResultAlert[]
 
+  // @@unique([labResultId, parameterId]) đã tự đóng vai trò index cho truy vấn chỉ lọc
+  // theo lab_result_id (Postgres dùng được leftmost prefix của composite index), nên
+  // module7.md mục 8 đề xuất index (lab_result_id) riêng không cần thêm nữa.
   @@unique([labResultId, parameterId])
+  @@index([parameterId, isAbnormal])
   @@map("lab_result_values")
 }
 
@@ -1238,6 +1264,7 @@ model LabParameterThreshold {
 
   labResultAlerts LabResultAlert[]
 
+  @@index([parameterId, ageMin, ageMax, gender])
   @@map("lab_parameter_thresholds")
 }
 
@@ -1275,6 +1302,7 @@ model LabResultAlert {
   threshold       LabParameterThreshold? @relation(fields: [thresholdId], references: [labThresholdId])
   confirmedByUser User?                  @relation("LabAlertConfirmedByUser", fields: [confirmedByUserId], references: [userId])
 
+  @@index([riskLevel, status, createdAt(sort: Desc)])
   @@map("lab_result_alerts")
 }
 
@@ -1329,26 +1357,28 @@ model AllergenCategory {
 }
 
 model DrugCatalog {
-  drugId              String   @id @default(uuid()) @map("drug_id") @db.Char(36)
-  drugCode            String   @unique @map("drug_code") @db.VarChar(30)
-  drugName            String   @map("drug_name") @db.VarChar(255)
-  genericName         String   @map("generic_name") @db.VarChar(255)
-  strength            String   @db.VarChar(50)
-  dosageForm          String   @map("dosage_form") @db.VarChar(50)
-  route               String   @db.VarChar(30)
-  unit                String   @db.VarChar(20)
-  therapeuticClass    String?  @map("therapeutic_class") @db.VarChar(100)
-  allergenCategoryId  String?  @map("allergen_category_id") @db.Char(36)
-  price               Decimal  @db.Decimal(12, 2)
-  isActive            Boolean  @default(true) @map("is_active")
-  createdAt           DateTime @default(now()) @map("created_at")
+  drugId             String   @id @default(uuid()) @map("drug_id") @db.Char(36)
+  drugCode           String   @unique @map("drug_code") @db.VarChar(30)
+  drugName           String   @map("drug_name") @db.VarChar(255)
+  genericName        String   @map("generic_name") @db.VarChar(255)
+  strength           String   @db.VarChar(50)
+  dosageForm         String   @map("dosage_form") @db.VarChar(50)
+  route              String   @db.VarChar(30)
+  unit               String   @db.VarChar(20)
+  therapeuticClass   String?  @map("therapeutic_class") @db.VarChar(100)
+  allergenCategoryId String?  @map("allergen_category_id") @db.Char(36)
+  price              Decimal  @db.Decimal(12, 2)
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
 
   allergenCategory AllergenCategory? @relation(fields: [allergenCategoryId], references: [categoryId])
 
   prescriptionItems PrescriptionItem[]
-  interactionsA     DrugInteraction[] @relation("DrugA")
-  interactionsB     DrugInteraction[] @relation("DrugB")
+  interactionsA     DrugInteraction[]  @relation("DrugA")
+  interactionsB     DrugInteraction[]  @relation("DrugB")
 
+  @@index([genericName])
+  @@index([therapeuticClass])
   @@map("drug_catalog")
 }
 
@@ -1397,18 +1427,18 @@ model Prescription {
 
 model PrescriptionItem {
   prescriptionItemId String   @id @default(uuid()) @map("prescription_item_id") @db.Char(36)
-  prescriptionId      String   @map("prescription_id") @db.Char(36)
-  drugId               String   @map("drug_id") @db.Char(36)
-  quantity             Decimal  @db.Decimal(10, 2)
-  dosage               String   @db.VarChar(100)
-  routeCode            String?  @map("route_code") @db.VarChar(30)
-  routeSystem          String?  @map("route_system") @db.VarChar(255)
-  routeDisplay         String?  @map("route_display") @db.VarChar(100)
-  frequency            String   @db.VarChar(50)
-  durationDays         Int?     @map("duration_days")
-  instruction          String?  @db.Text
-  unitPrice            Decimal  @map("unit_price") @db.Decimal(12, 2)
-  updatedAt            DateTime @updatedAt @map("updated_at")
+  prescriptionId     String   @map("prescription_id") @db.Char(36)
+  drugId             String   @map("drug_id") @db.Char(36)
+  quantity           Decimal  @db.Decimal(10, 2)
+  dosage             String   @db.VarChar(100)
+  routeCode          String?  @map("route_code") @db.VarChar(30)
+  routeSystem        String?  @map("route_system") @db.VarChar(255)
+  routeDisplay       String?  @map("route_display") @db.VarChar(100)
+  frequency          String   @db.VarChar(50)
+  durationDays       Int?     @map("duration_days")
+  instruction        String?  @db.Text
+  unitPrice          Decimal  @map("unit_price") @db.Decimal(12, 2)
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   prescription Prescription @relation(fields: [prescriptionId], references: [prescriptionId], onDelete: Cascade)
   drug         DrugCatalog  @relation(fields: [drugId], references: [drugId])
@@ -1416,6 +1446,7 @@ model PrescriptionItem {
   relatedAlertsA PrescriptionSafetyAlert[] @relation("RelatedItemA")
   relatedAlertsB PrescriptionSafetyAlert[] @relation("RelatedItemB")
 
+  @@index([prescriptionId])
   @@map("prescription_items")
 }
 
@@ -1427,7 +1458,7 @@ model PrescriptionSafetyAlert {
   relatedItemIdB    String?   @map("related_item_id_b") @db.Char(36)
   severity          String    @db.VarChar(20) // mild | moderate | severe | contraindicated
   description       String    @db.Text
-  status             String   @default("active") @db.VarChar(20) // active => confirmed
+  status            String    @default("active") @db.VarChar(20) // active => confirmed
   confirmedByUserId String?   @map("confirmed_by_user_id") @db.Char(36)
   confirmedAt       DateTime? @map("confirmed_at")
   overrideReason    String?   @map("override_reason") @db.Text
@@ -1438,6 +1469,7 @@ model PrescriptionSafetyAlert {
   relatedItemB    PrescriptionItem? @relation("RelatedItemB", fields: [relatedItemIdB], references: [prescriptionItemId])
   confirmedByUser User?             @relation("PrescriptionAlertConfirmedByUser", fields: [confirmedByUserId], references: [userId])
 
+  @@index([prescriptionId, status, severity])
   @@map("prescription_safety_alerts")
 }
 
@@ -1456,5 +1488,6 @@ model EncounterSummaryDocument {
   encounter Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
   patient   Patient   @relation(fields: [patientId], references: [patientId])
 
+  @@index([patientId, generatedAt(sort: Desc)])
   @@map("encounter_summary_documents")
 }

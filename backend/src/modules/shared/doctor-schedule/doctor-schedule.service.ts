@@ -144,7 +144,21 @@ export class DoctorScheduleService {
 
     return this.prisma.doctorSchedule.findMany({
       where,
-      include: { appointmentSlots: true, department: true },
+      include: {
+        department: true,
+        appointmentSlots: {
+          include: {
+            appointments: {
+              where: { status: { notIn: ['cancelled'] } },
+              include: {
+                patient: true,
+                suggestedPatient: true,
+              },
+            },
+          },
+          orderBy: { slotStartTime: 'asc' },
+        },
+      },
       orderBy: [{ workDate: 'asc' }, { session: 'asc' }],
     });
   }
@@ -152,7 +166,21 @@ export class DoctorScheduleService {
   async findById(scheduleId: string) {
     const schedule = await this.prisma.doctorSchedule.findUnique({
       where: { scheduleId },
-      include: { appointmentSlots: true, department: true },
+      include: {
+        department: true,
+        appointmentSlots: {
+          include: {
+            appointments: {
+              where: { status: { notIn: ['cancelled'] } },
+              include: {
+                patient: true,
+                suggestedPatient: true,
+              },
+            },
+          },
+          orderBy: { slotStartTime: 'asc' },
+        },
+      },
     });
     if (!schedule) {
       throw new NotFoundException('Không tìm thấy lịch làm việc');

@@ -169,7 +169,7 @@ export async function seedLabParameterThresholds(prisma: PrismaService) {
 
         // TIỂU CẦU (PLT, x10^9/L) — người lớn, không phân biệt giới tính
         { parameterId: pltId, ageMin: 18, ageMax: 120, gender: null, riskLevel: 'critical', rangeMin: null, rangeMax: 19, sourceReference: SOURCE_CBC_ADULT },
-        { parameterId: pltId, ageMin: 18, ageMax: 120, gender: null, riskLevel: 'high', rangeMin: 20, rangeMax: 99, sourceReference: SOURCE_CBC_ADULT },
+        { parameterId: pltId, ageMin: 18, ageMax: 120, gender: null, riskLevel: 'low', rangeMin: 20, rangeMax: 99, sourceReference: SOURCE_CBC_ADULT },
         { parameterId: pltId, ageMin: 18, ageMax: 120, gender: null, riskLevel: 'normal', rangeMin: 100, rangeMax: 450, sourceReference: SOURCE_CBC_ADULT },
         { parameterId: pltId, ageMin: 18, ageMax: 120, gender: null, riskLevel: 'high', rangeMin: 451, rangeMax: 999, sourceReference: SOURCE_CBC_ADULT },
         { parameterId: pltId, ageMin: 18, ageMax: 120, gender: null, riskLevel: 'critical', rangeMin: 1000, rangeMax: null, sourceReference: SOURCE_CBC_ADULT },

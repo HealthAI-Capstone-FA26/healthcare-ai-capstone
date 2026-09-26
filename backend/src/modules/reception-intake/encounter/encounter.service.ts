@@ -3,6 +3,7 @@ import { Appointment, Prisma, ReceptionCheckin } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../common/utils/code-generator.util';
 import { EncounterStatus } from '../../../common/utils/encounter-status.util';
+import { AppointmentStatus } from '../../../common/utils/appointment-status.util';
 import { MANDATORY_CONSENT_POLICY_TYPES } from '../../../common/constants/triage-queue.constants';
 import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { ConsentService } from '../consent/consent.service';
@@ -17,7 +18,7 @@ export class EncounterService {
     private readonly prisma: PrismaService,
     private readonly consentService: ConsentService,
     private readonly triageQueueService: TriageQueueService,
-  ) {}
+  ) { }
 
   private generateEncounterCode(): Promise<string> {
     return generateUniqueCode(ENCOUNTER_CODE_PREFIX, async (code) => {
@@ -57,10 +58,44 @@ export class EncounterService {
       );
     }
 
+    if (appointment.status !== AppointmentStatus.CHECKED_IN) {
+      throw new BadRequestException(
+        `Chỉ có thể tạo encounter khi appointment đang ở trạng thái '${AppointmentStatus.CHECKED_IN}'`,
+      );
+    }
+
+    const paidConsultationInvoice = await tx.invoice.findFirst({
+      where: {
+        appointmentId: appointment.appointmentId,
+        invoiceType: 'consultation',
+        status: 'paid',
+        items: { some: { itemType: 'consultation' } },
+      },
+      select: { invoiceId: true },
+    });
+    if (!paidConsultationInvoice) {
+      throw new BadRequestException(
+        'Bệnh nhân chưa thanh toán phí khám, không thể tạo encounter',
+      );
+    }
+
     const priorFinishedCount = await tx.encounter.count({
       where: { patientId: appointment.patientId, status: EncounterStatus.FINISHED },
     });
     const patientType = priorFinishedCount > 0 ? 'returning' : 'new';
+
+    const existingEncounter = await tx.encounter.findUnique({
+      where: { appointmentId: appointment.appointmentId },
+    });
+    if (existingEncounter) {
+      return tx.encounter.update({
+        where: { encounterId: existingEncounter.encounterId },
+        data: {
+          doctorId: appointment.doctorId,
+          departmentId: appointment.departmentId,
+        },
+      });
+    }
 
     const encounterCode = await this.generateEncounterCode();
 
@@ -148,10 +183,22 @@ export class EncounterService {
           })
         )?.priority ?? 'normal';
 
-      const updatedEncounter = await tx.encounter.update({
-        where: { encounterId },
-        data: { status: EncounterStatus.REGISTERED, registeredAt: new Date() },
-      });
+      // CAS: kiểm tra lại status = ARRIVED NGAY TRONG transaction. Check ở đầu hàm nằm ngoài
+      // transaction nên 2 request đồng thời đều có thể vượt qua; request đến sau sẽ chờ row lock,
+      // thấy status đã đổi -> không khớp where -> bị từ chối, không enqueue trùng.
+      const updatedEncounter = await tx.encounter
+        .update({
+          where: { encounterId, status: EncounterStatus.ARRIVED },
+          data: { status: EncounterStatus.REGISTERED, registeredAt: new Date() },
+        })
+        .catch((error) => {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+            throw new BadRequestException(
+              "Encounter vừa được hoàn tất đăng ký bởi thao tác khác (không còn ở trạng thái 'arrived')",
+            );
+          }
+          throw error;
+        });
 
       const triageQueueEntry = await this.triageQueueService.enqueue(
         tx,

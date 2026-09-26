@@ -5,6 +5,11 @@ export class ListInvoicesQueryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
+  appointmentId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   patientId?: string;
 
   @ApiPropertyOptional()

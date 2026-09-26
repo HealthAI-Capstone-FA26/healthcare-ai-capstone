@@ -22,17 +22,22 @@ export class ExaminationFeeController {
   constructor(
     private readonly examinationFeeService: ExaminationFeeService,
     private readonly actorRoleService: ActorRoleService,
-  ) {}
+  ) { }
 
   @Post()
-  @ApiOperation({ summary: 'Tạo mức phí khám mới — chỉ ADMIN' })
+  @ApiOperation({
+    summary: 'Tạo phí khám chung cho tất cả khoa — chỉ ADMIN',
+    description:
+      'Tạo examination fee áp dụng cho mọi department. Không truyền departmentId. ' +
+      'Chỉ được có một phí chung đang active; muốn đổi giá hãy cập nhật phí hiện tại hoặc tắt phí cũ trước.',
+  })
   async create(@Body() dto: CreateExaminationFeeDto, @CurrentUser() user: RequestUser) {
     await this.actorRoleService.assertActorRole(user.userId, [ACTOR_ROLE.ADMIN]);
     return this.examinationFeeService.create(dto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Danh sách mức phí khám, lọc theo departmentId / isActive' })
+  @ApiOperation({ summary: 'Danh sách phí khám chung, lọc theo trạng thái active' })
   async findAll(@Query() query: FindExaminationFeesQueryDto) {
     return this.examinationFeeService.findAll(query);
   }

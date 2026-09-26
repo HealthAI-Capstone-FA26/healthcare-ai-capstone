@@ -27,10 +27,9 @@ export class CreateConsentDto {
   @IsEnum(SignatureType)
   signatureType: SignatureType;
 
-  @ApiPropertyOptional({ maxLength: 255, description: 'Ảnh/dữ liệu chữ ký lưu ở object storage, đây chỉ là đường dẫn' })
+  @ApiPropertyOptional({ description: 'Ảnh/dữ liệu chữ ký (URL hoặc base64)' })
   @IsOptional()
   @IsString()
-  @MaxLength(255)
   signatureDataUrl?: string;
 
   // true nếu ký tại quầy có lễ tân đứng làm chứng (witnessedByUserId sẽ lấy từ CurrentUser);

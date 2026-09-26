@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { ReceptionIntakeModule } from '../reception-intake/reception-intake.module';
 import { VitalSignAlertController } from './vital-anomaly/vital-sign-alert.controller';
 import { VitalSignDetectionOrchestrator } from './vital-anomaly/vital-sign-detection.orchestrator';
 import { RuleBasedDetector } from './vital-anomaly/rule-based.detector';
@@ -15,6 +16,7 @@ import { VitalReferenceRangeController } from './vital-reference-range/vital-ref
 import { VitalReferenceRangeService } from './vital-reference-range/vital-reference-range.service';
 
 @Module({
+    imports: [ReceptionIntakeModule], // lấy TriageQueueService để hoàn tất entry triage khi ghi nhận sinh hiệu
     controllers: [
         VitalInputController,
         VitalItemController,
