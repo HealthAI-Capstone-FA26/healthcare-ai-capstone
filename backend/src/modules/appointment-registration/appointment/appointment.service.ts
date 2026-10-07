@@ -25,6 +25,7 @@ import { Action, Resource, Scope } from '../../../common/constants/permissions.d
 import { hasPermissionScope } from '../../../common/utils/permission.util';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appointment.dto';
+import { RegisterWalkInDto } from './dto/register-walk-in.dto';
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
@@ -137,8 +138,72 @@ export class AppointmentService {
     });
   }
 
-  // POST /appointments/at-hospital (bookingChannel = at_hospital) — chỉ reception staff.
-  // Luôn tạo kèm đúng 1 QueueTicket (prefix B) trong CÙNG transaction, không tách rời 2 bước (Phase 5).
+  // POST /appointments/walk-in/:ticketId — luồng OFFLINE: bệnh nhân đã bốc số (ticket prefix B, chưa
+  // có appointment/patient), giờ khai báo thông tin với lễ tân. Trong CÙNG 1 transaction: tạo (hoặc
+  // tái dùng) Patient + tạo Appointment (at_hospital) + gắn cả hai vào ticket. Khoa và priority lấy
+  // từ ticket. Các bước sau (triệu chứng, consent, thanh toán, encounter) đi như luồng online.
+  async registerWalkIn(ticketId: string, dto: RegisterWalkInDto) {
+    if (!dto.patientId && !dto.patient) {
+      throw new BadRequestException('Cần cung cấp patientId hoặc thông tin định danh (patient)');
+    }
+
+    const ticket = await this.prisma.queueTicket.findUnique({ where: { ticketId } });
+    if (!ticket) {
+      throw new NotFoundException('Không tìm thấy số thứ tự');
+    }
+    if (ticket.appointmentId) {
+      throw new BadRequestException('Số thứ tự này đã khai báo thông tin, không thể khai báo lại');
+    }
+    if (ticket.status !== 'waiting' && ticket.status !== 'called') {
+      throw new BadRequestException(`Không thể khai báo cho số đang ở trạng thái '${ticket.status}'`);
+    }
+
+    const appointmentCode = await this.generateAppointmentCode();
+    const now = new Date();
+    const today = new Date(
+      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T00:00:00.000Z`,
+    );
+
+    return this.prisma.$transaction(async (tx) => {
+      const patient = dto.patientId
+        ? await tx.patient.findUnique({ where: { patientId: dto.patientId } })
+        : await this.patientService.findOrCreateAtCounter(dto.patient!, tx);
+      if (!patient) {
+        throw new NotFoundException('Không tìm thấy hồ sơ bệnh nhân');
+      }
+
+      const appointment = await tx.appointment.create({
+        data: {
+          appointmentCode,
+          bookingChannel: 'at_hospital',
+          status: AppointmentStatus.PENDING,
+          patientId: patient.patientId,
+          doctorId: null, // gán ở QueueTicketService.done
+          departmentId: ticket.departmentId,
+          slotId: null,
+          appointmentDate: today,
+          appointmentTime: null,
+          reasonForVisit: dto.reasonForVisit,
+          priority: ticket.priority,
+        },
+      });
+
+      // CAS: chỉ gắn khi ticket vẫn chưa có appointment — chặn 2 request khai báo đồng thời.
+      const linked = await tx.queueTicket.updateMany({
+        where: { ticketId, appointmentId: null },
+        data: { appointmentId: appointment.appointmentId },
+      });
+      if (linked.count === 0) {
+        throw new ConflictException('Số thứ tự vừa được khai báo bởi thao tác khác');
+      }
+
+      return { appointment, patient, queueTicketId: ticketId };
+    });
+  }
+
+  // (Dùng nội bộ cho tái khám — xem PrescriptionFollowupService. Luồng offline thường dùng
+  // registerWalkIn ở trên, KHÔNG còn expose qua POST /appointments/at-hospital.)
+  // Tạo appointment + QueueTicket (prefix B) cùng lúc trong CÙNG transaction.
   async createAtHospital(dto: CreateAtHospitalAppointmentDto, currentUser: RequestUser) {
     let patientId = dto.patientId;
 

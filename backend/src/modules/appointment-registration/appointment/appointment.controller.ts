@@ -8,7 +8,7 @@ import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appointment.dto';
+import { RegisterWalkInDto } from './dto/register-walk-in.dto';
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
@@ -27,13 +27,14 @@ export class AppointmentController {
     return this.appointmentService.createOnline(dto, user);
   }
 
-  @Post('at-hospital')
+  @Post('walk-in/:ticketId')
   @RequirePermissions(`${Resource.APPOINTMENT}:${Action.CREATE}:${Scope.ALL}`)
   @ApiOperation({
-    summary: 'Lễ tân tạo lịch tại quầy (bookingChannel = at_hospital), luôn kèm 1 QueueTicket prefix B',
+    summary:
+      'Offline: sau khi bốc số, lễ tân khai báo thông tin — tạo Patient + Appointment (at_hospital) cùng lúc và gắn vào ticket',
   })
-  createAtHospital(@Body() dto: CreateAtHospitalAppointmentDto, @CurrentUser() user: RequestUser) {
-    return this.appointmentService.createAtHospital(dto, user);
+  registerWalkIn(@Param('ticketId') ticketId: string, @Body() dto: RegisterWalkInDto) {
+    return this.appointmentService.registerWalkIn(ticketId, dto);
   }
 
   @Get()

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../../common/guards/permissions.guard';
@@ -10,6 +10,7 @@ import { QueueTicketService } from './queue-ticket.service';
 import { FindQueueTicketsQueryDto } from './dto/find-queue-tickets-query.dto';
 import { CallQueueTicketDto } from './dto/call-queue-ticket.dto';
 import { ServeQueueTicketDto } from './dto/serve-queue-ticket.dto';
+import { IssueWalkInTicketDto } from './dto/issue-walk-in-ticket.dto';
 
 @ApiTags('Queue Ticket')
 @ApiBearerAuth()
@@ -23,6 +24,13 @@ export class QueueTicketController {
   @ApiOperation({ summary: 'Danh sách hàng đợi theo khoa/ngày/trạng thái, đã sắp theo thứ tự ưu tiên' })
   findMany(@Query() query: FindQueueTicketsQueryDto) {
     return this.queueTicketService.findMany(query);
+  }
+
+  @Post('walk-in')
+  // @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.CREATE}:${Scope.ALL}`)
+  @ApiOperation({ summary: 'Bốc số offline (prefix B) — chưa có appointment/patient, khai báo sau với lễ tân' })
+  issueWalkIn(@Body() dto: IssueWalkInTicketDto) {
+    return this.queueTicketService.issueWalkInTicket(dto);
   }
 
   @Patch(':id/call')

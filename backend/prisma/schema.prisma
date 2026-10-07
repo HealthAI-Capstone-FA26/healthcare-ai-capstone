@@ -488,8 +488,12 @@ model DoctorQueueEntry {
 
 model QueueTicket {
   ticketId      String    @id @default(uuid()) @map("ticket_id") @db.Char(36)
-  appointmentId String    @unique @map("appointment_id") @db.Char(36)
+  // Nullable: ticket offline (walk-in) được phát TRƯỚC, appointment + patient chỉ được tạo sau khi
+  // bệnh nhân khai báo thông tin với lễ tân (xem AppointmentService.registerWalkIn).
+  appointmentId String?   @unique @map("appointment_id") @db.Char(36)
   departmentId  String    @map("department_id") @db.Char(36)
+  // Lưu priority ngay trên ticket vì lúc bốc số offline chưa có appointment để đọc priority.
+  priority      String    @default("normal") @db.VarChar(20) // normal | urgent | emergency
   ticketPrefix  String    @map("ticket_prefix") @db.Char(1)
   ticketDate    DateTime  @map("ticket_date") @db.Date
   ticketNumber  Int       @map("ticket_number")
@@ -498,8 +502,8 @@ model QueueTicket {
   status        String    @default("waiting") @db.VarChar(20) // waiting | called | serving | done | skipped | cancelled
   counterNumber String?   @map("counter_number") @db.VarChar(20)
 
-  appointment Appointment @relation(fields: [appointmentId], references: [appointmentId], onDelete: Cascade)
-  department  Department  @relation(fields: [departmentId], references: [departmentId])
+  appointment Appointment? @relation(fields: [appointmentId], references: [appointmentId], onDelete: Cascade)
+  department  Department   @relation(fields: [departmentId], references: [departmentId])
 
   @@unique([departmentId, ticketPrefix, ticketDate, ticketNumber])
   @@index([departmentId, ticketDate, status])

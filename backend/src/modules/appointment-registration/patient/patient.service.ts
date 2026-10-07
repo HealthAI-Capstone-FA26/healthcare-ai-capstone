@@ -214,6 +214,17 @@ export class PatientService {
     return this.createPatientRecord(dto, null, tx, PatientStatus.DRAFT);
   }
 
+  // Dùng cho luồng offline (AppointmentService.registerWalkIn): lễ tân khai báo định danh tại quầy.
+  // Đã có hồ sơ cùng CCCD/CMND thì tái dùng (không tạo trùng, không ném lỗi 409), chưa có thì tạo
+  // hồ sơ MAIN. PHẢI truyền `tx` để nằm cùng transaction với bước tạo Appointment.
+  async findOrCreateAtCounter(dto: CreatePatientDto, tx: Prisma.TransactionClient) {
+    const existing = await tx.patient.findUnique({ where: { identityNumber: dto.identityNumber } });
+    if (existing) {
+      return existing;
+    }
+    return this.createPatientRecord(dto, null, tx, PatientStatus.MAIN);
+  }
+
   async findById(patientId: string) {
     const patient = await this.prisma.patient.findUnique({ where: { patientId } });
     if (!patient) {

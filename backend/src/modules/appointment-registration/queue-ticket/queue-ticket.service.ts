@@ -18,6 +18,7 @@ import { EncounterService } from '../../reception-intake/encounter/encounter.ser
 import { CallQueueTicketDto } from './dto/call-queue-ticket.dto';
 import { ServeQueueTicketDto } from './dto/serve-queue-ticket.dto';
 import { FindQueueTicketsQueryDto } from './dto/find-queue-tickets-query.dto';
+import { IssueWalkInTicketDto } from './dto/issue-walk-in-ticket.dto';
 
 @Injectable()
 export class QueueTicketService {
@@ -42,25 +43,66 @@ export class QueueTicketService {
     appointment: Appointment,
     prefix: QueueTicketPrefix,
   ): Promise<QueueTicket> {
+    return this.issueTicket(tx, {
+      departmentId: appointment.departmentId,
+      prefix,
+      appointmentId: appointment.appointmentId,
+      priority: appointment.priority,
+    });
+  }
+
+  // POST /queue-tickets/walk-in — bốc số OFFLINE: chưa có appointment/patient (khai báo sau với lễ
+  // tân qua POST /appointments/walk-in/:ticketId). Khoa = dto.departmentId, hoặc khoa active duy nhất.
+  async issueWalkInTicket(dto: IssueWalkInTicketDto): Promise<QueueTicket> {
+    const departments = await this.prisma.department.findMany({
+      where: { isActive: true, ...(dto.departmentId && { departmentId: dto.departmentId }) },
+      select: { departmentId: true },
+      take: 2,
+    });
+    if (departments.length !== 1) {
+      throw new BadRequestException(
+        dto.departmentId
+          ? 'Không tìm thấy khoa đang hoạt động đã chọn'
+          : 'Có nhiều khoa đang hoạt động, vui lòng truyền departmentId để bốc số',
+      );
+    }
+
+    return this.prisma.$transaction((tx) =>
+      this.issueTicket(tx, {
+        departmentId: departments[0].departmentId,
+        prefix: QueueTicketPrefix.AT_HOSPITAL,
+        appointmentId: null,
+        priority: dto.priority ?? 'normal',
+      }),
+    );
+  }
+
+  // Lõi sinh số dùng chung cho online (có appointment) và offline (chưa có appointment).
+  private async issueTicket(
+    tx: Prisma.TransactionClient,
+    params: { departmentId: string; prefix: QueueTicketPrefix; appointmentId: string | null; priority: string },
+  ): Promise<QueueTicket> {
+    const { departmentId, prefix, appointmentId, priority } = params;
     // Ticket luôn đại diện cho hàng đợi CỦA NGÀY BỆNH NHÂN THẬT SỰ CÓ MẶT tại khoa, không phải
     // ngày tạo appointment. Với at_hospital 2 mốc này trùng nhau (tạo lúc nào đến lúc đó) nên
     // trước đây dùng appointment.createdAt không lộ bug; với online thì appointment có thể được
     // TẠO/đặt trước nhiều ngày rồi mới đến, nên bắt buộc phải dùng ngày hiện tại tại đây.
     const ticketDate = toDateOnlyUTC(getHospitalWallClockNow());
-    const lockKey = `${appointment.departmentId}:${prefix}:${ticketDate.toISOString().slice(0, 10)}`;
+    const lockKey = `${departmentId}:${prefix}:${ticketDate.toISOString().slice(0, 10)}`;
 
     // pg_advisory_xact_lock tự release khi transaction kết thúc (commit/rollback).
     //cái nào vào trc thì dùng trc, tạo ra 1 ổ khóa để cống race condition 
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
 
     for (let attempt = 0; attempt < 2; attempt++) {
-      const ticketNumber = await this.nextTicketNumber(tx, appointment.departmentId, prefix, ticketDate);
+      const ticketNumber = await this.nextTicketNumber(tx, departmentId, prefix, ticketDate);
 
       try {
         return await tx.queueTicket.create({
           data: {
-            appointmentId: appointment.appointmentId,
-            departmentId: appointment.departmentId,
+            appointmentId,
+            departmentId,
+            priority,
             ticketPrefix: prefix,
             ticketDate,
             ticketNumber,
@@ -201,11 +243,19 @@ export class QueueTicketService {
       throw new BadRequestException(`Không thể chuyển sang khám khi đang ở trạng thái '${ticket.status}'`);
     }
 
+    // Ticket offline chưa khai báo thông tin thì chưa có appointment/patient.
+    if (!ticket.appointment) {
+      throw new BadRequestException(
+        'Số thứ tự chưa khai báo thông tin bệnh nhân, vui lòng khai báo (POST /appointments/walk-in/:ticketId) trước',
+      );
+    }
+    const appointment = ticket.appointment;
+
     // Appointment ở case "matched nhưng chưa xác nhận" (guest booking, xem
     // GuestAppointmentService/Phase 1-2) có patientId = null cho tới khi lễ tân đối chiếu qua
     // POST /appointment/sync-patient (Phase 3). Chặn ngay tại đây (trước khi làm các bước check
     // bác sĩ/ca trực tốn kém) thay vì để rớt xuống EncounterService.createFromCheckin giữa transaction.
-    if (!ticket.appointment.patientId) {
+    if (!appointment.patientId) {
       throw new BadRequestException(
         'Lịch hẹn chưa xác nhận hồ sơ bệnh nhân, vui lòng đồng bộ (sync-patient) trước khi check-in',
       );
@@ -215,7 +265,7 @@ export class QueueTicketService {
     // appointment, không cho lễ tân đổi tuỳ tiện tại bước serve (tránh gán nhầm/đổi khác ý bệnh
     // nhân đã chọn). Chỉ khi appointment chưa có doctorId (at_hospital, chưa từng chọn bác sĩ)
     // mới bắt buộc lễ tân cung cấp qua dto.doctorId.
-    const doctorId = ticket.appointment.doctorId ?? dto.doctorId;
+    const doctorId = appointment.doctorId ?? dto.doctorId;
     if (!doctorId) {
       throw new BadRequestException(
         'Lịch hẹn này chưa gán bác sĩ, cần cung cấp doctorId khi tiếp nhận',
@@ -252,7 +302,7 @@ export class QueueTicketService {
       // Chỉ là mốc bắt đầu tiếp nhận (ai tiếp nhận, quầy nào), không mang ý nghĩa "đang khám".
       const checkin = await tx.receptionCheckin.create({
         data: {
-          appointmentId: ticket.appointmentId,
+          appointmentId: appointment.appointmentId,
           receptionStaffUserId: currentUser.userId,
           counterNumber: ticket.counterNumber,
         },
@@ -261,7 +311,7 @@ export class QueueTicketService {
       // pending -> confirmed -> checked_in, đi từng bước hợp lệ theo đúng map dùng chung
       // (at_hospital appointment không có bước "confirmed" riêng ở FE, nhưng vẫn phải qua đúng
       // state machine chung với Phase 4 chứ không nhảy thẳng pending -> checked_in).
-      let currentStatus = ticket.appointment.status;
+      let currentStatus = appointment.status;
       for (const nextStatus of [AppointmentStatus.CONFIRMED, AppointmentStatus.CHECKED_IN]) {
         if (currentStatus === nextStatus) continue;
         if (!isValidAppointmentTransition(currentStatus, nextStatus)) {
@@ -273,7 +323,7 @@ export class QueueTicketService {
       }
 
       const updatedAppointment = await tx.appointment.update({
-        where: { appointmentId: ticket.appointmentId },
+        where: { appointmentId: appointment.appointmentId },
         data: { doctorId, status: AppointmentStatus.CHECKED_IN },
       });
 

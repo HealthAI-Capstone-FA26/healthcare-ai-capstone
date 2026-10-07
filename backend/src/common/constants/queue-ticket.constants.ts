@@ -1,7 +1,8 @@
 import { QueueTicket } from '@prisma/client';
 
 // prefix = 'A' cho appointment online (ticket được tạo lúc bệnh nhân TỚI department, không phải
-// lúc đặt online). prefix = 'B' cho at_hospital (tạo ngay lúc lễ tân tạo appointment — Phase 5).
+// lúc đặt online). prefix = 'B' cho offline/walk-in (bốc số trước, appointment + patient được tạo
+// sau khi bệnh nhân khai báo với lễ tân — xem AppointmentService.registerWalkIn).
 export enum QueueTicketPrefix {
   ONLINE = 'A',
   AT_HOSPITAL = 'B',
@@ -32,8 +33,6 @@ export function toDateOnlyUTC(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
-type QueueTicketWithPriority = QueueTicket & { appointment: { priority: string } };
-
 // Thứ tự hiển thị/gọi số:
 //  1. `emergency` lên đầu TOÀN BỘ hàng đợi department, vượt cả ranh giới online/at_hospital
 //     (đe doạ tính mạng thì công bằng giữa 2 kênh không còn là ưu tiên số 1) — FIFO nội bộ
@@ -41,9 +40,10 @@ type QueueTicketWithPriority = QueueTicket & { appointment: { priority: string }
 //  2. Còn lại: prefix A (online) trước B (at_hospital) trong cùng department.
 //  3. Trong cùng prefix: `urgent` lên đầu nhóm của chính nó (không vượt ranh giới prefix).
 //  4. Cùng priority: FIFO theo ticketNumber.
-export function compareQueueTickets(a: QueueTicketWithPriority, b: QueueTicketWithPriority): number {
-  const aEmergency = a.appointment.priority === 'emergency';
-  const bEmergency = b.appointment.priority === 'emergency';
+export function compareQueueTickets(a: QueueTicket, b: QueueTicket): number {
+  // priority đọc thẳng từ ticket (offline chưa có appointment lúc bốc số)
+  const aEmergency = a.priority === 'emergency';
+  const bEmergency = b.priority === 'emergency';
   if (aEmergency !== bEmergency) {
     return aEmergency ? -1 : 1;
   }
@@ -55,8 +55,8 @@ export function compareQueueTickets(a: QueueTicketWithPriority, b: QueueTicketWi
     return a.ticketPrefix < b.ticketPrefix ? -1 : 1;
   }
 
-  const rankA = QUEUE_TICKET_PRIORITY_RANK[a.appointment.priority] ?? QUEUE_TICKET_PRIORITY_RANK.normal;
-  const rankB = QUEUE_TICKET_PRIORITY_RANK[b.appointment.priority] ?? QUEUE_TICKET_PRIORITY_RANK.normal;
+  const rankA = QUEUE_TICKET_PRIORITY_RANK[a.priority] ?? QUEUE_TICKET_PRIORITY_RANK.normal;
+  const rankB = QUEUE_TICKET_PRIORITY_RANK[b.priority] ?? QUEUE_TICKET_PRIORITY_RANK.normal;
   if (rankA !== rankB) {
     return rankA - rankB;
   }
