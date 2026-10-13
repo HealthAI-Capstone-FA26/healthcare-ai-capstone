@@ -1,0 +1,62 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ConfigService } from '@nestjs/config';
+import { UserService } from '../../user/user.service';
+
+interface JwtPayload {
+  sub: string;
+  email: string;
+  iat: number; // thời điểm jwt được tạo
+  exp: number; // thời điểm jwt hết hạn
+}
+
+/**
+ * Shape của req.user sau khi JwtAuthGuard validate JWT thành công.
+ * Dùng chung bởi @CurrentUser() decorator và PermissionsGuard.
+ */
+export interface RequestUser {
+  userId: string;
+  email: string;
+  permissions: string[]; // danh sách permissionCode dạng "resource:action:scope"
+}
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly userService: UserService,
+  ) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
+      ignoreExpiration: false,
+    });
+  }
+
+  async validate(payload: JwtPayload): Promise<RequestUser> {
+    const user = await this.userService.findByIdWithPermissions(payload.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('User no longer exists');
+    }
+
+    if (user.status !== 'active') {
+      throw new UnauthorizedException('User account is inactive');
+    }
+
+    const permissions: string[] = Array.from(
+      new Set(
+        (user.role?.rolePermissions ?? []).map(
+          (rp) => rp.permission.permissionCode,
+        ),
+      ),
+    );
+
+    return {
+      userId: user.userId,
+      email: user.email,
+      permissions,
+    };
+  }
+}

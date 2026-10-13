@@ -1,0 +1,47 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { PrismaModule } from '../prisma/prisma.module';
+import { RedisModule } from './redis/redis.module';
+import { MailModule } from './modules/mail/mail.module';
+import { SmsModule } from './modules/sms/sms.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UserModule } from './modules/user/user.module';
+import { DoctorModule } from './modules/doctor/doctor.module';
+import { AppointmentRegistrationModule } from './modules/appointment-registration/appointment-registration.module';
+import { ReceptionIntakeModule } from './modules/reception-intake/reception-intake.module';
+import { RolePermissionModule } from './modules/auth/role-permission/role-permission.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { VitalModule } from './modules/vitals/vital.module';
+import { LabTestModule } from './modules/lab-test/lab-test.module';
+import { Icd10CatalogModule } from './modules/shared/icd10-catalog/icd10-catalog.module';
+import { DoctorExaminationModule } from './modules/pre-doctor-examination/doctor-examination.module';
+import { PaymentModule } from './modules/payment/payment.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
+    PrismaModule,
+    RedisModule,
+    MailModule,
+    SmsModule,
+    AuthModule,
+    UserModule,
+    DoctorModule,
+    AppointmentRegistrationModule,
+    ReceptionIntakeModule,
+    RolePermissionModule,
+    VitalModule,
+    LabTestModule,
+    Icd10CatalogModule,
+    DoctorExaminationModule,
+    PaymentModule
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule { }

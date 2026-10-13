@@ -1,0 +1,1533 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// CARDIOLOGY CLINIC PLATFORM — schema v2 (theo Updated Capstone Registration)
+// Chuyên khoa Tim mạch · Paraclinical: Blood Test / ECG / X-ray ngực / Siêu âm tim
+// AI: ECG anomaly detection (time-series) — KHÔNG còn summary EMR / RAG / gợi ý chẩn đoán
+//
+// Quy ước: id = uuid Char(36) · enum lưu dạng String + comment (đồng nhất schema cũ)
+// Nhóm bảng theo module SE00 → SE07 (SE00 = nền tảng dùng chung, không có trong proposal)
+// ============================================================================
+
+// ############################################################################
+// SE00 — FOUNDATION: AUTH · RBAC
+// ############################################################################
+
+model User {
+  userId              String    @id @default(uuid()) @map("user_id") @db.Char(36)
+  email               String    @unique @db.VarChar(255)
+  passwordHash        String    @map("password_hash") @db.VarChar(255)
+  status              String    @db.VarChar(20) // active | inactive | locked | pending_verification
+  emailVerified       Boolean   @default(false) @map("email_verified")
+  mfaEnabled          Boolean   @default(false) @map("mfa_enabled")
+  mfaSecret           String?   @map("mfa_secret") @db.VarChar(255)
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
+  lastLoginAt         DateTime? @map("last_login_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  roleId          String    @map("role_id") @db.Char(36)
+  role            Role      @relation(fields: [roleId], references: [roleId])
+
+  // SE00
+  profile                 UserProfile?
+  session                 UserSession?
+  securitySettingsUpdated SecuritySetting[]
+
+  // SE01
+  patient                      Patient?
+  doctor                       Doctor?
+  appointmentsBooked           Appointment[]                 @relation("AppointmentBookedBy")
+  receptionCheckins            ReceptionCheckin[]            @relation("ReceptionStaffUser")
+  doctorQueueEntriesRouted     DoctorQueueEntry[]            @relation("QueueRoutedByUser")
+  chiefComplaintsRecorded      ChiefComplaint[]              @relation("ComplaintRecordedByUser")
+  patientIdentityVerifications PatientIdentityVerification[] @relation("IdentityVerifiedByUser")
+  consentsWitnessed            Consent[]                     @relation("ConsentWitnessedByUser")
+
+  // SE02
+  allergiesRecorded        PatientAllergy[]        @relation("AllergyRecordedByUser")
+  medicalHistoriesRecorded PatientMedicalHistory[] @relation("MedicalHistoryRecordedByUser")
+  vitalSignSessionsRecorded VitalSignSession[]     @relation("VitalSessionRecordedByUser")
+  triageQueueEntriesAssigned TriageQueueEntry[]    @relation("TriageAssignedNurse")
+
+  // SE03
+  paymentsReceived Payment[] @relation("PaymentReceivedByUser")
+
+  // SE04
+  diagnosticRoomAssignments     DiagnosticStaffRoomAssignment[] @relation("DiagnosticStaffAssignments")
+  diagnosticTasksAssigned       DiagnosticTask[]                @relation("DiagnosticTaskAssignedStaff")
+  diagnosticResultsEntered      DiagnosticResult[]              @relation("DiagnosticResultEnteredByUser")
+  diagnosticResultsReviewed     DiagnosticResult[]              @relation("DiagnosticResultReviewedByUser")
+  diagnosticAttachmentsUploaded DiagnosticResultAttachment[]    @relation("DiagnosticAttachmentUploadedByUser")
+  resultValueAlertsConfirmed    ResultValueAlert[]              @relation("ResultAlertConfirmedByUser")
+  ecgEventsAcknowledged         EcgAnomalyEvent[]               @relation("EcgEventAcknowledgedByUser")
+  ecgEventsReviewed             EcgAnomalyEvent[]               @relation("EcgEventReviewedByUser")
+
+  // SE05
+
+  // SE06
+  prescriptionAlertsConfirmed PrescriptionSafetyAlert[] @relation("PrescriptionAlertConfirmedByUser")
+
+  // SE07
+  notificationsReceived   Notification[]           @relation("NotificationRecipientUser")
+  notificationPreferences NotificationPreference[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  profileId         String   @id @default(uuid()) @map("profile_id") @db.Char(36)
+  userId            String   @unique @map("user_id") @db.Char(36)
+  fullName          String   @map("full_name") @db.VarChar(255)
+  phoneNumber       String?  @map("phone_number") @db.VarChar(20)
+  avatarUrl         String?  @map("avatar_url") @db.VarChar(255)
+  additionalProfile Json?    @map("additional_profile") @db.JsonB
+  fhirResourceId    String?  @map("fhir_resource_id") @db.VarChar(255)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserSession {
+  sessionId        String    @id @default(uuid()) @map("session_id") @db.Char(36)
+  userId           String    @unique @map("user_id") @db.Char(36)
+  refreshTokenHash String    @map("refresh_token_hash") @db.VarChar(255)
+  createdAt        DateTime  @default(now()) @map("created_at")
+  expiredAt        DateTime? @map("expired_at")
+  revokedAt        DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model Role {
+  roleId        String  @id @default(uuid()) @map("role_id") @db.Char(36)
+  roleCode      String  @unique @map("role_code") @db.VarChar(36) // patient | receptionist | nurse | cardiologist | diagnostic_tech | cashier | admin
+  roleName      String  @map("role_name") @db.VarChar(50)
+  description   String? @db.VarChar(255)
+  isDefaultRole Boolean @default(false) @map("is_default_role")
+
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  permissionId   String @id @default(uuid()) @map("permission_id") @db.Char(36)
+  permissionCode String @unique @map("permission_code") @db.VarChar(100)
+  description    String @db.VarChar(255)
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+
+model RolePermission {
+  roleId       String @map("role_id") @db.Char(36)
+  permissionId String @map("permission_id") @db.Char(36)
+
+  role       Role       @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [permissionId], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model SecuritySetting {
+  settingId            String   @id @default(uuid()) @map("setting_id") @db.Char(36)
+  idleTimeoutMins      Int      @unique @map("idle_timeout_mins")
+  accessTokenTtlMins   Int      @map("access_token_ttl_mins")
+  refreshTokenTtlHours Int      @map("refresh_token_ttl_hours")
+  maxSessionHours      Int      @map("max_session_hours")
+  maxLoginAttempts     Int      @map("max_login_attempts")
+  lockoutDurationMins  Int      @map("lockout_duration_mins")
+  mfaRequired          Boolean  @default(false) @map("mfa_required")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  updatedBy            String   @map("updated_by") @db.Char(36)
+
+  updatedByUser User @relation(fields: [updatedBy], references: [userId])
+
+  @@map("security_settings")
+}
+
+// ############################################################################
+// SE01 — MEDICAL REGISTRATION & RECEPTION
+// (Department bị loại bỏ: hệ thống chỉ phục vụ 1 chuyên khoa Tim mạch)
+// ############################################################################
+
+model Patient {
+  patientId          String    @id @default(uuid()) @map("patient_id") @db.Char(36)
+  userId             String?   @unique @map("user_id") @db.Char(36)
+  patientCode        String    @unique @map("patient_code") @db.VarChar(20)
+  fullName           String    @map("full_name") @db.VarChar(255)
+  dateOfBirth        DateTime  @map("date_of_birth") @db.Date
+  gender             String    @db.VarChar(10) // male | female | other | unknown
+  identityNumber     String?   @unique @map("identity_number") @db.VarChar(20)
+  insuranceNumber    String?   @unique @map("insurance_number") @db.VarChar(20)
+  phoneNumber        String    @map("phone_number") @db.VarChar(20)
+  status             String    @default("draft") @db.VarChar(10) // draft: guest đặt lịch chưa xác nhận | main: hồ sơ chính thức
+  email              String?   @db.VarChar(255)
+  address            String?   @db.VarChar(255)
+  ethnicity          String?   @db.VarChar(50)
+  isActive           Boolean   @default(true) @map("is_active")
+  identityVerified   Boolean   @default(false) @map("identity_verified")
+  identityVerifiedAt DateTime? @map("identity_verified_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  user            User?            @relation(fields: [userId], references: [userId])
+  appointments    Appointment[]    @relation("AppointmentPatient")
+  // Guest booking "matched nhưng chưa xác nhận": appointment.patientId = null, chỉ set suggestedPatientId;
+  // lễ tân xác nhận (sync-patient) rồi mới set patientId thật.
+  suggestedAppointments Appointment[] @relation("AppointmentSuggestedPatient")
+  encounters            Encounter[]
+  consents              Consent[]
+  allergies             PatientAllergy[]
+  medicalHistories      PatientMedicalHistory[]
+  invoices              Invoice[]
+  notifications         Notification[]
+
+  @@index([status, createdAt])
+  @@index([fullName, dateOfBirth]) // lễ tân tra cứu / guest-match
+  @@index([phoneNumber])
+  @@map("patients")
+}
+
+model Doctor {
+  doctorId       String   @id @default(uuid()) @map("doctor_id") @db.Char(36)
+  userId         String   @unique @map("user_id") @db.Char(36)
+  doctorCode     String   @unique @map("doctor_code") @db.VarChar(20)
+  fullName       String   @map("full_name") @db.VarChar(255)
+  title          String?  @db.VarChar(50)
+  licenseNumber  String?  @unique @map("license_number") @db.VarChar(50)
+  specialization String?  @db.VarChar(100) // phân nhánh tim mạch: general_cardiology | interventional | electrophysiology | echocardiography | ...
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user                   User                   @relation(fields: [userId], references: [userId])
+  doctorSchedules        DoctorSchedule[]
+  appointments           Appointment[]
+  encounters             Encounter[]
+  doctorQueueEntries     DoctorQueueEntry[]
+  clinicalExaminations   ClinicalExamination[]
+  diagnosticOrders       DiagnosticOrder[]
+  diagnoses              Diagnosis[]
+  treatmentConsultations TreatmentConsultation[]
+  prescriptions          Prescription[]
+
+  @@map("doctors")
+}
+
+model DoctorSchedule {
+  scheduleId         String   @id @default(uuid()) @map("schedule_id") @db.Char(36)
+  doctorId           String   @map("doctor_id") @db.Char(36)
+  workDate           DateTime @map("work_date") @db.Date
+  session            String   @db.VarChar(20) // morning | afternoon | evening
+  startTime          DateTime @map("start_time") @db.Time
+  endTime            DateTime @map("end_time") @db.Time
+  slotDurationMins   Int      @map("slot_duration_mins")
+  maxPatientsPerSlot Int      @map("max_patients_per_slot")
+  roomLocation       String?  @map("room_location") @db.VarChar(100) // phòng khám tim mạch
+  status             String   @default("active") @db.VarChar(20) // active | cancelled
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  doctor           Doctor            @relation(fields: [doctorId], references: [doctorId], onDelete: Cascade)
+  appointmentSlots AppointmentSlot[]
+
+  @@unique([doctorId, workDate, session])
+  @@index([workDate, status])
+  @@map("doctor_schedules")
+}
+
+model AppointmentSlot {
+  slotId        String   @id @default(uuid()) @map("slot_id") @db.Char(36)
+  scheduleId    String   @map("schedule_id") @db.Char(36)
+  slotStartTime DateTime @map("slot_start_time")
+  slotEndTime   DateTime @map("slot_end_time")
+  capacity      Int
+  bookedCount   Int      @default(0) @map("booked_count")
+  status        String   @default("free") @db.VarChar(20) // free | full | blocked
+
+  schedule     DoctorSchedule @relation(fields: [scheduleId], references: [scheduleId], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@index([scheduleId, status])
+  @@index([slotStartTime])
+  @@map("appointment_slots")
+}
+
+model Appointment {
+  appointmentId      String    @id @default(uuid()) @map("appointment_id") @db.Char(36)
+  appointmentCode    String    @unique @map("appointment_code") @db.VarChar(20)
+  patientId          String?   @map("patient_id") @db.Char(36) // null khi guest booking chờ lễ tân xác nhận
+  suggestedPatientId String?   @map("suggested_patient_id") @db.Char(36)
+  suggestedReason    String?   @map("suggested_reason") @db.VarChar(255)
+  doctorId           String?   @map("doctor_id") @db.Char(36) // walk-in có thể chưa chọn bác sĩ
+  slotId             String?   @map("slot_id") @db.Char(36)
+  bookedByUserId     String?   @map("booked_by_user_id") @db.Char(36) // patient | receptionist | bác sĩ (follow_up)
+  bookingChannel     String    @map("booking_channel") @db.VarChar(20) // online | walk_in | doctor_follow_up
+  appointmentType    String    @default("initial") @map("appointment_type") @db.VarChar(20) // initial | follow_up   [MỚI - SE06]
+  sourceEncounterId  String?   @unique @map("source_encounter_id") @db.Char(36) // follow_up: lượt khám sinh ra lịch tái khám (1 encounter tối đa 1 lịch tái khám) [MỚI - SE06]
+  appointmentDate    DateTime  @map("appointment_date") @db.Date
+  appointmentTime    DateTime? @map("appointment_time") @db.Time
+  status             String    @default("pending") @db.VarChar(20) // pending -> confirmed -> checked_in -> in_progress -> completed || cancelled || no_show
+  reasonForVisit     String?   @map("reason_for_visit") @db.VarChar(255)
+  priority           String    @default("normal") @db.VarChar(20) // normal | urgent | emergency
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  cancelledAt        DateTime? @map("cancelled_at")
+  cancelReason       String?   @map("cancel_reason") @db.VarChar(255)
+
+  patient          Patient?         @relation("AppointmentPatient", fields: [patientId], references: [patientId])
+  suggestedPatient Patient?         @relation("AppointmentSuggestedPatient", fields: [suggestedPatientId], references: [patientId])
+  doctor           Doctor?          @relation(fields: [doctorId], references: [doctorId])
+  slot             AppointmentSlot? @relation(fields: [slotId], references: [slotId])
+  bookedByUser     User?            @relation("AppointmentBookedBy", fields: [bookedByUserId], references: [userId])
+  sourceEncounter  Encounter?       @relation("FollowUpSource", fields: [sourceEncounterId], references: [encounterId])
+
+  encounter         Encounter?
+  queueTicket       QueueTicket?
+  receptionCheckins ReceptionCheckin[]
+
+  @@index([appointmentDate, status])
+  @@index([doctorId, appointmentDate, status])
+  @@index([patientId, appointmentDate(sort: Desc)])
+  @@index([suggestedPatientId])
+  @@index([appointmentType, appointmentDate, status])
+  @@map("appointments")
+}
+
+model Encounter {
+  encounterId   String    @id @default(uuid()) @map("encounter_id") @db.Char(36)
+  appointmentId String    @unique @map("appointment_id") @db.Char(36)
+  patientId     String    @map("patient_id") @db.Char(36)
+  doctorId      String?   @map("doctor_id") @db.Char(36)
+  encounterCode String    @unique @map("encounter_code") @db.VarChar(20)
+  patientType   String    @map("patient_type") @db.VarChar(20) // new | returning
+  // arrived -> registered -> waiting_for_doctor -> in_progress -> awaiting_diagnostics -> diagnostics_in_progress
+  //   -> awaiting_review -> finished || cancelled      (3 trạng thái giữa là MỚI so với schema cũ)
+  status        String    @default("arrived") @db.VarChar(30)
+  arrivedAt     DateTime  @default(now()) @map("arrived_at")
+  registeredAt  DateTime? @map("registered_at")
+  finishedAt    DateTime? @map("finished_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  appointment Appointment @relation(fields: [appointmentId], references: [appointmentId], onDelete: Cascade)
+  patient     Patient     @relation(fields: [patientId], references: [patientId])
+  doctor      Doctor?     @relation(fields: [doctorId], references: [doctorId])
+
+  // SE00 / SE01
+  consents              Consent[]
+  chiefComplaint        ChiefComplaint?
+  identityVerifications PatientIdentityVerification[]
+  doctorQueueEntry      DoctorQueueEntry?
+  followUpAppointment   Appointment?  @relation("FollowUpSource")
+  // SE02
+  vitalSignSessions   VitalSignSession[]
+  triageQueueEntry    TriageQueueEntry?
+  clinicalExamination ClinicalExamination?
+  diagnosticOrders    DiagnosticOrder[]
+  // SE03
+  invoices Invoice[]
+  // SE04
+  resultValueAlerts ResultValueAlert[]
+  ecgRecordings     EcgRecording[]
+  // SE05
+  diagnoses                 Diagnosis[]
+  treatmentConsultation     TreatmentConsultation?
+  // SE06
+  prescriptions Prescription[]
+  // SE07
+  stageEvents EncounterStageEvent[]
+
+  @@index([patientId, arrivedAt(sort: Desc)])
+  @@index([status, arrivedAt])
+  @@index([doctorId, status])
+  @@map("encounters")
+}
+
+model ChiefComplaint {
+  complaintId      String    @id @default(uuid()) @map("complaint_id") @db.Char(36)
+  encounterId      String    @unique @map("encounter_id") @db.Char(36)
+  reasonForVisit   String?   @map("reason_for_visit") @db.VarChar(255)
+  symptoms         String?   @db.Text // đau ngực, khó thở, hồi hộp, ngất, phù chân...
+  symptomOnsetDate DateTime? @map("symptom_onset_date") @db.Date
+  painLevel        Int?      @map("pain_level")
+  inputChannel     String    @map("input_channel") @db.VarChar(50) // receptionist_assisted | online_pre_visit | self_kiosk
+  recordedByUserId String?   @map("recorded_by_user_id") @db.Char(36)
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  encounter      Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  recordedByUser User?     @relation("ComplaintRecordedByUser", fields: [recordedByUserId], references: [userId])
+
+  @@map("chief_complaints")
+}
+
+model PatientIdentityVerification {
+  verificationId     String   @id @default(uuid()) @map("verification_id") @db.Char(36)
+  encounterId        String   @map("encounter_id") @db.Char(36)
+  verifiedByUserId   String   @map("verified_by_user_id") @db.Char(36)
+  verificationMethod String   @map("verification_method") @db.VarChar(50) // national_id_card | health_insurance_card | patient_card | manual
+  verificationStatus String   @map("verification_status") @db.VarChar(20) // verified | failed | pending
+  mismatchNotes      String?  @map("mismatch_notes") @db.VarChar(255)
+  verifiedAt         DateTime @map("verified_at")
+
+  encounter      Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  verifiedByUser User      @relation("IdentityVerifiedByUser", fields: [verifiedByUserId], references: [userId])
+
+  @@index([encounterId, verifiedAt(sort: Desc)])
+  @@map("patient_identity_verifications")
+}
+
+// Số thứ tự tại quầy (hiển thị trên màn hình điện tử). Quy ước ticketPrefix: 'A' = online, 'B' = walk-in
+// Walk-in: ticket có TRƯỚC appointment (appointmentId = null) -> lễ tân gọi số, tạo appointment rồi gán ngược. ERD: 0..1 — 0..1
+model QueueTicket {
+  ticketId      String    @id @default(uuid()) @map("ticket_id") @db.Char(36)
+  appointmentId String?   @unique @map("appointment_id") @db.Char(36) // null: ticket walk-in cấp trước, gắn appointment khi lễ tân đăng ký
+  ticketPrefix  String    @map("ticket_prefix") @db.Char(1)
+  ticketDate    DateTime  @map("ticket_date") @db.Date
+  ticketNumber  Int       @map("ticket_number")
+  calledAt      DateTime? @map("called_at")
+  issuedAt      DateTime  @default(now()) @map("issued_at")
+  status        String    @default("waiting") @db.VarChar(20) // waiting | called | serving | done | skipped | cancelled
+  counterNumber String?   @map("counter_number") @db.VarChar(20)
+
+  appointment Appointment? @relation(fields: [appointmentId], references: [appointmentId], onDelete: SetNull)
+
+  @@unique([ticketPrefix, ticketDate, ticketNumber])
+  @@index([ticketDate, status])
+  @@map("queue_tickets")
+}
+
+model ReceptionCheckin {
+  checkinId            String   @id @default(uuid()) @map("checkin_id") @db.Char(36)
+  appointmentId        String   @map("appointment_id") @db.Char(36)
+  receptionStaffUserId String   @map("reception_staff_user_id") @db.Char(36)
+  checkinTime          DateTime @default(now()) @map("checkin_time")
+  counterNumber        String?  @map("counter_number") @db.VarChar(20)
+  notes                String?  @db.VarChar(255)
+
+  appointment        Appointment @relation(fields: [appointmentId], references: [appointmentId], onDelete: Cascade)
+  receptionStaffUser User        @relation("ReceptionStaffUser", fields: [receptionStaffUserId], references: [userId])
+
+  @@index([appointmentId])
+  @@map("reception_checkins")
+}
+
+// Hàng đợi vào phòng khám bác sĩ. Thứ tự: emergency > urgent > (normal: online trước walk-in) > FIFO
+model DoctorQueueEntry {
+  queueEntryId    String    @id @default(uuid()) @map("queue_entry_id") @db.Char(36)
+  encounterId     String    @unique @map("encounter_id") @db.Char(36)
+  doctorId        String    @map("doctor_id") @db.Char(36)
+  queueOrder      Int       @map("queue_order")
+  priority        String    @default("normal") @db.VarChar(20) // normal | urgent | emergency
+  intakeChannel   String    @map("intake_channel") @db.VarChar(20) // online | walk_in  (copy từ appointment, phục vụ sắp xếp ưu tiên)
+  status          String    @default("waiting") @db.VarChar(20) // waiting | called | in_progress | done | skipped | cancelled
+  enteredQueueAt  DateTime  @default(now()) @map("entered_queue_at")
+  doctorQueueDate DateTime  @map("doctor_queue_date") @db.Date
+  calledAt        DateTime? @map("called_at")
+  examStartedAt   DateTime? @map("exam_started_at")
+  examEndedAt     DateTime? @map("exam_ended_at")
+  routedByUserId  String?   @map("routed_by_user_id") @db.Char(36)
+
+  encounter    Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  doctor       Doctor    @relation(fields: [doctorId], references: [doctorId])
+  routedByUser User?     @relation("QueueRoutedByUser", fields: [routedByUserId], references: [userId])
+
+  @@unique([doctorId, doctorQueueDate, queueOrder])
+  @@index([doctorId, doctorQueueDate, status, queueOrder])
+  @@map("doctor_queue_entries")
+}
+
+// ---------- Consent (ERD SE01: Consent_Policy → Consent ← Patient / Encounter / User) ----------
+
+// Consent — NFR Security: dữ liệu chỉ được dùng để train AI khi có consent hợp lệ (NĐ 13/2023)
+model ConsentPolicy {
+  policyId      String    @id @default(uuid()) @map("policy_id") @db.Char(36)
+  policyCode    String    @unique @map("policy_code") @db.VarChar(50)
+  policyType    String    @map("policy_type") @db.VarChar(30) // treatment | data_processing | ai_assisted_analysis | ai_model_training
+  version       String    @db.VarChar(20)
+  contentUrl    String    @map("content_url") @db.VarChar(255)
+  effectiveFrom DateTime  @map("effective_from") @db.Date
+  effectiveTo   DateTime? @map("effective_to") @db.Date
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  consents Consent[]
+
+  @@unique([policyType, version])
+  @@map("consent_policies")
+}
+
+model Consent {
+  consentId         String    @id @default(uuid()) @map("consent_id") @db.Char(36)
+  patientId         String    @map("patient_id") @db.Char(36)
+  encounterId       String?   @map("encounter_id") @db.Char(36)
+  policyId          String    @map("policy_id") @db.Char(36)
+  signatureType     String    @map("signature_type") @db.VarChar(20) // e_signature_draw | otp_confirmed | checkbox_click
+  signatureDataUrl  String?   @map("signature_data_url") @db.Text
+  signedAt          DateTime  @default(now()) @map("signed_at")
+  checkedAt         DateTime? @map("checked_at")
+  witnessedByUserId String    @map("witnessed_by_user_id") @db.Char(36)
+  ipAddress         String?   @map("ip_address") @db.VarChar(45)
+  deviceInfo        String?   @map("device_info") @db.VarChar(255)
+  status            String    @default("active") @db.VarChar(20) // active | revoked
+  revokedAt         DateTime? @map("revoked_at")
+  revokeReason      String?   @map("revoke_reason") @db.VarChar(255)
+
+  patient         Patient       @relation(fields: [patientId], references: [patientId])
+  encounter       Encounter?    @relation(fields: [encounterId], references: [encounterId])
+  policy          ConsentPolicy @relation(fields: [policyId], references: [policyId])
+  witnessedByUser User          @relation("ConsentWitnessedByUser", fields: [witnessedByUserId], references: [userId])
+
+  @@index([patientId, status])
+  @@index([policyId, status])
+  @@map("consents")
+}
+
+// ############################################################################
+// SE02 — VITAL SIGNS · INITIAL CARDIOLOGICAL DIAGNOSIS · DIAGNOSTIC TEST ORDERING
+// ############################################################################
+
+// ---------- Hồ sơ nền dài hạn (không gắn cứng 1 encounter) ----------
+
+model PatientAllergy {
+  allergyId        String   @id @default(uuid()) @map("allergy_id") @db.Char(36)
+  patientId        String   @map("patient_id") @db.Char(36)
+  // Danh sách dị ứng lưu dạng text theo nhóm: nhóm ngăn cách bằng ';', mục trong nhóm ngăn cách bằng ','
+  //   "[DRUG] drugA, drugB; [FOOD] foodA, foodB; [ENVIRONMENT] envA, envB"
+  // Mỗi bản ghi là toàn bộ danh sách tại thời điểm ghi nhận (không phải phần bổ sung); bản ghi mới nhất có status = active
+  allergyText      String   @map("allergy_text") @db.Text
+  recordedByUserId String?  @map("recorded_by_user_id") @db.Char(36)
+  recordedAt       DateTime @default(now()) @map("recorded_at")
+  status           String   @default("active") @db.VarChar(20) // active | resolved | entered_in_error
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  patient        Patient    @relation(fields: [patientId], references: [patientId])
+  recordedByUser User?      @relation("AllergyRecordedByUser", fields: [recordedByUserId], references: [userId])
+
+  @@index([patientId, status])
+  @@map("patient_allergies")
+}
+
+model PatientMedicalHistory {
+  historyId        String    @id @default(uuid()) @map("history_id") @db.Char(36)
+  patientId        String    @map("patient_id") @db.Char(36)
+  historyType      String    @map("history_type") @db.VarChar(20) // chronic_disease | surgery | family_history | cardiac_procedure | risk_factor
+  conditionName    String    @map("condition_name") @db.VarChar(255)
+  onsetDate        DateTime? @map("onset_date") @db.Date
+  notes            String?   @db.Text
+  recordedByUserId String?   @map("recorded_by_user_id") @db.Char(36)
+  recordedAt       DateTime  @default(now()) @map("recorded_at")
+  status           String    @default("active") @db.VarChar(20) // active | resolved | inactive
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  patient        Patient    @relation(fields: [patientId], references: [patientId])
+  recordedByUser User?      @relation("MedicalHistoryRecordedByUser", fields: [recordedByUserId], references: [userId])
+
+  @@index([patientId, historyType])
+  @@map("patient_medical_history")
+}
+
+// ---------- Sinh hiệu (Nurse) ----------
+
+model VitalSignItem {
+  itemId       String   @id @default(uuid()) @map("item_id") @db.Char(36)
+  itemCode     String   @unique @map("item_code") @db.VarChar(20) // PULSE | SBP | DBP | TEMP | RR | SPO2 | HEIGHT | WEIGHT | BMI
+  itemName     String   @map("item_name") @db.VarChar(100)
+  loincCode    String?  @map("loinc_code") @db.VarChar(20)
+  unit         String   @db.VarChar(20)
+  isCalculated Boolean  @default(false) @map("is_calculated") // BMI
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  vitalSignObservations VitalSignObservation[]
+  vitalSignThresholds   VitalSignThreshold[]
+
+  @@map("vital_sign_items")
+}
+
+model VitalSignSession {
+  vitalSessionId   String   @id @default(uuid()) @map("vital_session_id") @db.Char(36)
+  encounterId      String   @map("encounter_id") @db.Char(36)
+  recordedByUserId String   @map("recorded_by_user_id") @db.Char(36)
+  measuredAt       DateTime @map("measured_at")
+  notes            String?  @db.VarChar(255)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  encounter      Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  recordedByUser User      @relation("VitalSessionRecordedByUser", fields: [recordedByUserId], references: [userId])
+
+  observations       VitalSignObservation[]
+
+  @@index([encounterId, measuredAt(sort: Desc)])
+  @@map("vital_sign_sessions")
+}
+
+model VitalSignObservation {
+  observationId    String   @id @default(uuid()) @map("observation_id") @db.Char(36)
+  vitalSessionId   String   @map("vital_session_id") @db.Char(36)
+  itemId           String   @map("item_id") @db.Char(36)
+  observationValue Decimal  @map("observation_value") @db.Decimal(10, 2)
+  isAbnormal       Boolean  @default(false) @map("is_abnormal")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  vitalSession VitalSignSession @relation(fields: [vitalSessionId], references: [vitalSessionId], onDelete: Cascade)
+  item         VitalSignItem    @relation(fields: [itemId], references: [itemId])
+
+  vitalSignAlerts VitalSignAlert[]
+
+  @@unique([vitalSessionId, itemId])
+  @@index([itemId, createdAt])
+  @@map("vital_sign_observations")
+}
+
+model VitalSignThreshold {
+  vitalThresholdId String   @id @default(uuid()) @map("vital_threshold_id") @db.Char(36)
+  itemId           String   @map("item_id") @db.Char(36)
+  ageMin           Int?     @map("age_min")
+  ageMax           Int?     @map("age_max")
+  gender           String?  @db.VarChar(10)
+  minNormal        Decimal  @map("min_normal") @db.Decimal(10, 2)
+  maxNormal        Decimal  @map("max_normal") @db.Decimal(10, 2)
+  effectiveFrom    DateTime @map("effective_from") @db.Date
+  isActive         Boolean  @default(true) @map("is_active")
+  sourceReference  String?  @map("source_reference") @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  item VitalSignItem @relation(fields: [itemId], references: [itemId])
+
+  vitalSignAlerts VitalSignAlert[]
+
+  @@index([itemId, isActive, effectiveFrom])
+  @@map("vital_sign_thresholds")
+}
+
+// Cảnh báo sinh hiệu bất thường (rule-based). Không còn alertSource = 'ai'.
+model VitalSignAlert {
+  alertId           String    @id @default(uuid()) @map("alert_id") @db.Char(36)
+  observationId     String    @map("observation_id") @db.Char(36)
+  vitalThresholdId  String?   @map("vital_threshold_id") @db.Char(36)
+  alertLevel        String    @map("alert_level") @db.VarChar(20) // warning | critical
+  expectedMin       Decimal?  @map("expected_min") @db.Decimal(10, 2)
+  expectedMax       Decimal?  @map("expected_max") @db.Decimal(10, 2)
+  reason            String?   @db.VarChar(500)
+  status            String    @default("active") @db.VarChar(20) // active | resolved
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  observation     VitalSignObservation @relation(fields: [observationId], references: [observationId], onDelete: Cascade)
+  vitalThreshold  VitalSignThreshold?  @relation(fields: [vitalThresholdId], references: [vitalThresholdId])
+
+  @@index([status, createdAt])
+  @@index([observationId])
+  @@map("vital_sign_alerts")
+}
+
+model TriageQueueEntry {
+  queueEntryId        String    @id @default(uuid()) @map("queue_entry_id") @db.Char(36)
+  encounterId         String    @unique @map("encounter_id") @db.Char(36)
+  assignedNurseUserId String    @map("assigned_nurse_user_id") @db.Char(36)
+  priority            String    @default("normal") @db.VarChar(20) // normal | urgent | emergency
+  queueOrder          Int       @map("queue_order")
+  status              String    @default("waiting") @db.VarChar(20) // waiting | called | in_progress | done | skipped | cancelled
+  triageQueueDate     DateTime  @map("triage_queue_date") @db.Date
+  enteredQueueAt      DateTime  @default(now()) @map("entered_queue_at")
+  calledAt            DateTime? @map("called_at")
+  startedAt           DateTime? @map("started_at")
+  completedAt         DateTime? @map("completed_at")
+
+  encounter         Encounter         @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  assignedNurseUser User              @relation("TriageAssignedNurse", fields: [assignedNurseUserId], references: [userId])
+
+  @@unique([triageQueueDate, queueOrder])
+  @@index([assignedNurseUserId, triageQueueDate, status])
+  @@map("triage_queue_entries")
+}
+
+// ---------- Khám tim mạch (Doctor) ----------
+// Tách thành 4 bước đúng proposal: tư thế → nhìn → sờ → nghe. Phần nghe (tiếng tim/tiếng thổi) mô tả tự do bằng text.
+
+model ClinicalExamination {
+  examinationId        String   @id @default(uuid()) @map("examination_id") @db.Char(36)
+  encounterId          String   @unique @map("encounter_id") @db.Char(36)
+  doctorId             String   @map("doctor_id") @db.Char(36)
+  patientPosition      String?  @map("patient_position") @db.VarChar(255) // tư thế BN khi khám
+  inspectionFindings   String?  @map("inspection_findings") @db.Text // nhìn: tím tái, tĩnh mạch cổ nổi, phù, mỏm tim...
+  palpationFindings    String?  @map("palpation_findings") @db.Text // sờ: mỏm tim, rung miu, gan, mạch ngoại biên...
+  percussionFindings   String?  @map("percussion_findings") @db.Text // gõ: diện đục của tim (phiếu thăm khám mục II.3)
+  auscultationFindings String?  @map("auscultation_findings") @db.Text // nghe: mô tả tự do
+  clinicalNotes        String?  @map("clinical_notes") @db.Text // tóm tắt diễn tiến & đánh giá sơ bộ (phiếu mục III.1)
+  structuredFindings   Json?    @map("structured_findings") @db.JsonB // dữ liệu có cấu trúc của phiếu: { inspection, palpation, percussion, auscultation, assessment }
+  examinedAt           DateTime @map("examined_at")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  encounter Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  doctor    Doctor    @relation(fields: [doctorId], references: [doctorId])
+
+  @@index([doctorId, examinedAt(sort: Desc)])
+  @@map("clinical_examinations")
+}
+
+// ---------- Chỉ định cận lâm sàng ----------
+// (ServiceCatalog — danh mục dịch vụ — thuộc SE04, xem phần Danh mục dịch vụ bên dưới)
+
+model DiagnosticOrder {
+  orderId            String    @id @default(uuid()) @map("order_id") @db.Char(36)
+  orderCode          String    @unique @map("order_code") @db.VarChar(20)
+  encounterId        String    @map("encounter_id") @db.Char(36)
+  doctorId           String    @map("doctor_id") @db.Char(36)
+  diagnosisId        String    @map("diagnosis_id") @db.Char(36) // BẮT BUỘC: chỉ định dựa trên chẩn đoán sơ bộ (diagnosisType = initial) — theo FR SE02
+  priority           String    @default("routine") @db.VarChar(20) // routine | urgent | stat
+  clinicalIndication String?   @map("clinical_indication") @db.VarChar(255) // lý do chỉ định (vd: loại trừ ACS)
+  status             String    @default("ordered") @db.VarChar(20) // ordered | in_progress | completed | cancelled
+  orderedAt          DateTime  @map("ordered_at")
+  completedAt        DateTime? @map("completed_at") // set khi TẤT CẢ task của các item (không cancelled) completed -> gửi Completion Notification
+  notes              String?   @db.VarChar(255)
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  encounter     Encounter  @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  doctor        Doctor     @relation(fields: [doctorId], references: [doctorId])
+  diagnosis     Diagnosis  @relation(fields: [diagnosisId], references: [diagnosisId])
+
+  items DiagnosticOrderItem[]
+
+  @@index([encounterId, status])
+  @@index([status, orderedAt])
+  @@map("diagnostic_orders")
+}
+
+model DiagnosticOrderItem {
+  orderItemId String   @id @default(uuid()) @map("order_item_id") @db.Char(36)
+  orderId     String   @map("order_id") @db.Char(36)
+  serviceId   String   @map("service_id") @db.Char(36)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(12, 2) // snapshot giá tại thời điểm chỉ định
+  status      String   @default("ordered") @db.VarChar(20) // ordered | cancelled  (tiến độ thực hiện: xem DiagnosticTask.status)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  order   DiagnosticOrder @relation(fields: [orderId], references: [orderId], onDelete: Cascade)
+  service ServiceCatalog  @relation(fields: [serviceId], references: [serviceId])
+
+  task        DiagnosticTask?
+  invoiceItem InvoiceItem?
+
+  @@index([orderId, status])
+  @@index([serviceId])
+  @@map("diagnostic_order_items")
+}
+
+// ############################################################################
+// SE03 — EXPENSE PAYMENT
+// ############################################################################
+
+model ExaminationFeeCatalog {
+  feeId         String   @id @default(uuid()) @map("fee_id") @db.Char(36)
+  feeCode       String   @unique @map("fee_code") @db.VarChar(20)
+  feeName       String   @map("fee_name") @db.VarChar(100)
+  feeType       String   @default("standard") @map("fee_type") @db.VarChar(20) // standard | follow_up | online_booking
+  price         Decimal  @db.Decimal(12, 2)
+  isActive      Boolean  @default(true) @map("is_active")
+  effectiveFrom DateTime @map("effective_from") @db.Date
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  invoiceItems InvoiceItem[]
+
+  @@index([feeType, isActive, effectiveFrom])
+  @@map("examination_fee_catalog")
+}
+
+model Invoice {
+  invoiceId      String    @id @default(uuid()) @map("invoice_id") @db.Char(36)
+  invoiceCode    String    @unique @map("invoice_code") @db.VarChar(20)
+  encounterId    String    @map("encounter_id") @db.Char(36)
+  patientId      String    @map("patient_id") @db.Char(36)
+  invoiceType    String    @map("invoice_type") @db.VarChar(20) // consultation (SE01) | diagnostics (SE03) | other
+  subtotalAmount Decimal   @map("subtotal_amount") @db.Decimal(14, 2)
+  discountAmount Decimal?  @map("discount_amount") @db.Decimal(14, 2)
+  totalAmount    Decimal   @map("total_amount") @db.Decimal(14, 2)
+  currency       String    @default("VND") @db.VarChar(3)
+  status         String    @default("pending") @db.VarChar(20) // pending | paid | cancelled | refunded
+  issuedAt       DateTime  @map("issued_at")
+  dueAt          DateTime? @map("due_at")
+  pdfFileUrl     String?   @map("pdf_file_url") @db.VarChar(255)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  encounter   Encounter    @relation(fields: [encounterId], references: [encounterId])
+  patient     Patient      @relation(fields: [patientId], references: [patientId])
+
+  items    InvoiceItem[]
+  payments Payment[]
+
+  @@index([encounterId, status])
+  @@index([patientId, issuedAt(sort: Desc)])
+  @@index([status, issuedAt])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  invoiceItemId    String   @id @default(uuid()) @map("invoice_item_id") @db.Char(36)
+  invoiceId        String   @map("invoice_id") @db.Char(36)
+  // Đúng 1 trong 2 cột dưới khác NULL (CHECK num_nonnulls(examination_fee_id, order_item_id) = 1 — thêm bằng migration SQL thủ công)
+  examinationFeeId String?  @map("examination_fee_id") @db.Char(36) // phí khám (SE01)
+  orderItemId      String?  @unique @map("order_item_id") @db.Char(36) // dòng chỉ định CLS (SE02) — mỗi dòng chỉ được tính tiền 1 lần
+  description      String   @db.VarChar(255)
+  quantity         Int
+  unitPrice        Decimal  @map("unit_price") @db.Decimal(12, 2)
+  amount           Decimal  @db.Decimal(14, 2)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  invoice        Invoice                  @relation(fields: [invoiceId], references: [invoiceId], onDelete: Cascade)
+  examinationFee ExaminationFeeCatalog?   @relation(fields: [examinationFeeId], references: [feeId], onDelete: Restrict)
+  orderItem      DiagnosticOrderItem?     @relation(fields: [orderItemId], references: [orderItemId], onDelete: Restrict)
+
+  @@index([invoiceId])
+  @@index([examinationFeeId])
+  @@map("invoice_items")
+}
+
+model Payment {
+  paymentId        String    @id @default(uuid()) @map("payment_id") @db.Char(36)
+  invoiceId        String    @map("invoice_id") @db.Char(36)
+  paymentMethod    String    @map("payment_method") @db.VarChar(20) // cash | bank_transfer_qr
+  amount           Decimal   @db.Decimal(14, 2)
+  status           String    @default("pending") @db.VarChar(20) // pending | success | failed | refunded
+  paidAt           DateTime? @map("paid_at")
+  receivedByUserId String?   @map("received_by_user_id") @db.Char(36)
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  invoice        Invoice @relation(fields: [invoiceId], references: [invoiceId])
+  receivedByUser User?   @relation("PaymentReceivedByUser", fields: [receivedByUserId], references: [userId])
+
+  gatewayTransaction PaymentGatewayTransaction?
+
+  @@index([invoiceId, status])
+  @@index([status, createdAt])
+  @@map("payments")
+}
+
+model PaymentGatewayTransaction {
+  gatewayTransactionId   String    @id @default(uuid()) @map("gateway_transaction_id") @db.Char(36)
+  paymentId              String    @unique @map("payment_id") @db.Char(36)
+  provider               String    @db.VarChar(30) // vnpay | momo | zalopay | napas | vietqr ...
+  providerTransactionRef String    @map("provider_transaction_ref") @db.VarChar(100)
+  qrCodeData             String?   @map("qr_code_data") @db.VarChar(255)
+  requestPayload         Json?     @map("request_payload") @db.JsonB
+  responsePayload        Json?     @map("response_payload") @db.JsonB
+  status                 String    @default("initiated") @db.VarChar(20) // initiated | pending | success | failed | expired
+  initiatedAt            DateTime  @map("initiated_at")
+  completedAt            DateTime? @map("completed_at")
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  payment Payment @relation(fields: [paymentId], references: [paymentId], onDelete: Cascade)
+
+  @@unique([provider, providerTransactionRef]) // idempotency cho webhook
+  @@map("payment_gateway_transactions")
+}
+
+// ############################################################################
+// SE04 — PARACLINICAL SERVICES EXECUTION
+//   Blood Test (rule-based)  ·  ECG (AI time-series anomaly detection)  ·  X-ray ngực  ·  Siêu âm tim
+//
+//   Kiến trúc kết quả (dùng chung cho 4 modality):
+//     DiagnosticTask ──1:1── DiagnosticResult (header: kết luận, trạng thái)
+//        │                      ├── ResultValue[]              (tham số đo đạc: blood, echo, CTR X-ray)
+//        │                      └── DiagnosticResultAttachment[] (DICOM/ảnh/cine/PDF)
+//        └──1:N── EcgRecording ── EcgAiAnalysis[] ── EcgAnomalyEvent[]   (waveform + AI)
+// ############################################################################
+
+// Phòng thực hiện: Blood Test Lab · ECG Monitoring Room · Echocardiography Room · X-ray Scan Room
+model DiagnosticRoom {
+  diagnosticRoomId   String   @id @default(uuid()) @map("diagnostic_room_id") @db.Char(36)
+  diagnosticRoomCode String   @unique @map("diagnostic_room_code") @db.VarChar(20)
+  diagnosticRoomName String   @map("diagnostic_room_name") @db.VarChar(100)
+  modality           String   @db.VarChar(20) // blood_test | ecg | xray | echo
+  location           String?  @db.VarChar(100)
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  services         ServiceCatalog[]
+  staffAssignments DiagnosticStaffRoomAssignment[]
+  tasks            DiagnosticTask[]
+
+  @@index([modality, isActive])
+  @@map("diagnostic_rooms")
+}
+
+// ---------- Danh mục dịch vụ (ERD SE04: Room 1—0..N Service; Service 1—0..N ResultParameter / OrderItem) ----------
+// Thay TestCatalog: bao phủ 4 modality — blood_test | ecg | xray | echo
+model ServiceCatalog {
+  serviceId        String   @id @default(uuid()) @map("service_id") @db.Char(36)
+  serviceCode      String   @unique @map("service_code") @db.VarChar(20)
+  serviceName      String   @map("service_name") @db.VarChar(255)
+  modality         String   @db.VarChar(20) // blood_test | ecg | xray | echo
+  panelGroup       String?  @map("panel_group") @db.VarChar(50) // cardiac_biomarker | lipid_profile | chest_xray | resting_ecg | tte ...
+  resultKind       String   @map("result_kind") @db.VarChar(20) // parametric (blood/echo đo đạc) | waveform (ECG) | image_report (X-ray/echo)
+  specimenType     String?  @map("specimen_type") @db.VarChar(50) // blood: serum | plasma | whole_blood
+  requiresFasting  Boolean  @default(false) @map("requires_fasting") // lipid profile
+  preparationNote  String?  @map("preparation_note") @db.VarChar(255)
+  price            Decimal  @db.Decimal(12, 2)
+  turnaroundMins   Int?     @map("turnaround_mins") // phút (ECG ~15', blood ~ vài giờ => quy ra phút)
+  defaultRoomId    String   @map("default_room_id") @db.Char(36)
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  defaultRoom DiagnosticRoom @relation(fields: [defaultRoomId], references: [diagnosticRoomId])
+
+  orderItems       DiagnosticOrderItem[]
+  resultParameters ResultParameter[]
+  stageEvents      EncounterStageEvent[]
+  stageStatistics  StageStatistic[]
+
+  @@index([modality, isActive])
+  @@index([defaultRoomId])
+  @@map("service_catalog")
+}
+
+model DiagnosticStaffRoomAssignment {
+  userId           String   @map("user_id") @db.Char(36)
+  diagnosticRoomId String   @map("diagnostic_room_id") @db.Char(36)
+  isPrimary        Boolean  @default(true) @map("is_primary")
+  assignedAt       DateTime @default(now()) @map("assigned_at")
+
+  user           User           @relation("DiagnosticStaffAssignments", fields: [userId], references: [userId], onDelete: Cascade)
+  diagnosticRoom DiagnosticRoom @relation(fields: [diagnosticRoomId], references: [diagnosticRoomId], onDelete: Cascade)
+
+  @@id([userId, diagnosticRoomId])
+  @@index([diagnosticRoomId])
+  @@map("diagnostic_staff_room_assignments")
+}
+
+// Mỗi order item = 1 task nằm trong hàng đợi của phòng tương ứng (room-specific diagnostic queue)
+model DiagnosticTask {
+  taskId              String    @id @default(uuid()) @map("task_id") @db.Char(36)
+  orderItemId         String    @unique @map("order_item_id") @db.Char(36)
+  diagnosticRoomId    String    @map("diagnostic_room_id") @db.Char(36)
+  assignedStaffUserId String?   @map("assigned_staff_user_id") @db.Char(36)
+  paymentVerified     Boolean   @default(false) @map("payment_verified")
+  paymentVerifiedAt   DateTime? @map("payment_verified_at")
+  priority            String    @default("routine") @db.VarChar(20) // routine | urgent | stat (copy từ order)
+  status              String    @default("payment_pending") @db.VarChar(20) // payment_pending => ready => in_progress => completed || cancelled || on_hold
+  specimenCode        String?   @map("specimen_code") @db.VarChar(50) // barcode ống máu (blood_test)
+  specimenCollectedAt DateTime? @map("specimen_collected_at")
+  readyAt             DateTime? @map("ready_at") // thời điểm vào hàng đợi phòng (sau thanh toán)
+  receivedAt          DateTime? @map("received_at")
+  startedAt           DateTime? @map("started_at")
+  completedAt         DateTime? @map("completed_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  orderItem     DiagnosticOrderItem @relation(fields: [orderItemId], references: [orderItemId], onDelete: Cascade)
+  diagnosticRoom DiagnosticRoom     @relation(fields: [diagnosticRoomId], references: [diagnosticRoomId])
+  assignedStaff User?               @relation("DiagnosticTaskAssignedStaff", fields: [assignedStaffUserId], references: [userId])
+
+  result        DiagnosticResult?
+  ecgRecordings EcgRecording[]
+
+  @@index([diagnosticRoomId, status, priority, readyAt]) // hàng đợi của phòng
+  @@index([assignedStaffUserId, status])
+  @@map("diagnostic_tasks")
+}
+
+model DiagnosticResult {
+  resultId          String    @id @default(uuid()) @map("result_id") @db.Char(36)
+  taskId            String    @unique @map("task_id") @db.Char(36)
+  enteredByUserId   String    @map("entered_by_user_id") @db.Char(36)
+  reviewedByUserId  String?   @map("reviewed_by_user_id") @db.Char(36) // người duyệt/đọc kết quả (vd: BS đọc ECG/siêu âm)
+  findings          String?   @db.Text // mô tả (X-ray/echo/ECG report)
+  overallConclusion String?   @map("overall_conclusion") @db.VarChar(255)
+  resultStatus      String    @default("preliminary") @map("result_status") @db.VarChar(20) // preliminary | final | corrected | cancelled
+  performedAt       DateTime? @map("performed_at")
+  resultedAt        DateTime? @map("resulted_at")
+  reviewedAt        DateTime? @map("reviewed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  task           DiagnosticTask @relation(fields: [taskId], references: [taskId], onDelete: Cascade)
+  enteredByUser  User           @relation("DiagnosticResultEnteredByUser", fields: [enteredByUserId], references: [userId])
+  reviewedByUser User?          @relation("DiagnosticResultReviewedByUser", fields: [reviewedByUserId], references: [userId])
+
+  values      ResultValue[]
+  attachments DiagnosticResultAttachment[]
+
+  @@index([resultStatus, resultedAt])
+  @@map("diagnostic_results")
+}
+
+// Danh mục tham số đo đạc: blood (hs-Troponin, NT-proBNP, LDL...), echo (LVEF, LVEDD...), X-ray (CTR, cardiomegaly...)
+model ResultParameter {
+  parameterId   String  @id @default(uuid()) @map("parameter_id") @db.Char(36)
+  serviceId     String  @map("service_id") @db.Char(36)
+  parameterCode String  @map("parameter_code") @db.VarChar(30)
+  parameterName String  @map("parameter_name") @db.VarChar(100)
+  loincCode     String? @map("loinc_code") @db.VarChar(20)
+  unit          String? @db.VarChar(20)
+  dataType      String  @map("data_type") @db.VarChar(20) // numeric | boolean | text | enum
+  allowedValues Json?   @map("allowed_values") @db.JsonB // dataType = enum (vd: độ hở van 0-4)
+  displayOrder  Int     @map("display_order")
+  isActive      Boolean @default(true) @map("is_active")
+
+  service ServiceCatalog @relation(fields: [serviceId], references: [serviceId])
+
+  values     ResultValue[]
+  thresholds ResultParameterThreshold[]
+
+  @@unique([serviceId, parameterCode])
+  @@map("result_parameters")
+}
+
+model ResultValue {
+  resultValueId String   @id @default(uuid()) @map("result_value_id") @db.Char(36)
+  resultId      String   @map("result_id") @db.Char(36)
+  parameterId   String   @map("parameter_id") @db.Char(36)
+  valueNumeric  Decimal? @map("value_numeric") @db.Decimal(12, 4)
+  valueBoolean  Boolean? @map("value_boolean")
+  valueText     String?  @map("value_text") @db.Text
+  isAbnormal    Boolean  @default(false) @map("is_abnormal")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  result    DiagnosticResult  @relation(fields: [resultId], references: [resultId], onDelete: Cascade)
+  parameter ResultParameter   @relation(fields: [parameterId], references: [parameterId])
+
+  alerts ResultValueAlert[]
+
+  @@unique([resultId, parameterId])
+  @@index([parameterId, createdAt])
+  @@map("result_values")
+}
+
+// Ngưỡng tham chiếu cho rule-based detection (chủ yếu Blood Test; echo/X-ray dùng được nếu muốn)
+model ResultParameterThreshold {
+  thresholdId     String   @id @default(uuid()) @map("threshold_id") @db.Char(36)
+  parameterId     String   @map("parameter_id") @db.Char(36)
+  ageMin          Int?     @map("age_min")
+  ageMax          Int?     @map("age_max")
+  gender          String?  @db.VarChar(10)
+  riskLevel       String   @map("risk_level") @db.VarChar(20) // normal | low | medium | high | critical
+  rangeMin        Decimal? @map("range_min") @db.Decimal(12, 4)
+  rangeMax        Decimal? @map("range_max") @db.Decimal(12, 4)
+  isActive        Boolean  @default(true) @map("is_active")
+  effectiveFrom   DateTime @map("effective_from") @db.Date
+  sourceReference String?  @map("source_reference") @db.Text
+
+  parameter ResultParameter @relation(fields: [parameterId], references: [parameterId])
+
+  alerts ResultValueAlert[]
+
+  @@index([parameterId, isActive, effectiveFrom])
+  @@map("result_parameter_thresholds")
+}
+
+// Cảnh báo giá trị tới hạn — RULE-BASED (Blood Test). Cảnh báo AI của ECG nằm ở EcgAnomalyEvent.
+model ResultValueAlert {
+  alertId           String    @id @default(uuid()) @map("alert_id") @db.Char(36)
+  resultValueId     String    @map("result_value_id") @db.Char(36)
+  encounterId       String    @map("encounter_id") @db.Char(36)
+  thresholdId       String?   @map("threshold_id") @db.Char(36)
+  riskLevel         String    @map("risk_level") @db.VarChar(20)
+  expectedMin       Decimal?  @map("expected_min") @db.Decimal(12, 4)
+  expectedMax       Decimal?  @map("expected_max") @db.Decimal(12, 4)
+  status            String    @default("active") @db.VarChar(20) // active => confirmed => resolved
+  confirmedByUserId String?   @map("confirmed_by_user_id") @db.Char(36)
+  confirmedAt       DateTime? @map("confirmed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  resultValue     ResultValue               @relation(fields: [resultValueId], references: [resultValueId], onDelete: Cascade)
+  encounter       Encounter                 @relation(fields: [encounterId], references: [encounterId])
+  threshold       ResultParameterThreshold? @relation(fields: [thresholdId], references: [thresholdId])
+  confirmedByUser User?                     @relation("ResultAlertConfirmedByUser", fields: [confirmedByUserId], references: [userId])
+
+  @@index([encounterId, status])
+  @@index([resultValueId])
+  @@map("result_value_alerts")
+}
+
+// File đính kèm kết quả: DICOM / ảnh X-ray / ảnh & cine-loop siêu âm / PDF báo cáo / bản in ECG
+// (thay thế MedicalImage + LabResultAttachment; metadata DICOM nằm trong JSONB)
+model DiagnosticResultAttachment {
+  attachmentId     String    @id @default(uuid()) @map("attachment_id") @db.Char(36)
+  resultId         String    @map("result_id") @db.Char(36)
+  fileType         String    @map("file_type") @db.VarChar(20) // dicom | image | video | pdf | raw_export | other
+  attachmentRole   String    @default("primary") @map("attachment_role") @db.VarChar(20) // primary | key_image | cine_loop | report | printout
+  fileUrl          String    @map("file_url") @db.VarChar(255) // object key trên S3/MinIO
+  mimeType         String?   @map("mime_type") @db.VarChar(100)
+  sizeBytes        BigInt?   @map("size_bytes")
+  description      String?   @db.VarChar(255)
+  metadata         Json?     @db.JsonB // X-ray: {view:'PA'|'LATERAL'} · Echo: {view:'PLAX'|'A4C'..., frameRate} · DICOM tags tối thiểu
+  capturedAt       DateTime? @map("captured_at")
+  uploadedByUserId String    @map("uploaded_by_user_id") @db.Char(36)
+  uploadedAt       DateTime  @map("uploaded_at")
+
+  result         DiagnosticResult @relation(fields: [resultId], references: [resultId], onDelete: Cascade)
+  uploadedByUser User             @relation("DiagnosticAttachmentUploadedByUser", fields: [uploadedByUserId], references: [userId])
+
+  @@index([resultId, attachmentRole])
+  @@map("diagnostic_result_attachments")
+}
+
+// ---------- ECG waveform + AI anomaly detection ----------
+// Tín hiệu thô KHÔNG lưu trong DB — lưu object (WFDB/EDF/CSV/DICOM-ECG) trên S3/MinIO, DB chỉ giữ metadata.
+// EcgRecording gắn vào DiagnosticTask (không phải Result) vì live-stream/AI chạy TRƯỚC khi có kết quả cuối.
+
+model EcgRecording {
+  ecgRecordingId  String    @id @default(uuid()) @map("ecg_recording_id") @db.Char(36)
+  taskId          String    @map("task_id") @db.Char(36)
+  encounterId     String    @map("encounter_id") @db.Char(36) // denormalize: feed cảnh báo theo lượt khám
+  recordingMode   String    @map("recording_mode") @db.VarChar(20) // file_upload | live_stream
+  recordingType   String    @map("recording_type") @db.VarChar(30) // resting_12_lead | continuous_monitoring | holter | rhythm_strip
+  status          String    @default("pending") @db.VarChar(20) // pending | recording | completed | failed | cancelled
+  sampleRateHz    Int       @map("sample_rate_hz")
+  numLeads        Int       @map("num_leads")
+  leadNames       String[]  @default([]) @map("lead_names") // ['I','II','III','aVR','aVL','aVF','V1'..'V6']
+  durationMs      Int?      @map("duration_ms")
+  startedAt       DateTime? @map("started_at")
+  endedAt         DateTime? @map("ended_at")
+  signalFileUrl   String?   @map("signal_file_url") @db.VarChar(255)
+  signalFormat    String?   @map("signal_format") @db.VarChar(20) // wfdb | edf | csv | json | dicom_ecg | scp_ecg
+  signalSizeBytes BigInt?   @map("signal_size_bytes")
+  signalChecksum  String?   @map("signal_checksum") @db.VarChar(64) // sha256
+  previewImageUrl String?   @map("preview_image_url") @db.VarChar(255) // ảnh render dải ECG cho UI
+  signalQuality   Decimal?  @map("signal_quality") @db.Decimal(5, 4) // SQI 0..1
+  deviceModel     String?   @map("device_model") @db.VarChar(100)
+  deviceSerial    String?   @map("device_serial") @db.VarChar(100)
+  acquisitionMeta Json?     @map("acquisition_meta") @db.JsonB // gain, filter, units, ADC resolution...
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  task      DiagnosticTask @relation(fields: [taskId], references: [taskId], onDelete: Cascade)
+  encounter Encounter      @relation(fields: [encounterId], references: [encounterId])
+
+  analyses EcgAiAnalysis[]
+
+  @@index([taskId])
+  @@index([encounterId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("ecg_recordings")
+}
+
+// Registry model AI — truy vết phiên bản model đã phân tích bản ghi nào
+model AiModelVersion {
+  modelVersionId   String    @id @default(uuid()) @map("model_version_id") @db.Char(36)
+  modelName        String    @map("model_name") @db.VarChar(100) // vd: ecg-anomaly-detector
+  version          String    @db.VarChar(30)
+  taskType         String    @default("ecg_anomaly_detection") @map("task_type") @db.VarChar(40)
+  architecture     String?   @db.VarChar(100) // vd: LSTM-Autoencoder | 1D-CNN | Transformer
+  inputSpec        Json?     @map("input_spec") @db.JsonB // {sampleRateHz, windowMs, strideMs, leads[]}
+  defaultThreshold Decimal?  @map("default_threshold") @db.Decimal(6, 5)
+  evaluationMetrics Json?    @map("evaluation_metrics") @db.JsonB // AUROC, sensitivity, specificity, dataset...
+  artifactUrl      String?   @map("artifact_url") @db.VarChar(255)
+  status           String    @default("candidate") @db.VarChar(20) // candidate | active | deprecated
+  trainedAt        DateTime? @map("trained_at")
+  deployedAt       DateTime? @map("deployed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  analyses EcgAiAnalysis[]
+
+  @@unique([modelName, version])
+  @@index([taskType, status])
+  @@map("ai_model_versions")
+}
+
+// 1 lần chạy AI trên 1 recording. Có thể chạy lại bằng model mới (isCurrent đánh dấu bản đang hiển thị).
+model EcgAiAnalysis {
+  analysisId         String    @id @default(uuid()) @map("analysis_id") @db.Char(36)
+  ecgRecordingId     String    @map("ecg_recording_id") @db.Char(36)
+  modelVersionId     String    @map("model_version_id") @db.Char(36)
+  analysisMode       String    @map("analysis_mode") @db.VarChar(20) // realtime | batch | reanalysis
+  status             String    @default("queued") @db.VarChar(20) // queued | running | completed | failed | skipped
+  overallResult      String?   @map("overall_result") @db.VarChar(20) // normal | abnormal | inconclusive | poor_signal
+  anomalyCount       Int       @default(0) @map("anomaly_count")
+  maxAnomalyScore    Decimal?  @map("max_anomaly_score") @db.Decimal(6, 5)
+  thresholdUsed      Decimal?  @map("threshold_used") @db.Decimal(6, 5)
+  windowMs           Int?      @map("window_ms")
+  strideMs           Int?      @map("stride_ms")
+  summaryMetrics     Json?     @map("summary_metrics") @db.JsonB // {hrMean, hrMin, hrMax, abnormalDurationMs...}
+  inferenceLatencyMs Int?      @map("inference_latency_ms")
+  errorCode          String?   @map("error_code") @db.VarChar(50) // NFR: AI lỗi => status=failed, quy trình thủ công vẫn chạy
+  errorMessage       String?   @map("error_message") @db.VarChar(500)
+  isCurrent          Boolean   @default(true) @map("is_current")
+  startedAt          DateTime? @map("started_at")
+  completedAt        DateTime? @map("completed_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  ecgRecording EcgRecording   @relation(fields: [ecgRecordingId], references: [ecgRecordingId], onDelete: Cascade)
+  modelVersion AiModelVersion @relation(fields: [modelVersionId], references: [modelVersionId])
+
+  events EcgAnomalyEvent[]
+
+  @@index([ecgRecordingId, isCurrent])
+  @@index([status, createdAt])
+  @@index([modelVersionId, createdAt])
+  @@map("ecg_ai_analyses")
+}
+
+// Mỗi sự kiện bất thường AI phát hiện (một đoạn tín hiệu). Đồng thời là "alert" realtime.
+// Hai vòng đời độc lập:  alertStatus (xử lý cảnh báo)  vs  reviewVerdict (bác sĩ xác nhận đúng/sai — dùng làm nhãn retrain)
+model EcgAnomalyEvent {
+  eventId              String    @id @default(uuid()) @map("event_id") @db.Char(36)
+  analysisId           String    @map("analysis_id") @db.Char(36)
+  anomalyType          String?   @map("anomaly_type") @db.VarChar(40) // afib | pvc | pac | vt | bradycardia | tachycardia | st_elevation | st_depression | av_block | unclassified (null nếu model unsupervised)
+  anomalyScore         Decimal   @map("anomaly_score") @db.Decimal(6, 5) // điểm bất thường / reconstruction error đã chuẩn hóa
+  severity             String    @db.VarChar(20) // low | medium | high | critical
+  startOffsetMs        Int       @map("start_offset_ms") // tính từ đầu recording
+  endOffsetMs          Int       @map("end_offset_ms")
+  affectedLeads        String[]  @default([]) @map("affected_leads")
+  heartRateBpm         Int?      @map("heart_rate_bpm")
+  snippetUrl           String?   @map("snippet_url") @db.VarChar(255) // ảnh/JSON đoạn tín hiệu quanh sự kiện
+  details              Json?     @db.JsonB // điểm theo từng lead, vị trí đỉnh R, saliency...
+  detectedAt           DateTime  @map("detected_at")
+  alertStatus          String    @default("active") @map("alert_status") @db.VarChar(20) // active | acknowledged | resolved | auto_dismissed
+  acknowledgedByUserId String?   @map("acknowledged_by_user_id") @db.Char(36)
+  acknowledgedAt       DateTime? @map("acknowledged_at")
+  reviewVerdict        String    @default("pending") @map("review_verdict") @db.VarChar(20) // pending | true_positive | false_positive | uncertain
+  reviewedByUserId     String?   @map("reviewed_by_user_id") @db.Char(36)
+  reviewedAt           DateTime? @map("reviewed_at")
+  reviewNote           String?   @map("review_note") @db.Text
+  createdAt            DateTime  @default(now()) @map("created_at")
+
+  analysis           EcgAiAnalysis @relation(fields: [analysisId], references: [analysisId], onDelete: Cascade)
+  acknowledgedByUser User?         @relation("EcgEventAcknowledgedByUser", fields: [acknowledgedByUserId], references: [userId])
+  reviewedByUser     User?         @relation("EcgEventReviewedByUser", fields: [reviewedByUserId], references: [userId])
+
+  @@index([alertStatus, severity, createdAt])
+  @@index([analysisId, startOffsetMs])
+  @@index([reviewVerdict, createdAt])
+  @@map("ecg_anomaly_events")
+}
+
+// ############################################################################
+// SE05 — PARACLINICAL ANALYSIS & DIAGNOSTIC EVALUATION (ICD-10)
+// Bác sĩ tự kết luận — không còn AI suggestion / accept-reject.
+// ############################################################################
+
+model Icd10Code {
+  icd10Code    String   @id @map("icd10_code") @db.VarChar(10)
+  icd10Name    String   @map("icd10_name") @db.VarChar(255)
+  icd10NameVi  String?  @map("icd10_name_vi") @db.VarChar(255)
+  chapter      String?  @db.VarChar(100)
+  isCardiology Boolean  @default(false) @map("is_cardiology") // ưu tiên hiển thị trong picklist của phòng khám tim mạch
+  isActive     Boolean  @default(true) @map("is_active")
+  isCurable    Boolean? @map("is_curable")
+
+  diagnoses               Diagnosis[]
+
+  @@index([isCardiology, isActive])
+  @@map("icd10_codes")
+}
+
+// Dùng cho cả SE02 (initial) và SE05 (final)
+model Diagnosis {
+  diagnosisId       String   @id @default(uuid()) @map("diagnosis_id") @db.Char(36)
+  encounterId       String   @map("encounter_id") @db.Char(36)
+  icd10Code         String   @map("icd10_code") @db.VarChar(10)
+  diagnosisName     String   @map("diagnosis_name") @db.VarChar(255)
+  diagnosisType     String   @map("diagnosis_type") @db.VarChar(20) // initial | differential | final
+  doctorId          String   @map("doctor_id") @db.Char(36)
+  isPrimary         Boolean  @default(false) @map("is_primary")
+  notes             String?  @db.VarChar(255)
+  diagnosedAt       DateTime @map("diagnosed_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  encounter       Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  icd10           Icd10Code @relation(fields: [icd10Code], references: [icd10Code])
+  doctor          Doctor    @relation(fields: [doctorId], references: [doctorId])
+
+  diagnosticOrders DiagnosticOrder[]
+  prescriptions    Prescription[]
+
+  @@index([encounterId, diagnosisType])
+  @@index([icd10Code, diagnosedAt])
+  @@map("diagnoses")
+}
+
+// Phác đồ & tư vấn điều trị (Step 4 trong workflow). Lịch tái khám thực tế nằm ở Appointment (appointmentType = follow_up).
+model TreatmentConsultation {
+  consultationId       String   @id @default(uuid()) @map("consultation_id") @db.Char(36)
+  encounterId          String   @unique @map("encounter_id") @db.Char(36)
+  doctorId             String   @map("doctor_id") @db.Char(36)
+  conditionExplanation String   @map("condition_explanation") @db.Text
+  treatmentPlan        String   @map("treatment_plan") @db.Text
+  lifestyleAdvice      String?  @map("lifestyle_advice") @db.Text
+  nutritionAdvice      String?  @map("nutrition_advice") @db.Text
+  followUpRequired     Boolean  @default(false) @map("follow_up_required")
+  followUpIntervalDays Int?     @map("follow_up_interval_days") // gợi ý khoảng cách tái khám
+  consultedAt          DateTime @map("consulted_at")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  encounter Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  doctor    Doctor    @relation(fields: [doctorId], references: [doctorId])
+
+  @@map("treatment_consultations")
+}
+
+
+// ############################################################################
+// SE06 — PHARMACOTHERAPY PRESCRIPTION & FOLLOW-UP SCHEDULING
+// (Pharmacy/dispense không còn trong phạm vi; follow-up dùng bảng appointments ở SE01)
+// ############################################################################
+
+model AllergenCategory {
+  categoryId   String   @id @default(uuid()) @map("category_id") @db.Char(36)
+  categoryCode String   @unique @map("category_code") @db.VarChar(30)
+  categoryName String   @map("category_name") @db.VarChar(100)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  drugs DrugCatalog[]
+
+  @@map("allergen_categories")
+}
+
+model DrugCatalog {
+  drugId             String   @id @default(uuid()) @map("drug_id") @db.Char(36)
+  drugCode           String   @unique @map("drug_code") @db.VarChar(30)
+  nationalListCode   String?  @map("national_list_code") @db.VarChar(30) // mã trong Danh mục thuốc quốc gia
+  drugName           String   @map("drug_name") @db.VarChar(255)
+  genericName        String   @map("generic_name") @db.VarChar(255)
+  strength           String   @db.VarChar(50)
+  dosageForm         String   @map("dosage_form") @db.VarChar(50)
+  route              String   @db.VarChar(30)
+  unit               String   @db.VarChar(20)
+  therapeuticClass   String?  @map("therapeutic_class") @db.VarChar(100) // beta_blocker | ace_inhibitor | arb | statin | anticoagulant | antiplatelet | diuretic | ...
+  allergenCategoryId String?  @map("allergen_category_id") @db.Char(36)
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  allergenCategory AllergenCategory? @relation(fields: [allergenCategoryId], references: [categoryId])
+
+  prescriptionItems PrescriptionItem[]
+  interactionsA     DrugInteraction[]  @relation("DrugA")
+  interactionsB     DrugInteraction[]  @relation("DrugB")
+
+  @@index([genericName])
+  @@index([therapeuticClass, isActive])
+  @@map("drug_catalog")
+}
+
+model DrugInteraction {
+  interactionId String   @id @default(uuid()) @map("interaction_id") @db.Char(36)
+  drugIdA       String   @map("drug_id_a") @db.Char(36)
+  drugIdB       String   @map("drug_id_b") @db.Char(36)
+  severity      String   @db.VarChar(20) // mild | moderate | severe | contraindicated
+  description   String   @db.Text
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  drugA DrugCatalog @relation("DrugA", fields: [drugIdA], references: [drugId])
+  drugB DrugCatalog @relation("DrugB", fields: [drugIdB], references: [drugId])
+
+  // CHECK (drug_id_a < drug_id_b) cần thêm bằng migration SQL thủ công: chuẩn hóa thứ tự cặp thuốc => (A,B) và (B,A) không thể trùng nhau
+  @@unique([drugIdA, drugIdB])
+  @@index([drugIdB])
+  @@map("drug_interactions")
+}
+
+model Prescription {
+  prescriptionId     String    @id @default(uuid()) @map("prescription_id") @db.Char(36)
+  prescriptionCode   String    @unique @map("prescription_code") @db.VarChar(20)
+  encounterId        String    @map("encounter_id") @db.Char(36)
+  diagnosisId        String    @map("diagnosis_id") @db.Char(36) // diagnosis final => ICD-10
+  doctorId           String    @map("doctor_id") @db.Char(36)
+  status             String    @default("draft") @db.VarChar(20) // draft => signed (= issued) => cancelled
+  certificateSerial  String?   @map("certificate_serial") @db.VarChar(100)
+  signedDocumentHash String?   @map("signed_document_hash") @db.VarChar(64) // sha256 của PDF đã ký — chống sửa sau ký
+  signedAt           DateTime? @map("signed_at")
+  pdfFileUrl         String?   @map("pdf_file_url") @db.VarChar(255)
+  printedAt          DateTime? @map("printed_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  encounter Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  diagnosis Diagnosis @relation(fields: [diagnosisId], references: [diagnosisId])
+  doctor    Doctor    @relation(fields: [doctorId], references: [doctorId])
+
+  items        PrescriptionItem[]
+  safetyAlerts PrescriptionSafetyAlert[]
+
+  @@index([encounterId, status])
+  @@index([doctorId, createdAt(sort: Desc)])
+  @@map("prescriptions")
+}
+
+model PrescriptionItem {
+  prescriptionItemId String   @id @default(uuid()) @map("prescription_item_id") @db.Char(36)
+  prescriptionId     String   @map("prescription_id") @db.Char(36)
+  drugId             String   @map("drug_id") @db.Char(36)
+  quantity           Decimal  @db.Decimal(10, 2)
+  dosage             String   @db.VarChar(100)
+  routeCode          String?  @map("route_code") @db.VarChar(30)
+  routeSystem        String?  @map("route_system") @db.VarChar(255)
+  routeDisplay       String?  @map("route_display") @db.VarChar(100)
+  frequency          String   @db.VarChar(50)
+  durationDays       Int?     @map("duration_days") // căn cứ gợi ý ngày tái khám
+  instruction        String?  @db.Text
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  prescription Prescription @relation(fields: [prescriptionId], references: [prescriptionId], onDelete: Cascade)
+  drug         DrugCatalog  @relation(fields: [drugId], references: [drugId])
+
+  relatedAlertsA PrescriptionSafetyAlert[] @relation("RelatedItemA")
+  relatedAlertsB PrescriptionSafetyAlert[] @relation("RelatedItemB")
+
+  @@index([prescriptionId])
+  @@index([drugId])
+  @@map("prescription_items")
+}
+
+model PrescriptionSafetyAlert {
+  alertId           String    @id @default(uuid()) @map("alert_id") @db.Char(36)
+  prescriptionId    String    @map("prescription_id") @db.Char(36)
+  alertType         String    @map("alert_type") @db.VarChar(30) // drug_interaction | duplicate_therapeutic_class | allergy_contraindication
+  relatedItemIdA    String?   @map("related_item_id_a") @db.Char(36)
+  relatedItemIdB    String?   @map("related_item_id_b") @db.Char(36)
+  severity          String    @db.VarChar(20) // mild | moderate | severe | contraindicated
+  description       String    @db.Text
+  status            String    @default("active") @db.VarChar(20) // active => confirmed
+  confirmedByUserId String?   @map("confirmed_by_user_id") @db.Char(36)
+  confirmedAt       DateTime? @map("confirmed_at")
+  overrideReason    String?   @map("override_reason") @db.Text
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  prescription    Prescription      @relation(fields: [prescriptionId], references: [prescriptionId], onDelete: Cascade)
+  relatedItemA    PrescriptionItem? @relation("RelatedItemA", fields: [relatedItemIdA], references: [prescriptionItemId])
+  relatedItemB    PrescriptionItem? @relation("RelatedItemB", fields: [relatedItemIdB], references: [prescriptionItemId])
+  confirmedByUser User?             @relation("PrescriptionAlertConfirmedByUser", fields: [confirmedByUserId], references: [userId])
+
+  @@index([prescriptionId, status])
+  @@map("prescription_safety_alerts")
+}
+
+// ############################################################################
+// SE07 — CROSS-CUTTING: NOTIFICATIONS · AUDIT LOG · STATISTICS & ETA
+// ############################################################################
+
+model Notification {
+  notificationId     String    @id @default(uuid()) @map("notification_id") @db.Char(36)
+  recipientUserId    String?   @map("recipient_user_id") @db.Char(36)
+  recipientPatientId String?   @map("recipient_patient_id") @db.Char(36)
+  notificationType   String    @map("notification_type") @db.VarChar(40)
+  // registration_confirmed | queue_called | invoice_issued | payment_success | diagnostics_completed
+  // | critical_value_alert | ecg_anomaly_alert | prescription_ready | follow_up_reminder
+  channel            String    @db.VarChar(20) // email | sms | zalo_oa | in_app
+  referenceType      String?   @map("reference_type") @db.VarChar(30)
+  referenceId        String?   @map("reference_id") @db.Char(36)
+  title              String    @db.VarChar(255)
+  content            String    @db.Text
+  status             String    @default("queued") @db.VarChar(20) // queued | sent | failed | cancelled
+  scheduledAt        DateTime? @map("scheduled_at") // nhắc tái khám: worker quét queued && scheduledAt <= now()
+  retryCount         Int       @default(0) @map("retry_count")
+  errorMessage       String?   @map("error_message") @db.VarChar(500)
+  sentAt             DateTime? @map("sent_at")
+  readAt             DateTime? @map("read_at") // in_app
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  recipientUser    User?    @relation("NotificationRecipientUser", fields: [recipientUserId], references: [userId])
+  recipientPatient Patient? @relation(fields: [recipientPatientId], references: [patientId])
+
+  @@index([recipientUserId, createdAt(sort: Desc)])
+  @@index([recipientPatientId, createdAt(sort: Desc)])
+  @@index([status, scheduledAt])
+  @@index([referenceType, referenceId])
+  @@map("notifications")
+}
+
+// Cài đặt kênh thông báo của bệnh nhân/nhân viên (màn hình "multi-channel notification settings")
+model NotificationPreference {
+  preferenceId     String   @id @default(uuid()) @map("preference_id") @db.Char(36)
+  userId           String   @map("user_id") @db.Char(36)
+  channel          String   @db.VarChar(20) // email | sms | zalo_oa | in_app
+  notificationType String   @map("notification_type") @db.VarChar(40) // '*' = áp dụng mọi loại
+  isEnabled        Boolean  @default(true) @map("is_enabled")
+  destination      String?  @db.VarChar(255) // override: số điện thoại / email / zalo user id
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([userId, channel, notificationType])
+  @@map("notification_preferences")
+}
+
+// Audit log — append-only. CỐ Ý không đặt FK vật lý: log phải tồn tại độc lập, không chặn xóa/archive, dễ partition.
+model AuditLog {
+  auditId      BigInt   @id @default(autoincrement()) @map("audit_id")
+  occurredAt   DateTime @default(now()) @map("occurred_at")
+  actorType    String   @default("user") @map("actor_type") @db.VarChar(20) // user | system | ai_service
+  actorUserId  String?  @map("actor_user_id") @db.Char(36)
+  actorRole    String?  @map("actor_role") @db.VarChar(36)
+  action       String   @db.VarChar(20) // read | create | update | delete | export | print | sign | login | login_failed
+  resourceType String   @map("resource_type") @db.VarChar(50) // table/entity: patient | encounter | diagnostic_result | ecg_recording | prescription...
+  resourceId   String?  @map("resource_id") @db.VarChar(64)
+  patientId    String?  @map("patient_id") @db.Char(36) // denormalize: tra cứu "ai đã xem hồ sơ BN này"
+  encounterId  String?  @map("encounter_id") @db.Char(36)
+  outcome      String   @default("success") @db.VarChar(10) // success | denied | error
+  changes      Json?    @db.JsonB // {before:{...}, after:{...}} — chỉ field thay đổi, che dữ liệu nhạy cảm
+  accessReason String?  @map("access_reason") @db.VarChar(255) // break-glass / lý do truy cập ngoài phân quyền
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
+  userAgent    String?  @map("user_agent") @db.VarChar(255)
+  requestId    String?  @map("request_id") @db.VarChar(64)
+
+  @@index([patientId, occurredAt(sort: Desc)])
+  @@index([actorUserId, occurredAt(sort: Desc)])
+  @@index([resourceType, resourceId, occurredAt(sort: Desc)])
+  @@index([occurredAt])
+  @@map("audit_logs")
+}
+
+// Dòng thời gian từng chặng của 1 lượt khám — nguồn dữ liệu thô cho thống kê thời gian chờ & ETA
+model EncounterStageEvent {
+  stageEventId  String    @id @default(uuid()) @map("stage_event_id") @db.Char(36)
+  encounterId   String    @map("encounter_id") @db.Char(36)
+  stage         String    @db.VarChar(30)
+  // reception_queue | reception_checkin | triage_wait | vitals | doctor_wait | consultation
+  // | payment | diagnostic_wait | diagnostic_execution | result_review
+  serviceId     String?   @map("service_id") @db.Char(36) // chỉ có ở diagnostic_* (thời gian xử lý theo từng xét nghiệm)
+  referenceType String?   @map("reference_type") @db.VarChar(30)
+  referenceId   String?   @map("reference_id") @db.Char(36)
+  enteredAt     DateTime  @map("entered_at") // vào hàng đợi
+  startedAt     DateTime? @map("started_at") // bắt đầu được phục vụ
+  completedAt   DateTime? @map("completed_at")
+  waitSec       Int?      @map("wait_sec") // startedAt - enteredAt (ghi sẵn khi đóng chặng)
+  processSec    Int?      @map("process_sec") // completedAt - startedAt
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  encounter Encounter       @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
+  service   ServiceCatalog? @relation(fields: [serviceId], references: [serviceId])
+
+  @@index([encounterId, enteredAt])
+  @@index([stage, enteredAt])
+  @@index([serviceId, enteredAt])
+  @@map("encounter_stage_events")
+}
+
+// Rollup theo ngày/giờ, job đêm tính từ EncounterStageEvent — dùng cho dashboard & ước lượng thời gian chờ
+model StageStatistic {
+  statId         String   @id @default(uuid()) @map("stat_id") @db.Char(36)
+  statDate       DateTime @map("stat_date") @db.Date
+  hourOfDay      Int?     @map("hour_of_day") // 0-23, null = cả ngày
+  stage          String   @db.VarChar(30)
+  serviceId      String?  @map("service_id") @db.Char(36)
+  sampleCount    Int      @map("sample_count")
+  avgWaitSec     Int?     @map("avg_wait_sec")
+  p90WaitSec     Int?     @map("p90_wait_sec")
+  avgProcessSec  Int?     @map("avg_process_sec")
+  p90ProcessSec  Int?     @map("p90_process_sec")
+  computedAt     DateTime @default(now()) @map("computed_at")
+
+  service ServiceCatalog? @relation(fields: [serviceId], references: [serviceId])
+
+  // Lưu ý: NULL không bị coi là trùng trong unique của Postgres => cần unique index thủ công (xem tài liệu)
+  @@index([statDate, stage])
+  @@index([stage, serviceId, statDate])
+  @@map("stage_statistics")
+}
