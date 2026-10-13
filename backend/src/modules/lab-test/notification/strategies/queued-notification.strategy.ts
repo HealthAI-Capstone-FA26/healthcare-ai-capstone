@@ -33,12 +33,25 @@ abstract class QueuedNotificationStrategy implements NotificationChannelStrategy
     }
 }
 
+/**
+ * LƯU Ý DI: lớp cha trừu tượng KHÔNG có decorator nên TypeScript không phát metadata `design:paramtypes` cho nó —
+ * mỗi lớp con @Injectable PHẢI khai báo constructor tường minh, nếu không Nest không inject PrismaService
+ * (lỗi âm thầm: `this.prisma` undefined, thông báo sms/zalo_oa không được ghi).
+ */
 @Injectable()
 export class SmsNotificationStrategy extends QueuedNotificationStrategy {
     readonly channel: NotificationChannel = 'sms';
+
+    constructor(prisma: PrismaService) {
+        super(prisma);
+    }
 }
 
 @Injectable()
 export class ZaloOaNotificationStrategy extends QueuedNotificationStrategy {
     readonly channel: NotificationChannel = 'zalo_oa';
+
+    constructor(prisma: PrismaService) {
+        super(prisma);
+    }
 }
