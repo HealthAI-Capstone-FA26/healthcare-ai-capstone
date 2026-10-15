@@ -49,9 +49,10 @@ export function normalizeActorRole(roleCode: string | null | undefined): ActorRo
  */
 export function roleCodesOfActorRole(actorRole: string): string[] {
     const target = actorRole.trim().toUpperCase();
-    return Object.entries(ROLE_CODE_ALIASES)
+    const codes = Object.entries(ROLE_CODE_ALIASES)
         .filter(([, mapped]) => mapped === target)
-        .map(([code]) => code.toLowerCase());
+        .flatMap(([code]) => [code.toLowerCase(), code.toUpperCase()]);
+    return Array.from(new Set(codes));
 }
 
 /** roleCode "chính" (viết thường theo schema v2) của 1 ActorRole để tìm/gán Role. */
