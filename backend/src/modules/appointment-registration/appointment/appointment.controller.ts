@@ -12,6 +12,7 @@ import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appoint
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 import { SyncPatientDto } from './dto/sync-patient.dto';
 
 @ApiTags('Appointment')
@@ -106,5 +107,15 @@ export class AppointmentController {
     @CurrentUser() user: RequestUser,
   ) {
     return this.appointmentService.cancel(id, dto, user);
+  }
+
+  @Patch(':id/reschedule')
+  @ApiOperation({ summary: 'Bệnh nhân đổi ngày/giờ tái khám (chọn slot mới hoặc nhập ngày khác)' })
+  reschedule(
+    @Param('id') id: string,
+    @Body() dto: RescheduleAppointmentDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.appointmentService.rescheduleFollowUp(id, dto, user);
   }
 }

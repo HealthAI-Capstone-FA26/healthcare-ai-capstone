@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { AppointmentSlot, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../common/utils/code-generator.util';
 import {
@@ -25,6 +25,7 @@ import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appoint
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 import { SyncPatientDto } from './dto/sync-patient.dto';
 import { ACTOR_ROLE, roleCodesOfActorRole } from '../../../common/constants/actor-role.constant';
 
@@ -431,6 +432,107 @@ export class AppointmentService {
       }
 
       return cancelledAppointment;
+    });
+  }
+
+  // PATCH /appointments/:id/reschedule — bệnh nhân tự đổi ngày hẹn TÁI KHÁM (do bác sĩ đặt/gợi ý ban đầu).
+  async rescheduleFollowUp(appointmentId: string, dto: RescheduleAppointmentDto, currentUser: RequestUser) {
+    const appointment = await this.findById(appointmentId);
+
+    // Chỉ áp dụng cho lịch tái khám
+    if (appointment.appointmentType !== 'follow_up') {
+      throw new BadRequestException('Chỉ có thể tự đổi ngày với lịch hẹn tái khám');
+    }
+
+    // Chủ hồ sơ bệnh nhân (hoặc nhân viên có quyền UPDATE:ALL) mới được đổi
+    const isStaff = hasPermissionScope(currentUser.permissions, Resource.APPOINTMENT, Action.UPDATE, Scope.ALL);
+    if (!isStaff && appointment.patient?.userId !== currentUser.userId) {
+      throw new ForbiddenException('Bạn chỉ có thể đổi lịch tái khám của chính mình');
+    }
+
+    // Đã check-in/khám/huỷ... thì không đổi được (dùng lại rule của huỷ: chỉ pending/confirmed)
+    if (!canCancelAppointment(appointment.status)) {
+      throw new BadRequestException(`Không thể đổi lịch hẹn đang ở trạng thái '${appointment.status}'`);
+    }
+
+    if (!dto.slotId && !dto.appointmentDate) {
+      throw new BadRequestException('Vui lòng chọn slot (slotId) hoặc ngày hẹn mới (appointmentDate)');
+    }
+
+    // Xác định ngày/giờ/slot mới
+    let newDate: Date;
+    let newTime: Date | null = null;
+    let newSlot: AppointmentSlot | null = null;
+
+    if (dto.slotId) {
+      const slot = await this.prisma.appointmentSlot.findUnique({
+        where: { slotId: dto.slotId },
+        include: { schedule: true },
+      });
+      // Slot phải của đúng bác sĩ phụ trách và còn chỗ
+      if (!slot || slot.schedule.doctorId !== appointment.doctorId || slot.status !== 'free') {
+        throw new BadRequestException('Slot không tồn tại, không thuộc bác sĩ phụ trách, hoặc đã hết chỗ');
+      }
+      if (
+        dto.appointmentDate &&
+        slot.slotStartTime.toISOString().slice(0, 10) !==
+          new Date(dto.appointmentDate).toISOString().slice(0, 10)
+      ) {
+        throw new BadRequestException('Ngày của slot phải trùng với ngày hẹn mới');
+      }
+      newSlot = slot;
+      newDate = slot.slotStartTime;
+      newTime = slot.slotStartTime;
+    } else {
+      newDate = new Date(dto.appointmentDate!);
+      if (isNaN(newDate.getTime())) {
+        throw new BadRequestException('Ngày hẹn mới không hợp lệ');
+      }
+      if (dto.appointmentTime) {
+        const t = new Date(`1970-01-01T${dto.appointmentTime}Z`);
+        newTime = isNaN(t.getTime()) ? null : t;
+      }
+    }
+
+    // Không cho dời về quá khứ (so sánh theo ngày)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    if (newDate < startOfToday) {
+      throw new BadRequestException('Ngày hẹn mới phải từ hôm nay trở đi');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Trả lại chỗ ở slot cũ (nếu có), giống logic của cancel()
+      if (appointment.slotId) {
+        await tx.appointmentSlot.update({
+          where: { slotId: appointment.slotId },
+          data: { bookedCount: { decrement: 1 }, status: 'free' },
+        });
+      }
+
+      // Giữ chỗ slot mới (chống đặt trùng khi đầy)
+      if (newSlot) {
+        const updated = await tx.appointmentSlot.updateMany({
+          where: { slotId: newSlot.slotId, bookedCount: { lt: newSlot.capacity } },
+          data: { bookedCount: { increment: 1 } },
+        });
+        if (updated.count === 0) {
+          throw new ConflictException('Slot đã đầy, vui lòng chọn slot khác');
+        }
+        if (newSlot.bookedCount + 1 >= newSlot.capacity) {
+          await tx.appointmentSlot.update({ where: { slotId: newSlot.slotId }, data: { status: 'full' } });
+        }
+      }
+
+      return tx.appointment.update({
+        where: { appointmentId },
+        data: {
+          appointmentDate: newDate,
+          appointmentTime: newTime,
+          slotId: newSlot ? newSlot.slotId : null, // đổi tay theo ngày thì không gắn slot
+        },
+        include: { patient: true, doctor: true, slot: true },
+      });
     });
   }
 }
