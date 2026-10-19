@@ -301,6 +301,7 @@ model Appointment {
   encounter         Encounter?
   queueTicket       QueueTicket?
   receptionCheckins ReceptionCheckin[]
+  invoices         Invoice[]
 
   @@index([appointmentDate, status])
   @@index([doctorId, appointmentDate, status])
@@ -752,7 +753,8 @@ model ExaminationFeeCatalog {
 model Invoice {
   invoiceId      String    @id @default(uuid()) @map("invoice_id") @db.Char(36)
   invoiceCode    String    @unique @map("invoice_code") @db.VarChar(20)
-  encounterId    String    @map("encounter_id") @db.Char(36)
+  encounterId    String?   @map("encounter_id") @db.Char(36)
+  appointmentId  String?   @map("appointment_id") @db.Char(36)
   patientId      String    @map("patient_id") @db.Char(36)
   invoiceType    String    @map("invoice_type") @db.VarChar(20) // consultation (SE01) | diagnostics (SE03) | other
   subtotalAmount Decimal   @map("subtotal_amount") @db.Decimal(14, 2)
@@ -766,13 +768,15 @@ model Invoice {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  encounter   Encounter    @relation(fields: [encounterId], references: [encounterId])
+  encounter   Encounter?   @relation(fields: [encounterId], references: [encounterId])
+  appointment Appointment? @relation(fields: [appointmentId], references: [appointmentId])
   patient     Patient      @relation(fields: [patientId], references: [patientId])
 
   items    InvoiceItem[]
   payments Payment[]
 
   @@index([encounterId, status])
+  @@index([appointmentId, status])
   @@index([patientId, issuedAt(sort: Desc)])
   @@index([status, issuedAt])
   @@map("invoices")

@@ -34,9 +34,8 @@ export class InvoiceService {
 
   /**
    * POST /invoices/generate — §3.1.
-   * Schema v2: Invoice luôn gắn với 1 Encounter (encounterId NOT NULL), nên hoá đơn phí khám cũng
-   * được lập SAU khi check-in tạo Encounter. Truyền `appointmentId` chỉ là cách tra ra encounter
-   * của lịch hẹn đó. Mỗi InvoiceItem là phí khám (examinationFeeId) HOẶC dòng chỉ định CLS
+   * Invoice phí khám có thể được lập từ Appointment trước khi tạo Encounter. Invoice xét nghiệm
+   * vẫn phải gắn với Encounter. Mỗi InvoiceItem là phí khám (examinationFeeId) HOẶC dòng chỉ định CLS
    * (orderItemId — unique nên mỗi dòng chỉ được tính tiền 1 lần).
    */
   async generate(dto: GenerateInvoiceDto) {
@@ -47,18 +46,36 @@ export class InvoiceService {
       throw new BadRequestException('Chỉ được cung cấp một trong encounterId hoặc appointmentId');
     }
 
-    const encounter = await this.prisma.encounter.findUnique({
-      where: dto.encounterId
-        ? { encounterId: dto.encounterId }
-        : { appointmentId: dto.appointmentId as string },
-      include: { appointment: true },
-    });
-    if (!encounter) {
+    const encounter = dto.encounterId
+      ? await this.prisma.encounter.findUnique({
+          where: { encounterId: dto.encounterId },
+          include: { appointment: true },
+        })
+      : null;
+    const appointment = dto.appointmentId
+      ? await this.prisma.appointment.findUnique({
+          where: { appointmentId: dto.appointmentId },
+          include: { encounter: true },
+        })
+      : null;
+    if (!encounter && !appointment) {
       throw new NotFoundException(
         dto.encounterId
           ? `Không tìm thấy lượt khám ${dto.encounterId}`
-          : 'Lịch hẹn chưa check-in nên chưa có lượt khám để lập hoá đơn',
+          : `Không tìm thấy lịch hẹn ${dto.appointmentId}`,
       );
+    }
+    if (!encounter && !appointment) {
+      throw new BadRequestException('Không có ngữ cảnh để lập hoá đơn');
+    }
+    const targetEncounter = encounter ?? (dto.appointmentId ? appointment?.encounter ?? null : null);
+    const targetAppointment = appointment ?? encounter?.appointment;
+    const patientId = targetAppointment?.patientId;
+    if (!targetAppointment || !patientId) {
+      throw new BadRequestException('Lịch hẹn chưa có hồ sơ bệnh nhân');
+    }
+    if (targetEncounter && dto.appointmentId && targetEncounter.appointmentId !== dto.appointmentId) {
+      throw new BadRequestException('Lịch hẹn không khớp với lượt khám');
     }
 
     type NewItem = {
@@ -75,13 +92,15 @@ export class InvoiceService {
     const hasConsultationItem = await this.prisma.invoiceItem.findFirst({
       where: {
         examinationFeeId: { not: null },
-        invoice: { encounterId: encounter.encounterId, status: { not: 'cancelled' } },
+        invoice: targetEncounter
+          ? { encounterId: targetEncounter.encounterId, status: { not: 'cancelled' } }
+          : { appointmentId: targetAppointment.appointmentId, status: { not: 'cancelled' } },
       },
       select: { invoiceItemId: true },
     });
 
     if (!hasConsultationItem) {
-      const feeType = encounter.appointment.appointmentType === 'follow_up' ? 'follow_up' : 'standard';
+      const feeType = targetAppointment.appointmentType === 'follow_up' ? 'follow_up' : 'standard';
       const fee =
         (await this.examinationFeeService.findActiveFee(feeType)) ??
         (feeType !== 'standard' ? await this.examinationFeeService.findActiveFee('standard') : null);
@@ -100,7 +119,7 @@ export class InvoiceService {
     // 2. Dòng chỉ định CLS chưa bị huỷ và chưa có InvoiceItem nào (kể cả hoá đơn khác của encounter).
     const orderItems = await this.prisma.diagnosticOrderItem.findMany({
       where: {
-        order: { encounterId: encounter.encounterId },
+        order: { encounterId: targetEncounter?.encounterId ?? '__no_encounter__' },
         status: { not: 'cancelled' },
         invoiceItem: { is: null },
       },
@@ -146,8 +165,9 @@ export class InvoiceService {
       const created = await tx.invoice.create({
         data: {
           invoiceCode,
-          encounterId: encounter.encounterId,
-          patientId: encounter.patientId,
+          encounterId: targetEncounter?.encounterId,
+          appointmentId: targetAppointment.appointmentId,
+          patientId,
           invoiceType,
           subtotalAmount,
           discountAmount,
@@ -175,7 +195,7 @@ export class InvoiceService {
 
     // 7. Dispatch Notification 'invoice_issued' qua email + in_app (Phase 5) — không chặn nếu lỗi
     // (NotificationDispatcherService tự log lỗi từng kênh, không throw ra ngoài).
-    await this.dispatchInvoiceIssuedNotification(invoice.invoiceId, encounter.patientId);
+    await this.dispatchInvoiceIssuedNotification(invoice.invoiceId, patientId);
 
     return this.findById(invoice.invoiceId);
   }

@@ -5,9 +5,14 @@ import {
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../common/utils/code-generator.util';
 import { EncounterStatus } from '../../../common/utils/encounter-status.util';
+import {
+    AppointmentStatus,
+    isValidAppointmentTransition,
+} from '../../../common/utils/appointment-status.util';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { DoctorService } from '../../doctor/doctor.service';
@@ -38,6 +43,46 @@ export class PrescriptionFollowupService {
     private async resolveCurrentDoctor(currentUser: RequestUser) {
         await this.actorRoleService.assertActorRole(currentUser.userId, [ACTOR_ROLE.DOCTOR]);
         return this.doctorService.findByUserId(currentUser.userId);
+    }
+
+    private async completeAppointmentForEncounter(
+        tx: Prisma.TransactionClient,
+        appointmentId: string,
+    ) {
+        const appointment = await tx.appointment.findUnique({ where: { appointmentId } });
+        if (!appointment) {
+            throw new NotFoundException('Không tìm thấy lịch hẹn liên kết với lượt khám');
+        }
+
+        if (appointment.status === AppointmentStatus.COMPLETED) {
+            return appointment;
+        }
+
+        let currentStatus = appointment.status;
+        if (currentStatus !== AppointmentStatus.IN_PROGRESS) {
+            if (!isValidAppointmentTransition(currentStatus, AppointmentStatus.IN_PROGRESS)) {
+                throw new BadRequestException(
+                    `Không thể hoàn tất lịch hẹn đang ở trạng thái '${currentStatus}'`,
+                );
+            }
+
+            await tx.appointment.update({
+                where: { appointmentId },
+                data: { status: AppointmentStatus.IN_PROGRESS },
+            });
+            currentStatus = AppointmentStatus.IN_PROGRESS;
+        }
+
+        if (!isValidAppointmentTransition(currentStatus, AppointmentStatus.COMPLETED)) {
+            throw new BadRequestException(
+                `Không thể chuyển lịch hẹn từ '${currentStatus}' sang '${AppointmentStatus.COMPLETED}'`,
+            );
+        }
+
+        return tx.appointment.update({
+            where: { appointmentId },
+            data: { status: AppointmentStatus.COMPLETED },
+        });
     }
 
     // Gợi ý ngày tái khám dựa trên:
@@ -221,6 +266,7 @@ export class PrescriptionFollowupService {
                         finishedAt: new Date(),
                     },
                 });
+                await this.completeAppointmentForEncounter(tx, prescription.encounter.appointmentId);
             }
 
             return appointment;
@@ -297,12 +343,16 @@ export class PrescriptionFollowupService {
             throw new BadRequestException('Lượt khám này đã bị huỷ');
         }
 
-        return this.prisma.encounter.update({
-            where: { encounterId },
-            data: {
-                status: EncounterStatus.FINISHED,
-                finishedAt: new Date(),
-            },
+        return this.prisma.$transaction(async (tx) => {
+            const finishedEncounter = await tx.encounter.update({
+                where: { encounterId },
+                data: {
+                    status: EncounterStatus.FINISHED,
+                    finishedAt: new Date(),
+                },
+            });
+            await this.completeAppointmentForEncounter(tx, encounter.appointmentId);
+            return finishedEncounter;
         });
     }
 }

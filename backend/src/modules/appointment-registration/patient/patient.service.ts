@@ -54,17 +54,7 @@ export class PatientService {
       return this.createPatientRecord(dto, null);
     }
 
-    // Schema v2: bỏ bảng PatientContact -> mỗi tài khoản chỉ có tối đa 1 hồ sơ bệnh nhân (Patient.userId unique),
-    // không còn tạo hồ sơ cho người thân qua tài khoản của mình.
-    const rel = dto.relationship || 'self';
-    if (rel !== 'self' && rel !== 'Bản thân') {
-      throw new BadRequestException(
-        'Hệ thống không còn hỗ trợ tạo hồ sơ cho người thân; mỗi tài khoản chỉ có 1 hồ sơ bản thân. ' +
-        'Người thân vui lòng tự đăng ký tài khoản riêng hoặc đến quầy lễ tân.',
-      );
-    }
-
-    // Self-service: Tạo hồ sơ cho chính bản thân
+    // Self-service: mỗi tài khoản chỉ có tối đa 1 hồ sơ bệnh nhân bản thân (Patient.userId unique)
     const existingSelf = await this.prisma.patient.findUnique({
       where: { userId: currentUser.userId },
     });
@@ -72,12 +62,7 @@ export class PatientService {
       throw new ConflictException('Bạn đã có hồ sơ bệnh nhân bản thân, không thể tạo thêm hồ sơ bản thân');
     }
 
-    const selfPatient = await this.createPatientRecord(dto, currentUser.userId);
-
-    return {
-      ...selfPatient,
-      relationship: 'self',
-    };
+    return this.createPatientRecord(dto, currentUser.userId);
   }
 
   private async createPatientRecord(
@@ -158,9 +143,15 @@ export class PatientService {
   // với 1 patient status='main' có sẵn — tạo patient mới với status='draft' (không có userId,
   // không gắn tài khoản). Tái dùng nguyên logic check trùng identityNumber/insuranceNumber/
   // email của createPatientRecord, chỉ khác status; PHẢI truyền `tx` để nằm trong cùng transaction
-  // với bước tạo Appointment.
+  // với bước tạo Appointment.b
   async createDraftPatientRecord(dto: CreatePatientDto, tx: Prisma.TransactionClient) {
     return this.createPatientRecord(dto, null, tx, PatientStatus.DRAFT);
+  }
+
+  // [MỚI] Dùng bởi QueueTicketService.done() (at-hospital): lễ tân nhập thông tin BN tại quầy -> hồ sơ
+  // chính thức (status main) ngay, PHẢI truyền `tx` để nằm chung transaction với bước tạo appointment/encounter.
+  async createMainPatientRecord(dto: CreatePatientDto, tx: Prisma.TransactionClient) {
+    return this.createPatientRecord(dto, null, tx);
   }
 
   async findById(patientId: string) {
@@ -192,13 +183,10 @@ export class PatientService {
   async update(patientId: string, dto: UpdatePatientDto, _currentUser?: RequestUser) {
     await this.findById(patientId);
 
-    // `relationship` còn nhận từ client cũ nhưng bị bỏ qua (schema v2 không còn PatientContact).
-    const { relationship: _relationship, ...patientData } = dto;
-
     return this.prisma.patient.update({
       where: { patientId },
       data: {
-        ...patientData,
+        ...dto,
         dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
       },
     });
@@ -260,18 +248,12 @@ export class PatientService {
     return patient;
   }
 
-  // GET /patients/my — hồ sơ bệnh nhân gắn với tài khoản hiện tại (schema v2: tối đa 1, qua Patient.userId).
+  // GET /patients/my — hồ sơ bệnh nhân gắn với tài khoản hiện tại (tối đa 1, qua Patient.userId).
   async listMyPatients(currentUser: RequestUser) {
-    const patients = await this.prisma.patient.findMany({
+    return this.prisma.patient.findMany({
       where: { userId: currentUser.userId },
       orderBy: { createdAt: 'asc' },
     });
-
-    return patients.map((patient) => ({
-      ...patient,
-      relationship: 'self',
-      isPrimaryContact: true,
-    }));
   }
 
   async linkUser(patientId: string, currentUser: RequestUser) {

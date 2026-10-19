@@ -11,8 +11,7 @@ import {
 import { PatientGender } from '../../patient/dto/create-patient.dto';
 import { AppointmentPriority } from './create-appointment.dto';
 
-// Chọn 1 trong 2 kênh nhận OTP để xác thực việc đặt lịch (giống ContactVerifyMethod bên
-// patientContact, tách riêng enum vì đây là 2 luồng nghiệp vụ độc lập).
+// Chọn 1 trong 2 kênh nhận OTP để xác thực việc đặt lịch.
 export enum GuestVerifyMethod {
   EMAIL = 'email',
   SMS = 'sms',

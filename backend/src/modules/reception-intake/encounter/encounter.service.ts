@@ -28,11 +28,10 @@ export class EncounterService {
   }
 
   /**
-   * Điểm nối Module 2 -> Module 3: được gọi TRONG CÙNG transaction với
-   * `QueueTicketService.done()` (xem queue-ticket.service.ts), ngay sau khi ticket chuyển sang
-   * DONE (called -> done). Mỗi appointment chỉ có đúng 1 Encounter (appointmentId unique trên
-   * bảng encounters). `done` ở đây là "ticket rời hàng đợi, chuyển sang khám", KHÔNG phải "khám
-   * xong" — nên Encounter được tạo NGAY SAU done, mở đầu quy trình khám chứ không phải kết thúc.
+   * Điểm nối Module 2 -> Module 3: được gọi sau khi invoice examination fee của Appointment
+   * đã chuyển sang paid. Mỗi appointment chỉ có đúng 1 Encounter (appointmentId unique trên
+   * bảng encounters). QueueTicket.done() chỉ kết thúc hàng đợi và lập invoice pending; method
+   * createAfterPaidConsultation() mới chuyển appointment sang checked_in và tạo Encounter.
    *
    * - `arrivedAt` lấy từ `checkin.checkinTime` (thời điểm lễ tân thực sự tiếp nhận ở quầy, tạo
    *   trong cùng transaction với done()), KHÔNG dùng default(now()) của schema.
@@ -93,6 +92,54 @@ export class EncounterService {
         status: EncounterStatus.ARRIVED,
         arrivedAt: checkin.checkinTime,
       },
+    });
+  }
+
+  async createAfterPaidConsultation(appointmentId: string) {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { appointmentId },
+      include: {
+        encounter: true,
+        receptionCheckins: { orderBy: { checkinTime: 'desc' }, take: 1 },
+      },
+    });
+    if (!appointment) {
+      throw new NotFoundException('Không tìm thấy lịch hẹn');
+    }
+    if (!appointment.patientId) {
+      throw new BadRequestException('Lịch hẹn chưa có hồ sơ bệnh nhân');
+    }
+    if (appointment.encounter) {
+      return appointment.encounter;
+    }
+    if (appointment.status !== AppointmentStatus.CONFIRMED) {
+      throw new BadRequestException(
+        `Chỉ tạo encounter sau thanh toán khi appointment đang ở trạng thái '${AppointmentStatus.CONFIRMED}'`,
+      );
+    }
+    const checkin = appointment.receptionCheckins[0];
+    if (!checkin) {
+      throw new BadRequestException('Lịch hẹn chưa hoàn tất tiếp nhận tại quầy');
+    }
+
+    const paidConsultationInvoice = await this.prisma.invoice.findFirst({
+      where: {
+        appointmentId,
+        status: 'paid',
+        items: { some: { examinationFeeId: { not: null } } },
+      },
+      select: { invoiceId: true },
+    });
+    if (!paidConsultationInvoice) {
+      throw new BadRequestException('Bệnh nhân chưa thanh toán phí khám');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const checkedInAppointment = await tx.appointment.update({
+        where: { appointmentId, status: AppointmentStatus.CONFIRMED },
+        data: { status: AppointmentStatus.CHECKED_IN },
+      });
+      return this.createFromCheckin(tx, checkedInAppointment, checkin);
     });
   }
 

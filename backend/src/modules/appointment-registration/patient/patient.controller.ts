@@ -52,7 +52,7 @@ export class PatientController {
   @Get('my')
   @ApiOperation({
     summary:
-      'Hồ sơ bệnh nhân gắn với tài khoản hiện tại (Patient.userId), kèm relationship = self',
+      'Hồ sơ bệnh nhân gắn với tài khoản hiện tại (Patient.userId)',
   })
   findMyPatients(@CurrentUser() user: RequestUser) {
     return this.patientService.listMyPatients(user);
@@ -94,7 +94,7 @@ export class PatientController {
   @Post(':id/link-user')
   @RequirePermissions(`${Resource.PATIENT}:${Action.UPDATE}:${Scope.OWN}`)
   @ApiOperation({
-    summary: 'Liên kết hồ sơ bệnh nhân với tài khoản hiện tại (tự động tạo kèm contact self)',
+    summary: 'Liên kết hồ sơ bệnh nhân với tài khoản hiện tại',
   })
   linkUser(@Param('id') id: string, @CurrentUser() user: RequestUser) {
     return this.patientService.linkUser(id, user);

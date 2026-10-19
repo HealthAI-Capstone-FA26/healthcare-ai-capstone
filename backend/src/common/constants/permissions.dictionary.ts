@@ -23,7 +23,6 @@ export enum Resource {
     OBSERVATION = 'observation',
     ORGANIZATION = 'organization',
     PATIENT = 'patient',
-    PATIENT_CONTACT = 'patient-contact',
     PAYER = 'payer',
     PAYER_TRANSITION = 'payer-transition',
     PRESCRIPTION = 'prescription',
