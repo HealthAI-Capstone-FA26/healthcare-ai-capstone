@@ -21,4 +21,10 @@ export class FindAppointmentsQueryDto {
   @IsOptional()
   @IsDateString()
   to?: string;
+
+  @ApiPropertyOptional({ description: 'Tìm theo mã lịch hẹn, tên, SĐT, CCCD bệnh nhân' })
+  @IsOptional()
+  @IsString()
+  search?: string;
 }
+

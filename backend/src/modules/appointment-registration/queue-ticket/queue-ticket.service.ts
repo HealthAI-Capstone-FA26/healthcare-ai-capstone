@@ -224,20 +224,37 @@ export class QueueTicketService {
       throw new BadRequestException(`Không thể chuyển sang khám khi đang ở trạng thái '${ticket.status}'`);
     }
 
-    const appointment = ticket.appointment;
+    let appointment = ticket.appointment;
+    if (!appointment && dto.appointmentId) {
+      const existingAppt = await this.prisma.appointment.findUnique({
+        where: { appointmentId: dto.appointmentId },
+        include: {
+          patient: true,
+          doctor: {
+            include: { user: true },
+          },
+          slot: true,
+        },
+      });
+      if (!existingAppt) {
+        throw new NotFoundException('Không tìm thấy lịch hẹn đã chọn');
+      }
+      appointment = existingAppt;
+    }
+
     const isWalkIn = !appointment; // ticket at-hospital chưa gắn appointment
 
     if (isWalkIn) {
       // Nhánh at-hospital: bắt buộc có thông tin bệnh nhân để tạo appointment ngầm.
       if (!dto.patientId && !dto.patient) {
         throw new BadRequestException(
-          'Cần cung cấp patientId (bệnh nhân đã có hồ sơ) hoặc patient (thông tin bệnh nhân mới) để tiếp nhận số thứ tự at-hospital',
+          'Cần cung cấp appointmentId (lịch hẹn online đã đặt) hoặc patientId / patient để tiếp nhận số thứ tự',
         );
       }
       if (dto.patientId && dto.patient) {
         throw new BadRequestException('Chỉ được cung cấp một trong patientId hoặc patient');
       }
-    } else if (!appointment.patientId) {
+    } else if (appointment && !appointment.patientId) {
       // Appointment ở case "matched nhưng chưa xác nhận" (guest booking) có patientId = null cho tới
       // khi lễ tân đối chiếu qua POST /appointment/sync-patient. Chặn sớm ở đây.
       throw new BadRequestException(
@@ -297,6 +314,14 @@ export class QueueTicketService {
         });
       }
 
+      if (dto.appointmentId) {
+        // Hủy liên kết của vé cũ (nếu có) để tránh vi phạm unique constraint trên appointmentId
+        await tx.queueTicket.updateMany({
+          where: { appointmentId: currentAppointment.appointmentId, ticketId: { not: ticketId } },
+          data: { appointmentId: null, status: QueueTicketStatus.CANCELLED },
+        });
+      }
+
       // called -> done: ticket hoàn tất vai trò hàng đợi/ưu tiên ngay tại đây, KHÔNG có trạng
       // thái trung gian "serving" nào cả. Guard status=CALLED ngay trong where để 2 lễ tân bấm done
       // cùng lúc thì request đến sau bị từ chối (P2025), không tạo trùng appointment/encounter.
@@ -344,9 +369,17 @@ export class QueueTicketService {
       return { queueTicket: updatedTicket, appointment: updatedAppointment };
     });
 
-    const invoice = await this.invoiceService.generate({
-      appointmentId: result.appointment.appointmentId,
-    });
+    let invoice: any = null;
+    try {
+      invoice = await this.invoiceService.generate({
+        appointmentId: result.appointment.appointmentId,
+      });
+    } catch {
+      invoice = await this.prisma.invoice.findFirst({
+        where: { appointmentId: result.appointment.appointmentId, status: { not: 'cancelled' } },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
 
     return { ...result, invoice };
   }

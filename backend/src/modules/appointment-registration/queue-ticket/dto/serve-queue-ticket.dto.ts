@@ -13,6 +13,11 @@ export class ServeQueueTicketDto {
   @IsUUID()
   doctorId?: string;
 
+  @ApiPropertyOptional({ description: 'ID của lịch hẹn đã tạo (đặt online) cần gán vào số thứ tự này' })
+  @IsOptional()
+  @IsUUID()
+  appointmentId?: string;
+
   // ===== [MỚI] Chỉ dùng cho ticket at-hospital (bốc số trước, chưa có appointment) =====
   // Bắt buộc 1 trong 2: patientId (BN đã có hồ sơ) hoặc patient (BN mới, service tạo hồ sơ ngầm).
   @ApiPropertyOptional({ description: 'BN đã có hồ sơ — dùng thay cho `patient`' })

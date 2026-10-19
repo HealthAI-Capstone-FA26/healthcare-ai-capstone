@@ -183,10 +183,14 @@ export class AppointmentService {
           Scope.GROUP,
         ));
 
-    const where: Prisma.AppointmentWhereInput = {
-      patientId: query.patientId,
-      status: query.status,
-    };
+    const andConditions: Prisma.AppointmentWhereInput[] = [];
+
+    if (query.patientId) {
+      andConditions.push({ patientId: query.patientId });
+    }
+    if (query.status) {
+      andConditions.push({ status: query.status });
+    }
 
     // Nếu là bệnh nhân (không phải Staff/Admin xem tất cả), chỉ lấy lịch hẹn do user này đặt hoặc thuộc hồ sơ của user
     if (!isStaff && currentUser) {
@@ -197,21 +201,40 @@ export class AppointmentService {
       });
       const myPatientIds = myPatients.map((p) => p.patientId);
 
-      where.OR = [
-        { bookedByUserId: currentUser.userId },
-        { patientId: { in: myPatientIds } },
-      ];
+      andConditions.push({
+        OR: [
+          { bookedByUserId: currentUser.userId },
+          { patientId: { in: myPatientIds } },
+        ],
+      });
     }
 
     if (query.from || query.to) {
       const fromStr = query.from ? `${query.from.slice(0, 10)}T00:00:00.000Z` : undefined;
       const toStr = query.to ? `${query.to.slice(0, 10)}T23:59:59.999Z` : undefined;
 
-      where.appointmentDate = {
-        gte: fromStr ? new Date(fromStr) : undefined,
-        lte: toStr ? new Date(toStr) : undefined,
-      };
+      andConditions.push({
+        appointmentDate: {
+          gte: fromStr ? new Date(fromStr) : undefined,
+          lte: toStr ? new Date(toStr) : undefined,
+        },
+      });
     }
+
+    if (query.search?.trim()) {
+      const keyword = query.search.trim();
+      andConditions.push({
+        OR: [
+          { appointmentCode: { contains: keyword, mode: 'insensitive' } },
+          { patient: { fullName: { contains: keyword, mode: 'insensitive' } } },
+          { patient: { phoneNumber: { contains: keyword, mode: 'insensitive' } } },
+          { patient: { identityNumber: { contains: keyword, mode: 'insensitive' } } },
+        ],
+      });
+    }
+
+    const where: Prisma.AppointmentWhereInput =
+      andConditions.length > 0 ? { AND: andConditions } : {};
 
     return this.prisma.appointment.findMany({
       where,
