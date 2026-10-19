@@ -82,7 +82,7 @@ export class EncounterService {
 
     const encounterCode = await this.generateEncounterCode();
 
-    return tx.encounter.create({
+    const createdEncounter = await tx.encounter.create({
       data: {
         appointmentId: appointment.appointmentId,
         patientId: appointment.patientId,
@@ -93,6 +93,14 @@ export class EncounterService {
         arrivedAt: checkin.checkinTime,
       },
     });
+
+    // Gắn encounterId vào invoice phí khám của appointment
+    await tx.invoice.updateMany({
+      where: { appointmentId: appointment.appointmentId, encounterId: null },
+      data: { encounterId: createdEncounter.encounterId },
+    });
+
+    return createdEncounter;
   }
 
   async createAfterPaidConsultation(appointmentId: string) {
@@ -191,7 +199,10 @@ export class EncounterService {
     // điều kiện "đã thanh toán phí khám" chuyển về bước hoàn tất tiếp đón (trước khi vào hàng đợi triage).
     const paidConsultationInvoice = await this.prisma.invoice.findFirst({
       where: {
-        encounterId,
+        OR: [
+          { encounterId },
+          ...(encounter.appointmentId ? [{ appointmentId: encounter.appointmentId }] : []),
+        ],
         status: 'paid',
         items: { some: { examinationFeeId: { not: null } } },
       },
