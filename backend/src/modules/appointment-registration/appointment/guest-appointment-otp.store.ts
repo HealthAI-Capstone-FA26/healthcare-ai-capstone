@@ -14,8 +14,7 @@ export interface GuestAppointmentOtpRecord extends OtpRecordBase {
 }
 
 // Key theo phoneNumber (không có userId vì guest chưa đăng nhập) — 1 SĐT chỉ có tối đa 1 yêu cầu
-// OTP đang chờ tại 1 thời điểm, gửi request mới sẽ ghi đè request cũ (giống ContactRequestOtpStore
-// keyed theo userId).
+// OTP đang chờ tại 1 thời điểm, gửi request mới sẽ ghi đè request cũ.
 @Injectable()
 export class GuestAppointmentOtpStore extends OtpStore<GuestAppointmentOtpRecord> {
   constructor(redis: RedisService) {

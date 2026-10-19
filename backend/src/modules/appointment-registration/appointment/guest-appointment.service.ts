@@ -258,8 +258,8 @@ export class GuestAppointmentService {
     return slot;
   }
 
-  // Rate-limit theo phoneNumber — guest chưa đăng nhập nên không có userId để khoá theo như
-  // contact-request; phoneNumber là định danh duy nhất khả dụng lúc này.
+  // Rate-limit theo phoneNumber — guest chưa đăng nhập nên không có userId để khoá theo;
+  // phoneNumber là định danh duy nhất khả dụng lúc này.
   private async enforceRateLimit(phoneNumber: string) {
     const client = this.redis.getClient();
     const key = `guest-appointment-otp-rl:${phoneNumber}`;

@@ -21,7 +21,6 @@ import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 import { hasPermissionScope } from '../../../common/utils/permission.util';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { CreateAtHospitalAppointmentDto } from './dto/create-at-hospital-appointment.dto';
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
@@ -57,7 +56,7 @@ export class AppointmentService {
       throw new NotFoundException('Hồ sơ bệnh nhân bạn cần tìm không tồn tại. Hãy tạo hồ sơ trước khi đặt lịch');
     }
 
-    // 2. Schema v2: không còn PatientContact — hồ sơ chỉ gắn với đúng 1 tài khoản qua Patient.userId.
+    // 2. Hồ sơ chỉ gắn với đúng 1 tài khoản qua Patient.userId.
     // Người đặt lịch phải là chủ tài khoản của hồ sơ bệnh nhân này.
     if (!patient.userId || patient.userId !== currentUser.userId) {
       throw new ForbiddenException(
@@ -110,54 +109,6 @@ export class AppointmentService {
       }
 
       return appointment;
-    });
-  }
-
-  // POST /appointments/at-hospital (bookingChannel = walk_in) — chỉ reception staff.
-  // Luôn tạo kèm đúng 1 QueueTicket (prefix B) trong CÙNG transaction, không tách rời 2 bước (Phase 5).
-  async createAtHospital(dto: CreateAtHospitalAppointmentDto, currentUser: RequestUser) {
-    const patientId = dto.patientId;
-
-    if (!patientId) {
-      throw new BadRequestException('Cần cung cấp patientId');
-    }
-
-    const patient = await this.prisma.patient.findUnique({ where: { patientId } });
-    if (!patient) {
-      throw new NotFoundException('Không tìm thấy hồ sơ bệnh nhân');
-    }
-
-    const appointmentCode = await this.generateAppointmentCode();
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const today = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
-
-    return this.prisma.$transaction(async (tx) => {
-      const appointment = await tx.appointment.create({
-        data: {
-          appointmentCode,
-          bookingChannel: 'walk_in',
-          status: AppointmentStatus.PENDING,
-          patientId,
-          doctorId: null,
-          slotId: null,
-          bookedByUserId: currentUser.userId,
-          appointmentDate: today,
-          appointmentTime: null,
-          reasonForVisit: dto.reasonForVisit ?? dto.symptoms,
-          priority: dto.priority,
-        },
-      });
-
-      const queueTicket = await this.queueTicketService.issueTicketForAppointment(
-        tx,
-        appointment,
-        QueueTicketPrefix.AT_HOSPITAL,
-      );
-
-      return { appointment, queueTicket };
     });
   }
 
@@ -343,7 +294,7 @@ export class AppointmentService {
 
     if (appointment.bookingChannel === 'walk_in') {
       throw new BadRequestException(
-        'Lịch hẹn đăng ký tại bệnh viện đã có số thứ tự ngay từ lúc tạo, không cần check-in riêng',
+        'Lịch hẹn at-hospital được tạo ngầm lúc lễ tân tiếp nhận số thứ tự (QueueTicket done), không dùng check-in',
       );
     }
 

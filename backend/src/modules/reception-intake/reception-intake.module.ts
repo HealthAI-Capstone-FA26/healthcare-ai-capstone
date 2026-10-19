@@ -28,13 +28,11 @@ import { EncounterController } from './encounter/encounter.controller';
  * Gom domain nghiệp vụ Tiếp đón & Đăng ký khám (Module 3): Encounter, ChiefComplaint,
  * PatientIdentityVerification, Consent/ConsentPolicy, PatientAllergy, PatientMedicalHistory,
  * TriageQueueEntry. `EncounterService.completeRegistration` (module3.md mục 5 PHASE 1-2) đã
- * implement: kiểm tra đủ điều kiện tiếp đón, chuyển Encounter arrived -> registered và xếp vào
+ * implement: tạo Encounter sau khi examination fee đã paid, kiểm tra đủ điều kiện tiếp đón,
+ * chuyển Encounter arrived -> registered và xếp vào
  * hàng đợi triage qua TriageQueueService.enqueue, nối sang module vitals ở giai đoạn sau.
  *
- * EncounterService được export để QueueTicketService (module appointment-registration) gọi
- * `createFromCheckin` ngay trong bước `done()` — AppointmentRegistrationModule import module này,
- * chiều phụ thuộc chỉ 1 chiều (reception-intake không phụ thuộc ngược lại appointment-registration)
- * nên không phát sinh circular dependency.
+ * EncounterService được export để các flow tiếp đón gọi tạo Encounter sau thanh toán.
  */
 @Module({
   imports: [UserModule], // ActorRoleService cho EncounterDoctorRoutingService

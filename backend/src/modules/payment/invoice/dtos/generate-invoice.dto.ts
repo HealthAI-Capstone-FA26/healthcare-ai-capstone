@@ -7,7 +7,7 @@ export class GenerateInvoiceDto {
   @IsUUID()
   encounterId?: string;
 
-  @ApiPropertyOptional({ description: 'Thay cho encounterId: tra lượt khám theo lịch hẹn (lịch hẹn phải đã check-in)' })
+  @ApiPropertyOptional({ description: 'Thay cho encounterId: tạo hoá đơn phí khám trước khi tạo encounter' })
   @IsOptional()
   @IsUUID()
   appointmentId?: string;

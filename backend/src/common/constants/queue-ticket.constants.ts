@@ -1,7 +1,8 @@
 import { QueueTicket } from '@prisma/client';
 
 // prefix = 'A' cho appointment online (ticket được tạo lúc bệnh nhân TỚI department, không phải
-// lúc đặt online). prefix = 'B' cho at_hospital (tạo ngay lúc lễ tân tạo appointment — Phase 5).
+// lúc đặt online). prefix = 'B' cho at_hospital (bốc số TRƯỚC, chưa có appointment; appointment walk_in
+// được tạo ngầm lúc lễ tân done() — xem QueueTicketService.done).
 export enum QueueTicketPrefix {
   ONLINE = 'A',
   AT_HOSPITAL = 'B',

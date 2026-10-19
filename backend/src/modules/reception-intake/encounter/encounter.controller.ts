@@ -40,6 +40,15 @@ export class EncounterController {
     return this.encounterService.completeRegistration(id, user);
   }
 
+  @Post('from-paid-appointment/:appointmentId')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Tạo Encounter sau khi examination fee của Appointment đã thanh toán',
+  })
+  createFromPaidAppointment(@Param('appointmentId') appointmentId: string) {
+    return this.encounterService.createAfterPaidConsultation(appointmentId);
+  }
+
   @Post(':id/route-doctor')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({

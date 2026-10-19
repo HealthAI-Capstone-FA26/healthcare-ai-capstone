@@ -24,6 +24,7 @@ import { CleanupDraftPatientsCron } from '../../common/cron/cleanup-draft-patien
 
 import { ReceptionIntakeModule } from '../reception-intake/reception-intake.module';
 import { UserModule } from '../user/user.module';
+import { PaymentModule } from '../payment/payment.module'; // InvoiceService: tự lập hoá đơn phí khám ở QueueTicketService.done()
 
 /**
  * Gom toàn bộ domain nghiệp vụ đăng ký khám (Module 2 — Đăng ký khám chữa bệnh):
@@ -32,14 +33,13 @@ import { UserModule } from '../user/user.module';
  * walk-in sinh QueueTicket) nên được hợp nhất thành 1 module duy nhất.
  *
  * Schema v2: hệ thống chỉ phục vụ 1 chuyên khoa Tim mạch -> không còn Department / DoctorDepartment /
- * StaffDepartment / gợi ý khoa theo triệu chứng, và không còn PatientContact (mỗi tài khoản gắn tối đa 1
- * hồ sơ qua Patient.userId).
+ * StaffDepartment / gợi ý khoa theo triệu chứng (mỗi tài khoản gắn tối đa 1 hồ sơ qua Patient.userId).
  *
  * Import ReceptionIntakeModule (Module 3) để QueueTicketService gọi được EncounterService
  * ngay tại bước done() — xem comment trong ReceptionIntakeModule.
  */
 @Module({
-  imports: [ReceptionIntakeModule, UserModule],
+  imports: [ReceptionIntakeModule, UserModule, PaymentModule],
   controllers: [
     PatientController,
     DoctorScheduleController,

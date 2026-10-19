@@ -13,8 +13,10 @@ import {
   isValidAppointmentTransition,
 } from '../../../common/utils/appointment-status.util';
 import { combineDateWithTimeOfDay } from '../../../common/utils/schedule-time.util';
+import { generateUniqueCode } from '../../../common/utils/code-generator.util';
 import { getHospitalWallClockNow } from '../../../common/utils/hospital-clock.util';
-import { EncounterService } from '../../reception-intake/encounter/encounter.service';
+import { InvoiceService } from '../../payment/invoice/invoice.service';
+import { PatientService } from '../patient/patient.service';
 import { CallQueueTicketDto } from './dto/call-queue-ticket.dto';
 import { ServeQueueTicketDto } from './dto/serve-queue-ticket.dto';
 import { FindQueueTicketsQueryDto } from './dto/find-queue-tickets-query.dto';
@@ -23,8 +25,18 @@ import { FindQueueTicketsQueryDto } from './dto/find-queue-tickets-query.dto';
 export class QueueTicketService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly encounterService: EncounterService,
+    private readonly patientService: PatientService, // [MỚI] tạo hồ sơ BN at-hospital ngay lúc done()
+    private readonly invoiceService: InvoiceService, // lập hoá đơn phí khám trước khi tạo encounter
   ) {}
+
+  // [MỚI] Mã lịch hẹn cho appointment walk_in tạo ngầm ở done() (cùng prefix 'LH' với AppointmentService).
+  // Không inject AppointmentService vì nó đã inject QueueTicketService -> vòng phụ thuộc.
+  private generateAppointmentCode(): Promise<string> {
+    return generateUniqueCode('LH', async (code) => {
+      const existing = await this.prisma.appointment.findUnique({ where: { appointmentCode: code } });
+      return Boolean(existing);
+    });
+  }
 
   /**
    * Sinh ticketNumber tiếp theo theo (prefix, date) và tạo QueueTicket cho 1
@@ -41,6 +53,21 @@ export class QueueTicketService {
     tx: Prisma.TransactionClient,
     appointment: Appointment,
     prefix: QueueTicketPrefix,
+  ): Promise<QueueTicket> {
+    return this.createTicket(tx, prefix, appointment.appointmentId);
+  }
+
+  // [MỚI] Bốc số at-hospital (prefix B): bệnh nhân chưa có hồ sơ/appointment gì cả, ticket chỉ giữ chỗ
+  // trong hàng đợi (appointmentId = null). Appointment walk_in + patient được tạo ngầm ở done().
+  async issueWalkInTicket(): Promise<QueueTicket> {
+    return this.prisma.$transaction((tx) => this.createTicket(tx, QueueTicketPrefix.AT_HOSPITAL, null));
+  }
+
+  // Phần sinh số + chống race giữ nguyên như cũ, chỉ khác appointmentId có thể null (walk-in).
+  private async createTicket(
+    tx: Prisma.TransactionClient,
+    prefix: QueueTicketPrefix,
+    appointmentId: string | null,
   ): Promise<QueueTicket> {
     // Ticket luôn đại diện cho hàng đợi CỦA NGÀY BỆNH NHÂN THẬT SỰ CÓ MẶT tại khoa, không phải
     // ngày tạo appointment. Với at_hospital 2 mốc này trùng nhau (tạo lúc nào đến lúc đó) nên
@@ -59,7 +86,7 @@ export class QueueTicketService {
       try {
         return await tx.queueTicket.create({
           data: {
-            appointmentId: appointment.appointmentId,
+            appointmentId,
             ticketPrefix: prefix,
             ticketDate,
             ticketNumber,
@@ -182,40 +209,45 @@ export class QueueTicketService {
     });
   }
 
-  // PATCH /queue-tickets/:id/done — bàn giao Module 3: kết thúc lượt gọi số (called -> done),
-  // tạo ReceptionCheckin (chỉ là mốc BẮT ĐẦU tiếp nhận, không phải dấu hiệu "đang khám"), gán
-  // doctorId, chuyển Appointment.status = checked_in ĐÚNG QUA transition map dùng chung Phase 4
-  // (không viết map riêng), rồi tạo Encounter — tất cả trong CÙNG 1 transaction. `done` ở đây
-  // KHÔNG phải "khám xong", mà là "ticket đã hoàn tất vai trò hàng đợi, chuyển sang workflow khám".
+  // PATCH /queue-tickets/:id/done — kết thúc lượt gọi số (called -> done), tạo Appointment
+  // walk_in nếu cần và lập invoice phí khám pending. Encounter chỉ được tạo sau khi invoice
+  // examination fee đã paid qua API riêng.
+  //
+  // 2 nhánh:
+  //  - ONLINE (ticket đã gắn appointment): như cũ.
+  //  - AT-HOSPITAL (ticket bốc trước, appointmentId = null): lễ tân nhập thông tin bệnh nhân
+  //    (patientId có sẵn HOẶC patient mới) -> tạo ngầm patient (nếu mới) + appointment walk_in, gắn vào
+  //    ticket, rồi lập invoice phí khám pending.
   async done(ticketId: string, dto: ServeQueueTicketDto, currentUser: RequestUser) {
     const ticket = await this.findById(ticketId);
     if (ticket.status !== QueueTicketStatus.CALLED) {
       throw new BadRequestException(`Không thể chuyển sang khám khi đang ở trạng thái '${ticket.status}'`);
     }
 
-    // Appointment ở case "matched nhưng chưa xác nhận" (guest booking, xem
-    // GuestAppointmentService/Phase 1-2) có patientId = null cho tới khi lễ tân đối chiếu qua
-    // POST /appointment/sync-patient (Phase 3). Chặn ngay tại đây (trước khi làm các bước check
-    // bác sĩ/ca trực tốn kém) thay vì để rớt xuống EncounterService.createFromCheckin giữa transaction.
-    // Ticket walk-in được cấp TRƯỚC appointment (appointmentId = null) -> lễ tân phải tạo/gắn appointment trước.
     const appointment = ticket.appointment;
-    if (!appointment) {
-      throw new BadRequestException(
-        'Số thứ tự này chưa gắn lịch hẹn, vui lòng tạo lịch hẹn cho bệnh nhân trước khi tiếp nhận',
-      );
-    }
+    const isWalkIn = !appointment; // ticket at-hospital chưa gắn appointment
 
-    if (!appointment.patientId) {
+    if (isWalkIn) {
+      // Nhánh at-hospital: bắt buộc có thông tin bệnh nhân để tạo appointment ngầm.
+      if (!dto.patientId && !dto.patient) {
+        throw new BadRequestException(
+          'Cần cung cấp patientId (bệnh nhân đã có hồ sơ) hoặc patient (thông tin bệnh nhân mới) để tiếp nhận số thứ tự at-hospital',
+        );
+      }
+      if (dto.patientId && dto.patient) {
+        throw new BadRequestException('Chỉ được cung cấp một trong patientId hoặc patient');
+      }
+    } else if (!appointment.patientId) {
+      // Appointment ở case "matched nhưng chưa xác nhận" (guest booking) có patientId = null cho tới
+      // khi lễ tân đối chiếu qua POST /appointment/sync-patient. Chặn sớm ở đây.
       throw new BadRequestException(
         'Lịch hẹn chưa xác nhận hồ sơ bệnh nhân, vui lòng đồng bộ (sync-patient) trước khi check-in',
       );
     }
 
-    // Online đã chọn bác sĩ cụ thể ngay từ lúc đặt lịch -> LUÔN ƯU TIÊN doctorId đã có sẵn trên
-    // appointment, không cho lễ tân đổi tuỳ tiện tại bước serve (tránh gán nhầm/đổi khác ý bệnh
-    // nhân đã chọn). Chỉ khi appointment chưa có doctorId (at_hospital, chưa từng chọn bác sĩ)
-    // mới bắt buộc lễ tân cung cấp qua dto.doctorId.
-    const doctorId = appointment.doctorId ?? dto.doctorId;
+    // Online đã chọn bác sĩ từ lúc đặt lịch -> LUÔN ƯU TIÊN doctorId trên appointment. Walk-in chưa có
+    // appointment nên bắt buộc lễ tân cung cấp qua dto.doctorId.
+    const doctorId = appointment?.doctorId ?? dto.doctorId;
     if (!doctorId) {
       throw new BadRequestException(
         'Lịch hẹn này chưa gán bác sĩ, cần cung cấp doctorId khi tiếp nhận',
@@ -227,33 +259,74 @@ export class QueueTicketService {
       throw new NotFoundException('Không tìm thấy bác sĩ');
     }
 
-    // Quyết định cho Câu hỏi mở #1 Phase 5: bác sĩ bắt buộc đang có DoctorSchedule active đúng
-    // khung giờ hiện tại tại khoa này, không để lễ tân chọn tự do (tránh gán nhầm bác sĩ đã hết
-    // ca/nghỉ, nhất quán với luồng online vốn đã validate slot theo đúng ca của bác sĩ).
+    // Bác sĩ bắt buộc đang có DoctorSchedule active đúng khung giờ hiện tại (Câu hỏi mở #1 Phase 5).
     await this.assertDoctorOnActiveShift(doctorId);
 
-    return this.prisma.$transaction(async (tx) => {
-      // called -> done: ticket hoàn tất vai trò hàng đợi/ưu tiên ngay tại đây, KHÔNG có trạng
-      // thái trung gian "serving" nào cả.
-      const updatedTicket = await tx.queueTicket.update({
-        where: { ticketId },
-        data: { status: QueueTicketStatus.DONE },
-      });
+    // Sinh mã ngoài transaction (giống cách AppointmentService làm), chỉ cần cho nhánh walk-in.
+    const appointmentCode = isWalkIn ? await this.generateAppointmentCode() : null;
 
-      // Chỉ là mốc bắt đầu tiếp nhận (ai tiếp nhận, quầy nào), không mang ý nghĩa "đang khám".
-      const checkin = await tx.receptionCheckin.create({
+    const result = await this.prisma.$transaction(async (tx) => {
+      let currentAppointment: Appointment | null = appointment;
+
+      if (!currentAppointment) {
+        // [MỚI] Tạo ngầm patient (nếu là BN mới) + appointment walk_in trong cùng transaction với done.
+        let patientId = dto.patientId;
+        if (patientId) {
+          const existing = await tx.patient.findUnique({ where: { patientId } });
+          if (!existing) {
+            throw new NotFoundException('Không tìm thấy hồ sơ bệnh nhân');
+          }
+        } else {
+          patientId = (await this.patientService.createMainPatientRecord(dto.patient!, tx)).patientId;
+        }
+
+        currentAppointment = await tx.appointment.create({
+          data: {
+            appointmentCode: appointmentCode!,
+            bookingChannel: 'walk_in',
+            status: AppointmentStatus.PENDING,
+            patientId,
+            doctorId,
+            slotId: null,
+            bookedByUserId: currentUser.userId,
+            appointmentDate: toDateOnlyUTC(getHospitalWallClockNow()),
+            appointmentTime: null,
+            reasonForVisit: dto.reasonForVisit ?? dto.symptoms,
+            priority: dto.priority,
+          },
+        });
+      }
+
+      // called -> done: ticket hoàn tất vai trò hàng đợi/ưu tiên ngay tại đây, KHÔNG có trạng
+      // thái trung gian "serving" nào cả. Guard status=CALLED ngay trong where để 2 lễ tân bấm done
+      // cùng lúc thì request đến sau bị từ chối (P2025), không tạo trùng appointment/encounter.
+      // appointmentId được gắn vào ticket ở đây (với walk-in là lần đầu tiên có giá trị).
+      const updatedTicket = await tx.queueTicket
+        .update({
+          where: { ticketId, status: QueueTicketStatus.CALLED },
+          data: { status: QueueTicketStatus.DONE, appointmentId: currentAppointment.appointmentId },
+        })
+        .catch((error) => {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+            throw new BadRequestException(
+              "Số thứ tự vừa được tiếp nhận bởi thao tác khác (không còn ở trạng thái 'called')",
+            );
+          }
+          throw error;
+        });
+
+      // Lưu mốc tiếp nhận để dùng khi tạo Encounter sau khi invoice được thanh toán.
+      await tx.receptionCheckin.create({
         data: {
-          appointmentId: appointment.appointmentId,
+          appointmentId: currentAppointment.appointmentId,
           receptionStaffUserId: currentUser.userId,
           counterNumber: ticket.counterNumber,
         },
       });
 
-      // pending -> confirmed -> checked_in, đi từng bước hợp lệ theo đúng map dùng chung
-      // (at_hospital appointment không có bước "confirmed" riêng ở FE, nhưng vẫn phải qua đúng
-      // state machine chung với Phase 4 chứ không nhảy thẳng pending -> checked_in).
-      let currentStatus = appointment.status;
-      for (const nextStatus of [AppointmentStatus.CONFIRMED, AppointmentStatus.CHECKED_IN]) {
+      // pending -> confirmed. Appointment chỉ chuyển sang checked_in khi tạo Encounter sau thanh toán.
+      let currentStatus = currentAppointment.status;
+      for (const nextStatus of [AppointmentStatus.CONFIRMED]) {
         if (currentStatus === nextStatus) continue;
         if (!isValidAppointmentTransition(currentStatus, nextStatus)) {
           throw new BadRequestException(
@@ -264,15 +337,17 @@ export class QueueTicketService {
       }
 
       const updatedAppointment = await tx.appointment.update({
-        where: { appointmentId: appointment.appointmentId },
-        data: { doctorId, status: AppointmentStatus.CHECKED_IN },
+        where: { appointmentId: currentAppointment.appointmentId },
+        data: { doctorId, status: AppointmentStatus.CONFIRMED },
       });
 
-      // done xảy ra TRƯỚC khi tạo Encounter (done = "chuyển sang khám", không phải "khám xong") —
-      // tạo Encounter ngay trong cùng transaction, mở đầu workflow khám (Module 3).
-      const encounter = await this.encounterService.createFromCheckin(tx, updatedAppointment, checkin);
-
-      return { queueTicket: updatedTicket, appointment: updatedAppointment, encounter };
+      return { queueTicket: updatedTicket, appointment: updatedAppointment };
     });
+
+    const invoice = await this.invoiceService.generate({
+      appointmentId: result.appointment.appointmentId,
+    });
+
+    return { ...result, invoice };
   }
 }
