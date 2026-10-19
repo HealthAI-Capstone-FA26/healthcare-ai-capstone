@@ -11,10 +11,10 @@ import { FindConsentsQueryDto } from './dto/find-consent-query.dto';
 
 @ApiTags('Consent')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('consents')
 export class ConsentController {
-  constructor(private readonly consentService: ConsentService) {}
+  constructor(private readonly consentService: ConsentService) { }
 
   @Post()
   @ApiOperation({ summary: 'Ghi nhận chữ ký điện tử đồng ý theo 1 policy (data_processing/treatment_consent/...)' })
