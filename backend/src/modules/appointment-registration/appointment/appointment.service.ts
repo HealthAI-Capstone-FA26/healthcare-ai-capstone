@@ -20,6 +20,7 @@ import { QueueTicketPrefix } from '../../../common/constants/queue-ticket.consta
 import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 import { hasPermissionScope } from '../../../common/utils/permission.util';
+import { getHospitalWallClockNow } from '../../../common/utils/hospital-clock.util';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { FindAppointmentsQueryDto } from './dto/find-appointments-query.dto';
 import { UpdateAppointmentStatusDto } from './dto/update-appointment-status.dto';
@@ -71,6 +72,9 @@ export class AppointmentService {
     });
     if (!slot || slot.schedule.doctorId !== dto.doctorId || slot.status !== 'free') {
       throw new BadRequestException('Slot không tồn tại, không thuộc bác sĩ này, hoặc đã hết chỗ');
+    }
+    if (slot.slotStartTime.getTime() <= getHospitalWallClockNow().getTime()) {
+      throw new BadRequestException('Khung giờ khám này đã kết thúc hoặc không còn khả dụng để đặt lịch');
     }
 
     const appointmentCode = await this.generateAppointmentCode();
@@ -446,6 +450,9 @@ export class AppointmentService {
       // Slot phải của đúng bác sĩ phụ trách và còn chỗ
       if (!slot || slot.schedule.doctorId !== appointment.doctorId || slot.status !== 'free') {
         throw new BadRequestException('Slot không tồn tại, không thuộc bác sĩ phụ trách, hoặc đã hết chỗ');
+      }
+      if (slot.slotStartTime.getTime() <= getHospitalWallClockNow().getTime()) {
+        throw new BadRequestException('Khung giờ khám này đã kết thúc hoặc không còn khả dụng để đặt lịch');
       }
       if (
         dto.appointmentDate &&

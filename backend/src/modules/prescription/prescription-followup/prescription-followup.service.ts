@@ -18,6 +18,7 @@ import { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { DoctorService } from '../../doctor/doctor.service';
 import { ActorRoleService } from '../../user/actor-role.service';
 import { NotificationDispatcherService } from '../notification/notification-dispatcher.service';
+import { getHospitalWallClockNow } from '../../../common/utils/hospital-clock.util';
 import { ScheduleFollowupDto } from './dtos/schedule-followup.dto';
 
 const APPOINTMENT_CODE_PREFIX = 'LH';
@@ -193,6 +194,9 @@ export class PrescriptionFollowupService {
 
             if (!slot || slot.status !== 'free') {
                 throw new BadRequestException('Slot không tồn tại hoặc đã hết chỗ');
+            }
+            if (slot.slotStartTime.getTime() <= getHospitalWallClockNow().getTime()) {
+                throw new BadRequestException('Khung giờ khám này đã kết thúc hoặc không còn khả dụng để đặt lịch');
             }
             if (slot.schedule.doctorId !== followUpDoctorId) {
                 throw new BadRequestException('Slot không thuộc bác sĩ được chọn cho lịch tái khám');

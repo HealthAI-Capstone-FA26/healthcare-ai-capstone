@@ -11,6 +11,7 @@ import { assertOtpValid } from '../../auth/common/otp-validation.util';
 import { AppointmentStatus } from '../../../common/utils/appointment-status.util';
 import { PatientStatus } from '../../../common/constants/patient-status.constants';
 import { PatientService } from '../patient/patient.service';
+import { getHospitalWallClockNow } from '../../../common/utils/hospital-clock.util';
 import { GuestAppointmentOtpStore } from './guest-appointment-otp.store';
 import { GuestRequestOtpDto, GuestVerifyMethod } from './dto/guest-request-otp.dto';
 import { GuestVerifyOtpDto } from './dto/guest-verify-otp.dto';
@@ -47,6 +48,9 @@ export class GuestAppointmentService {
     if (dto.verifyMethod === GuestVerifyMethod.EMAIL && !dto.email) {
       throw new BadRequestException('Cần cung cấp email khi chọn kênh xác thực OTP là email');
     }
+
+    // Kiểm tra slot còn trống, đúng bác sĩ và chưa quá hạn trước khi gửi OTP
+    await this.assertSlotBookable(dto.doctorId, dto.slotId);
 
     await this.enforceRateLimit(dto.phoneNumber);
 
@@ -254,6 +258,9 @@ export class GuestAppointmentService {
     }
     if (slot.schedule.doctorId !== doctorId) {
       throw new BadRequestException('Slot không thuộc bác sĩ đã chọn');
+    }
+    if (slot.slotStartTime.getTime() <= getHospitalWallClockNow().getTime()) {
+      throw new BadRequestException('Khung giờ khám này đã kết thúc hoặc không còn khả dụng để đặt lịch');
     }
     return slot;
   }
