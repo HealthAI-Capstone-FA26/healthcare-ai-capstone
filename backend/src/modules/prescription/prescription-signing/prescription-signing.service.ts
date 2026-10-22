@@ -16,8 +16,6 @@ import {
 import { PRESCRIPTION_SIGNED_EVENT, PrescriptionSignedEvent } from './events/prescription-signed.event';
 import { NotificationDispatcherService } from '../notification/notification-dispatcher.service';
 
-const SEVERITY_BLOCKING_SIGN = new Set(['severe', 'contraindicated']);
-
 const PRESCRIPTION_FOR_SIGNING_INCLUDE = {
     items: { include: { drug: true } },
     safetyAlerts: true,
@@ -84,7 +82,7 @@ export class PrescriptionSigningService {
         }
 
         const blockingAlert = prescription.safetyAlerts.find(
-            (alert) => alert.status === 'active' && SEVERITY_BLOCKING_SIGN.has(alert.severity),
+            (alert) => alert.status === 'active' && ['severe', 'contraindicated'].includes(alert.severity),
         );
         if (blockingAlert) {
             throw new ForbiddenException(

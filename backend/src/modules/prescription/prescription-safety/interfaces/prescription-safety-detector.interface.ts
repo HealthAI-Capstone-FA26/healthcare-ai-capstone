@@ -1,7 +1,6 @@
 import { DrugCatalog, PrescriptionItem } from '@prisma/client';
 
 export type PrescriptionAlertType =
-    | 'drug_interaction'
     | 'duplicate_therapeutic_class'
     | 'allergy_contraindication';
 
@@ -18,7 +17,7 @@ export interface PrescriptionSafetyDetectionResult {
 export type PrescriptionItemWithDrug = PrescriptionItem & { drug: DrugCatalog };
 
 /**
- * Interface chung mà mọi detector (drug interaction, trùng nhóm điều trị, dị ứng...) phải
+ * Interface chung mà mọi detector (trùng nhóm điều trị, dị ứng...) phải
  * implement — cùng kiểu thiết kế detector/orchestrator đã dùng ở lab-anomaly/vital-anomaly,
  * nhưng chạy ĐỒNG BỘ ngay trong request (không cần event/listener/gateway) theo quyết định
  * 2-A của plan module 9.

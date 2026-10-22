@@ -1311,30 +1311,9 @@ model DrugCatalog {
   allergenCategory AllergenCategory? @relation(fields: [allergenCategoryId], references: [categoryId])
 
   prescriptionItems PrescriptionItem[]
-  interactionsA     DrugInteraction[]  @relation("DrugA")
-  interactionsB     DrugInteraction[]  @relation("DrugB")
-
   @@index([genericName])
   @@index([therapeuticClass, isActive])
   @@map("drug_catalog")
-}
-
-model DrugInteraction {
-  interactionId String   @id @default(uuid()) @map("interaction_id") @db.Char(36)
-  drugIdA       String   @map("drug_id_a") @db.Char(36)
-  drugIdB       String   @map("drug_id_b") @db.Char(36)
-  severity      String   @db.VarChar(20) // mild | moderate | severe | contraindicated
-  description   String   @db.Text
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  drugA DrugCatalog @relation("DrugA", fields: [drugIdA], references: [drugId])
-  drugB DrugCatalog @relation("DrugB", fields: [drugIdB], references: [drugId])
-
-  // CHECK (drug_id_a < drug_id_b) cần thêm bằng migration SQL thủ công: chuẩn hóa thứ tự cặp thuốc => (A,B) và (B,A) không thể trùng nhau
-  @@unique([drugIdA, drugIdB])
-  @@index([drugIdB])
-  @@map("drug_interactions")
 }
 
 model Prescription {
@@ -1392,12 +1371,12 @@ model PrescriptionItem {
 model PrescriptionSafetyAlert {
   alertId           String    @id @default(uuid()) @map("alert_id") @db.Char(36)
   prescriptionId    String    @map("prescription_id") @db.Char(36)
-  alertType         String    @map("alert_type") @db.VarChar(30) // drug_interaction | duplicate_therapeutic_class | allergy_contraindication
+  alertType         String    @map("alert_type") @db.VarChar(30)
   relatedItemIdA    String?   @map("related_item_id_a") @db.Char(36)
   relatedItemIdB    String?   @map("related_item_id_b") @db.Char(36)
-  severity          String    @db.VarChar(20) // mild | moderate | severe | contraindicated
+  severity          String    @db.VarChar(20)
   description       String    @db.Text
-  status            String    @default("active") @db.VarChar(20) // active => confirmed
+  status            String    @default("active") @db.VarChar(20)
   confirmedByUserId String?   @map("confirmed_by_user_id") @db.Char(36)
   confirmedAt       DateTime? @map("confirmed_at")
   overrideReason    String?   @map("override_reason") @db.Text

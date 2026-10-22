@@ -138,7 +138,6 @@ export class PrescriptionService {
             });
         });
 
-        // Chạy đồng bộ Safety Check ngay sau khi tạo đơn
         await this.safetyCheckOrchestrator.run(prescription.prescriptionId);
 
         return this.findById(prescription.prescriptionId);
@@ -186,7 +185,6 @@ export class PrescriptionService {
             });
         });
 
-        // Chạy lại Safety Check sau khi cập nhật danh sách thuốc
         await this.safetyCheckOrchestrator.run(prescriptionId);
 
         return this.findById(prescriptionId);

@@ -7,7 +7,6 @@ import { DrugCatalogController } from './drug-catalog/drug-catalog.controller';
 import { DrugCatalogService } from './drug-catalog/drug-catalog.service';
 import { PrescriptionController } from './prescription/prescription.controller';
 import { PrescriptionService } from './prescription/prescription.service';
-import { DrugInteractionDetector } from './prescription-safety/detectors/drug-interaction.detector';
 import { DuplicateTherapeuticClassDetector } from './prescription-safety/detectors/duplicate-therapeutic-class.detector';
 import { AllergyContraindicationDetector } from './prescription-safety/detectors/allergy-contraindication.detector';
 import { PrescriptionSafetyCheckOrchestrator } from './prescription-safety/orchestrators/prescription-safety-check.orchestrator';
@@ -39,7 +38,6 @@ import { DefaultEmailSenderAdapter, EMAIL_SENDER_PORT } from './notification/por
         PrismaService,
         DrugCatalogService,
         PrescriptionService,
-        DrugInteractionDetector,
         DuplicateTherapeuticClassDetector,
         AllergyContraindicationDetector,
         PrescriptionSafetyCheckOrchestrator,

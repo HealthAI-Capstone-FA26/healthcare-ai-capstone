@@ -45,15 +45,12 @@ export class DrugCatalogService {
         };
     }
 
-    // GET /prescriptions/drug-catalog/:drugId — chi tiết thuốc kèm allergenCategory và toàn bộ
-    // DrugInteraction mà thuốc này tham gia (cả 2 chiều drugIdA/drugIdB), để FE cảnh báo sớm.
+    // GET /prescriptions/drug-catalog/:drugId — chi tiết thuốc kèm allergenCategory.
     async findById(drugId: string) {
         const drug = await this.prisma.drugCatalog.findUnique({
             where: { drugId },
             include: {
                 allergenCategory: true,
-                interactionsA: { where: { isActive: true }, include: { drugB: true } },
-                interactionsB: { where: { isActive: true }, include: { drugA: true } },
             },
         });
 

@@ -23,7 +23,7 @@ export class DrugCatalogController {
 
     @Get(':drugId')
     @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.READ}:${Scope.ALL}`)
-    @ApiOperation({ summary: 'Chi tiết 1 thuốc kèm allergenCategory và các DrugInteraction liên quan' })
+    @ApiOperation({ summary: 'Chi tiết 1 thuốc kèm allergenCategory' })
     findOne(@Param('drugId') drugId: string) {
         return this.drugCatalogService.findById(drugId);
     }
