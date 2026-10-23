@@ -5,7 +5,7 @@ import { PermissionsGuard } from '../../../common/guards/permissions.guard';
 import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
 import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
-import { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { RequestUser } from '../../identity-access/auth/strategies/jwt.strategy';
 import { PaymentService } from './payment.service';
 import { CreateCashPaymentDto } from './dtos/create-cash-payment.dto';
 import { ConfirmCashPaymentDto } from './dtos/confirm-cash-payment.dto';

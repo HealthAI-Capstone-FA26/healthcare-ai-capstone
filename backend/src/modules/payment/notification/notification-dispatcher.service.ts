@@ -6,6 +6,10 @@ import {
 } from './notification-channel.interface';
 import { EmailNotificationStrategy } from './strategies/email-notification.strategy';
 import { InAppNotificationStrategy } from './strategies/in-app-notification.strategy';
+import {
+    CentralSmsNotificationStrategy,
+    CentralZaloOaNotificationStrategy,
+} from '../../platform/notification/strategies/queued-channel.strategies';
 
 /**
  * Điều phối gửi thông báo qua nhiều kênh (Strategy pattern) — cùng thiết kế đã dùng ở
@@ -24,13 +28,16 @@ export class NotificationDispatcherService {
     constructor(
         private readonly emailStrategy: EmailNotificationStrategy,
         private readonly inAppStrategy: InAppNotificationStrategy,
+        // SMS / Zalo OA: strategy dùng chung từ NotificationModule (global) — chỉ ghi 'queued', worker SE07 gửi.
+        private readonly smsStrategy: CentralSmsNotificationStrategy,
+        private readonly zaloOaStrategy: CentralZaloOaNotificationStrategy,
     ) {
-        this.strategiesByPriority = [this.inAppStrategy, this.emailStrategy];
+        this.strategiesByPriority = [this.inAppStrategy, this.emailStrategy, this.smsStrategy, this.zaloOaStrategy];
     }
 
     /**
      * Gửi 1 thông báo qua các kênh chỉ định. Không truyền `channels` -> gửi qua TẤT CẢ
-     * (email + in_app).
+     * (in_app + email + sms + zalo_oa; sms/zalo chỉ phát sinh khi người nhận có liên hệ & không tắt kênh).
      */
     async dispatch(payload: NotificationPayload, channels?: NotificationChannel[]): Promise<void> {
         const targets = channels

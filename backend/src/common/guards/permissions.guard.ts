@@ -14,7 +14,7 @@ import {
     Scope,
 } from '../constants/permissions.dictionary';
 import { hasPermissionScope } from '../utils/permission.util';
-import { RequestUser } from '../../modules/auth/strategies/jwt.strategy';
+import { RequestUser } from '../../modules/identity-access/auth/strategies/jwt.strategy';
 
 /**
  * Guard kiểm tra RBAC theo permission code (resource:action:scope).

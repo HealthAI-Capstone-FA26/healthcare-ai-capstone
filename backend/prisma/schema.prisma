@@ -227,6 +227,7 @@ model Doctor {
   diagnoses              Diagnosis[]
   treatmentConsultations TreatmentConsultation[]
   prescriptions          Prescription[]
+  certificates           DoctorCertificate[]
 
   @@map("doctors")
 }
@@ -1344,8 +1345,9 @@ model Prescription {
   diagnosisId        String    @map("diagnosis_id") @db.Char(36) // diagnosis final => ICD-10
   doctorId           String    @map("doctor_id") @db.Char(36)
   status             String    @default("draft") @db.VarChar(20) // draft => signed (= issued) => cancelled
-  certificateSerial  String?   @map("certificate_serial") @db.VarChar(100)
-  signedDocumentHash String?   @map("signed_document_hash") @db.VarChar(64) // sha256 của PDF đã ký — chống sửa sau ký
+  certificateSerial  String?   @map("certificate_serial") @db.VarChar(100) // serial X.509 (hex) của chứng thư số bác sĩ dùng để ký
+  signatureCertificateId String? @map("signature_certificate_id") @db.Char(36) // FK DoctorCertificate — truy vết chứng thư/CA đã ký
+  signedDocumentHash String?   @map("signed_document_hash") @db.VarChar(64) // sha256 của PDF đã ký (PAdES) — chống sửa sau ký
   signedAt           DateTime? @map("signed_at")
   pdfFileUrl         String?   @map("pdf_file_url") @db.VarChar(255)
   printedAt          DateTime? @map("printed_at")
@@ -1355,13 +1357,68 @@ model Prescription {
   encounter Encounter @relation(fields: [encounterId], references: [encounterId], onDelete: Cascade)
   diagnosis Diagnosis @relation(fields: [diagnosisId], references: [diagnosisId])
   doctor    Doctor    @relation(fields: [doctorId], references: [doctorId])
+  signatureCertificate DoctorCertificate? @relation(fields: [signatureCertificateId], references: [certificateId])
 
   items        PrescriptionItem[]
   safetyAlerts PrescriptionSafetyAlert[]
 
   @@index([encounterId, status])
+  @@index([signatureCertificateId])
   @@index([doctorId, createdAt(sort: Desc)])
   @@map("prescriptions")
+}
+
+// ---------- PKI / CA — chữ ký số đơn thuốc (SE06 "Validation & Issuance") ----------
+// PkiAuthority: CA gốc nội bộ (internal_root, giữ private key đã mã hoá AES-256-GCM) hoặc CA/Root tin cậy bên ngoài
+// (trusted_external — vd. CA công cộng được cấp phép theo NĐ 130/2018/NĐ-CP; chỉ lưu chứng thư công khai).
+model PkiAuthority {
+  authorityId         String   @id @default(uuid()) @map("authority_id") @db.Char(36)
+  kind                String   @db.VarChar(20) // internal_root | trusted_external
+  subjectDn           String   @map("subject_dn") @db.VarChar(500)
+  serialNumber        String   @map("serial_number") @db.VarChar(64)
+  fingerprintSha256   String   @unique @map("fingerprint_sha256") @db.Char(64)
+  certPem             String   @map("cert_pem") @db.Text
+  encryptedPrivateKey String?  @map("encrypted_private_key") @db.Text // chỉ internal_root: "v1.<iv>.<tag>.<ciphertext>"
+  notBefore           DateTime @map("not_before")
+  notAfter            DateTime @map("not_after")
+  status              String   @default("active") @db.VarChar(20) // active | retired
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  certificates DoctorCertificate[]
+
+  @@index([kind, status])
+  @@map("pki_authorities")
+}
+
+// DoctorCertificate: chứng thư X.509 của bác sĩ + private key (mã hoá). source: internal_ca (CA nội bộ cấp) | imported (.p12 từ CA ngoài).
+model DoctorCertificate {
+  certificateId       String    @id @default(uuid()) @map("certificate_id") @db.Char(36)
+  doctorId            String    @map("doctor_id") @db.Char(36)
+  authorityId         String?   @map("authority_id") @db.Char(36) // null nếu import từ CA ngoài
+  source              String    @db.VarChar(20) // internal_ca | imported
+  serialNumber        String    @map("serial_number") @db.VarChar(64) // hex
+  subjectDn           String    @map("subject_dn") @db.VarChar(500)
+  issuerDn            String    @map("issuer_dn") @db.VarChar(500)
+  fingerprintSha256   String    @unique @map("fingerprint_sha256") @db.Char(64)
+  certPem             String    @map("cert_pem") @db.Text
+  chainPem            String?   @map("chain_pem") @db.Text // các chứng thư trung gian (nếu có)
+  encryptedPrivateKey String    @map("encrypted_private_key") @db.Text
+  notBefore           DateTime  @map("not_before")
+  notAfter            DateTime  @map("not_after")
+  status              String    @default("active") @db.VarChar(20) // active | revoked (hết hạn suy ra từ notAfter)
+  revokedAt           DateTime? @map("revoked_at")
+  revokeReason        String?   @map("revoke_reason") @db.VarChar(255)
+  revokedByUserId     String?   @map("revoked_by_user_id") @db.Char(36)
+  issuedByUserId      String?   @map("issued_by_user_id") @db.Char(36)
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  doctor        Doctor         @relation(fields: [doctorId], references: [doctorId])
+  authority     PkiAuthority?  @relation(fields: [authorityId], references: [authorityId])
+  prescriptions Prescription[]
+
+  @@index([doctorId, status])
+  @@index([serialNumber])
+  @@map("doctor_certificates")
 }
 
 model PrescriptionItem {

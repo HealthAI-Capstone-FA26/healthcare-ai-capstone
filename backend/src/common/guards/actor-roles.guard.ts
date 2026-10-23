@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ActorRoleService } from '../../modules/user/actor-role.service';
+import { ActorRoleService } from '../../modules/identity-access/user/actor-role.service';
 import { ACTOR_ROLES_KEY } from '../decorators/actor-roles.decorator';
 import { ActorRole } from '../constants/actor-role.constant';
 

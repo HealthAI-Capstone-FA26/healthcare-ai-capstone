@@ -1,11 +1,11 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { RequestUser } from '../../identity-access/auth/strategies/jwt.strategy';
 import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 import { hasPermissionScope } from '../../../common/utils/permission.util';
 import { InvoiceService } from '../invoice/invoice.service';
-import { ActorRoleService } from '../../user/actor-role.service';
+import { ActorRoleService } from '../../identity-access/user/actor-role.service';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { CreateCashPaymentDto } from './dtos/create-cash-payment.dto';
 import { ConfirmCashPaymentDto } from './dtos/confirm-cash-payment.dto';
