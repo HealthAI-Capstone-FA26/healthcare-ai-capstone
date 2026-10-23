@@ -1,13 +1,13 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../../../../prisma/prisma.service';
-import { generateUniqueCode } from '../../../../common/utils/code-generator.util';
-import { EncounterStatus } from '../../../../common/utils/encounter-status.util';
-import { ACTOR_ROLE } from '../../../../common/constants/actor-role.constant';
-import { RequestUser } from '../../../identity-access/auth/strategies/jwt.strategy';
-import { DoctorService } from '../../../identity-access/doctor/doctor.service';
-import { ActorRoleService } from '../../../identity-access/user/actor-role.service';
-import { PrescriptionSafetyCheckOrchestrator } from '../prescription-safety/orchestrators/prescription-safety-check.orchestrator';
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { generateUniqueCode } from '../../../common/utils/code-generator.util';
+import { EncounterStatus } from '../../../common/utils/encounter-status.util';
+import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
+import { RequestUser } from '../../identity-access/auth/strategies/jwt.strategy';
+import { DoctorService } from '../../identity-access/doctor/doctor.service';
+import { ActorRoleService } from '../../identity-access/user/actor-role.service';
+import { PrescriptionSafetyCheckOrchestrator } from './prescription-safety/orchestrators/prescription-safety-check.orchestrator';
 import { CreatePrescriptionDto } from './dtos/create-prescription.dto';
 import { UpdatePrescriptionItemsDto } from './dtos/update-prescription-items.dto';
 import { PrescriptionItemDto } from './dtos/prescription-item.dto';
@@ -42,7 +42,7 @@ export class PrescriptionService {
         private readonly doctorService: DoctorService,
         private readonly actorRoleService: ActorRoleService,
         private readonly safetyCheckOrchestrator: PrescriptionSafetyCheckOrchestrator,
-    ) { }
+    ) {}
 
     private generatePrescriptionCode(): Promise<string> {
         return generateUniqueCode(PRESCRIPTION_CODE_PREFIX, async (code) => {
@@ -138,7 +138,6 @@ export class PrescriptionService {
             });
         });
 
-        // Chạy đồng bộ Safety Check ngay sau khi tạo đơn
         await this.safetyCheckOrchestrator.run(prescription.prescriptionId);
 
         return this.findById(prescription.prescriptionId);
@@ -186,7 +185,6 @@ export class PrescriptionService {
             });
         });
 
-        // Chạy lại Safety Check sau khi cập nhật danh sách thuốc
         await this.safetyCheckOrchestrator.run(prescriptionId);
 
         return this.findById(prescriptionId);

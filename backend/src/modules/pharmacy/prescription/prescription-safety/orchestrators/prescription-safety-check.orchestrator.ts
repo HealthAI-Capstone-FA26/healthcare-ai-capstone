@@ -1,13 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../../prisma/prisma.service';
-import { DrugInteractionDetector } from '../detectors/drug-interaction.detector';
 import { DuplicateTherapeuticClassDetector } from '../detectors/duplicate-therapeutic-class.detector';
 import { AllergyContraindicationDetector } from '../detectors/allergy-contraindication.detector';
 import { PrescriptionSafetyDetector, PrescriptionSafetyDetectionResult } from '../interfaces/prescription-safety-detector.interface';
 
 /**
- * Chạy đồng bộ 3 detector Safety Check ngay trong request (theo quyết định 2-A của plan
+ * Chạy đồng bộ các detector Safety Check ngay trong request (theo quyết định 2-A của plan
  * module 9 — không dùng event/listener/gateway bất đồng bộ như lab-anomaly/vital-anomaly).
  * Được PrescriptionService gọi ngay sau khi commit transaction ghi PrescriptionItem.
  */
@@ -17,11 +16,10 @@ export class PrescriptionSafetyCheckOrchestrator {
 
     constructor(
         private readonly prisma: PrismaService,
-        drugInteractionDetector: DrugInteractionDetector,
         duplicateTherapeuticClassDetector: DuplicateTherapeuticClassDetector,
         allergyContraindicationDetector: AllergyContraindicationDetector,
     ) {
-        this.detectors = [drugInteractionDetector, duplicateTherapeuticClassDetector, allergyContraindicationDetector];
+        this.detectors = [duplicateTherapeuticClassDetector, allergyContraindicationDetector];
     }
 
     async run(prescriptionId: string): Promise<PrescriptionSafetyDetectionResult[]> {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+﻿import { Injectable } from '@nestjs/common';
 import {
     PrescriptionItemWithDrug,
     PrescriptionSafetyDetectionResult,
@@ -33,7 +33,7 @@ export class DuplicateTherapeuticClassDetector implements PrescriptionSafetyDete
             if (groupItems.length < 2) continue;
 
             // Sinh alert cho mọi cặp trong nhóm, để mỗi cặp dòng thuốc trùng lớp đều được
-            // liên kết rõ ràng qua relatedItemIdA/B (nhất quán với DrugInteractionDetector).
+            // Liên kết rõ ràng qua relatedItemIdA/B để hiển thị các thuốc liên quan.
             for (let i = 0; i < groupItems.length; i++) {
                 for (let j = i + 1; j < groupItems.length; j++) {
                     const itemA = groupItems[i];
