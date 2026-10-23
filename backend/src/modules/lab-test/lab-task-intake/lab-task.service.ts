@@ -20,7 +20,7 @@ import { LAB_TASK_EXCEPTION_REPORTED_EVENT, LabTaskExceptionReportedEvent } from
 import { ResolveLabTaskExceptionDto } from './dtos/resolve-lab-task-exception.dto';
 import { LAB_TASK_EXCEPTION_RESOLVED_EVENT, LabTaskExceptionResolvedEvent } from './events/lab-task-exception-resolved.event';
 import { DiagnosticProgressService } from './diagnostic-progress.service';
-import { ActorRoleService } from '../../user/actor-role.service';
+import { ActorRoleService } from '../../identity-access/user/actor-role.service';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 
 type Db = PrismaService | Prisma.TransactionClient;

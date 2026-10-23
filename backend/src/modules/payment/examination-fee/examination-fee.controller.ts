@@ -2,8 +2,8 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGua
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
-import { RequestUser } from '../../auth/strategies/jwt.strategy';
-import { ActorRoleService } from '../../user/actor-role.service';
+import { RequestUser } from '../../identity-access/auth/strategies/jwt.strategy';
+import { ActorRoleService } from '../../identity-access/user/actor-role.service';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { ExaminationFeeService } from './examination-fee.service';
 import { CreateExaminationFeeDto } from './dtos/create-examination-fee.dto';

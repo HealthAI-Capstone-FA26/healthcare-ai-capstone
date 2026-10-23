@@ -1,25 +1,35 @@
 import { PrismaService } from 'prisma/prisma.service';
 
 /**
- * Danh mục dịch vụ cận lâm sàng (ServiceCatalog) — CHỈ các xét nghiệm máu (modality = 'blood_test'),
- * resultKind = 'parametric' (kết quả là các chỉ số đo đạc -> ResultValue).
+ * Danh mục dịch vụ cận lâm sàng (ServiceCatalog) cho cả 4 modality của phòng khám Tim mạch:
+ *   - blood_test : xét nghiệm máu — resultKind = 'parametric' (kết quả là các chỉ số đo đạc -> ResultValue)
+ *   - ecg        : điện tâm đồ 12 chuyển đạo — resultKind = 'waveform' (bản ghi sóng ECG -> EcgRecording, AI phân tích bất thường)
+ *   - echo       : siêu âm tim qua thành ngực — resultKind = 'image_report' (kết luận/mô tả + ảnh/clip đính kèm)
+ *   - xray       : X-quang ngực thẳng — resultKind = 'image_report' (kết luận/mô tả + ảnh DICOM/JPG đính kèm)
  *
- * Bám theo proposal (SE02): "blood tests for cardiac biomarkers and lipid profiles", cộng thêm các xét nghiệm
- * nền thường đi kèm khi khám tim mạch (công thức máu, sinh hóa cơ bản, điện giải).
+ * Bám theo Registration (SE02/SE04): "blood tests for cardiac biomarkers and lipid profiles", ECG, siêu âm tim, X-quang ngực;
+ * cộng thêm các xét nghiệm nền thường đi kèm khi khám tim mạch (công thức máu, sinh hóa cơ bản, điện giải).
+ *
+ * Echo / X-quang là 'image_report' nên KHÔNG có ResultParameter (07-) — bác sĩ/KTV nhập findings + overallConclusion.
  *
  * ⚠️ `price` là GIÁ MẪU (VND) — phải thay bằng bảng giá thật của phòng khám trước khi dùng cho thanh toán (SE03).
- * ⚠️ `turnaroundMins`, `preparationNote` là giá trị tham khảo, cần phòng Lab xác nhận.
+ * ⚠️ `turnaroundMins`, `preparationNote` là giá trị tham khảo, cần phòng chức năng xác nhận.
  *
  * Phụ thuộc DiagnosticRoom (05-diagnostic-room.seed.ts) — seed này chạy SAU.
- * ResultParameter (07-) và ResultParameterThreshold (20-) tham chiếu ngược lại danh mục này theo serviceCode.
+ * ResultParameter (07-) và ResultParameterThreshold (20-) tham chiếu ngược lại danh mục này theo serviceCode (chỉ blood_test).
  */
 export async function seedServiceCatalog(prisma: PrismaService): Promise<void> {
-    const room = await prisma.diagnosticRoom.findUnique({ where: { diagnosticRoomCode: 'BLOOD-LAB' } });
-    if (!room) {
-        throw new Error(
-            "Không tìm thấy DiagnosticRoom 'BLOOD-LAB' — hãy chắc chắn 05-diagnostic-room.seed.ts đã chạy trước.",
-        );
+    const roomCodes = ['BLOOD-LAB', 'ECG-ROOM', 'ECHO-ROOM', 'XRAY-ROOM'];
+    const roomRows = await prisma.diagnosticRoom.findMany({ where: { diagnosticRoomCode: { in: roomCodes } } });
+    const roomByCode = new Map(roomRows.map((r) => [r.diagnosticRoomCode, r]));
+    for (const code of roomCodes) {
+        if (!roomByCode.has(code)) {
+            throw new Error(
+                `Không tìm thấy DiagnosticRoom '${code}' — hãy chắc chắn 05-diagnostic-room.seed.ts đã chạy trước.`,
+            );
+        }
     }
+    const room = roomByCode.get('BLOOD-LAB')!;
 
     const services = [
         {
@@ -115,6 +125,64 @@ export async function seedServiceCatalog(prisma: PrismaService): Promise<void> {
         });
     }
 
+    // ── ECG / Siêu âm tim / X-quang ngực ───────────────────────────────────────────────────────────────
+    const nonBloodServices = [
+        {
+            serviceCode: 'RESTECG12',
+            serviceName: 'Điện tâm đồ 12 chuyển đạo lúc nghỉ (Resting 12-lead ECG)',
+            modality: 'ecg',
+            panelGroup: 'resting_ecg',
+            resultKind: 'waveform',
+            roomCode: 'ECG-ROOM',
+            preparationNote: 'Nghỉ ngơi 5 phút trước khi đo, nằm ngửa, bộc lộ vùng ngực và cổ tay/cổ chân',
+            price: 150000,
+            turnaroundMins: 15,
+        },
+        {
+            serviceCode: 'TTE',
+            serviceName: 'Siêu âm tim qua thành ngực (Transthoracic Echocardiography)',
+            modality: 'echo',
+            panelGroup: 'tte',
+            resultKind: 'image_report',
+            roomCode: 'ECHO-ROOM',
+            preparationNote: 'Không cần nhịn ăn; mặc áo dễ cởi',
+            price: 400000,
+            turnaroundMins: 30,
+        },
+        {
+            serviceCode: 'CXRPA',
+            serviceName: 'X-quang ngực thẳng (Chest X-ray PA)',
+            modality: 'xray',
+            panelGroup: 'chest_xray',
+            resultKind: 'image_report',
+            roomCode: 'XRAY-ROOM',
+            preparationNote: 'Tháo trang sức/vật kim loại vùng cổ - ngực; phụ nữ có thai hoặc nghi có thai báo nhân viên trước khi chụp',
+            price: 200000,
+            turnaroundMins: 15,
+        },
+    ];
+
+    for (const s of nonBloodServices) {
+        const data = {
+            serviceName: s.serviceName,
+            modality: s.modality,
+            panelGroup: s.panelGroup,
+            resultKind: s.resultKind,
+            specimenType: null,
+            requiresFasting: false,
+            preparationNote: s.preparationNote,
+            price: s.price,
+            turnaroundMins: s.turnaroundMins,
+            defaultRoomId: roomByCode.get(s.roomCode)!.diagnosticRoomId,
+            isActive: true,
+        };
+        await prisma.serviceCatalog.upsert({
+            where: { serviceCode: s.serviceCode },
+            update: data,
+            create: { serviceCode: s.serviceCode, ...data },
+        });
+    }
+
     const count = await prisma.serviceCatalog.count();
-    console.log(`Seeded service catalog (blood test), total in DB: ${count}`);
+    console.log(`Seeded service catalog (blood_test + ecg + echo + xray), total in DB: ${count}`);
 }

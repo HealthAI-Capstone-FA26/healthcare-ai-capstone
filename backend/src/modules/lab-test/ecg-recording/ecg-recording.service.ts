@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { createHash } from 'crypto';
 import { extname } from 'path';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { ActorRoleService } from '../../user/actor-role.service';
+import { ActorRoleService } from '../../identity-access/user/actor-role.service';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { CreateEcgRecordingDto } from './dto/create-ecg-recording.dto';
 import { ECG_FORMAT_EXTENSIONS } from './ecg-upload.config';

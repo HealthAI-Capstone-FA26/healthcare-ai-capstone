@@ -3,7 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import { basename } from 'path';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { ActorRoleService } from '../../user/actor-role.service';
+import { ActorRoleService } from '../../identity-access/user/actor-role.service';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { ECG_SIGNAL_STORAGE, EcgSignalStorage } from '../ecg-recording/ecg-signal-storage.port';
 import { LabAlertGateway } from '../lab-anomaly/lab-alert.gateway';

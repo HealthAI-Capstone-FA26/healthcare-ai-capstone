@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { installBigIntJsonSerializer } from '../../common/utils/bigint-json.util';
-import { UserModule } from '../user/user.module';
+import { UserModule } from '../identity-access/user/user.module';
 
 import { LabRoomController } from './lab-room-catalog/lab-room.controller';
 import { LabRoomService } from './lab-room-catalog/lab-room.service';
