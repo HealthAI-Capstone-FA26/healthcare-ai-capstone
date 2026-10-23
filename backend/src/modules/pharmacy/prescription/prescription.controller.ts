@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
-import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
-import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
-import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
-import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
-import { RequestUser } from '../../../identity-access/auth/strategies/jwt.strategy';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
+import { RequestUser } from '../../identity-access/auth/strategies/jwt.strategy';
 import { PrescriptionService } from './prescription.service';
 import { CreatePrescriptionDto } from './dtos/create-prescription.dto';
 import { UpdatePrescriptionItemsDto } from './dtos/update-prescription-items.dto';
@@ -16,7 +16,7 @@ import { FindPrescriptionsQueryDto } from './dtos/find-prescriptions-query.dto';
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('prescriptions')
 export class PrescriptionController {
-    constructor(private readonly prescriptionService: PrescriptionService) { }
+    constructor(private readonly prescriptionService: PrescriptionService) {}
 
     @Post()
     @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.CREATE}:${Scope.OWN}`)
