@@ -234,7 +234,14 @@ export class InvoiceService {
   async findMany(query: ListInvoicesQueryDto) {
     return this.prisma.invoice.findMany({
       where: {
-        ...(query.appointmentId ? { encounter: { appointmentId: query.appointmentId } } : {}),
+        ...(query.appointmentId
+          ? {
+              OR: [
+                { appointmentId: query.appointmentId },
+                { encounter: { appointmentId: query.appointmentId } },
+              ],
+            }
+          : {}),
         ...(query.patientId ? { patientId: query.patientId } : {}),
         ...(query.encounterId ? { encounterId: query.encounterId } : {}),
         ...(query.status ? { status: query.status } : {}),
