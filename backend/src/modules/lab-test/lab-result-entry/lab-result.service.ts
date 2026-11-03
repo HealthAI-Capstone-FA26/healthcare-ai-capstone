@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma, ResultParameter } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
@@ -10,9 +10,19 @@ import { ReviewLabResultDto } from './dtos/review-lab-result.dto';
 import { LabResultValueDto } from './dtos/lab-result-value.dto';
 import { AddLabAttachmentDto } from './dtos/add-lab-attachment.dto';
 import { LabResultSubmittedEvent, LAB_RESULT_SUBMITTED_EVENT } from '../lab-anomaly/events/lab-result-submitted.event';
-import { ActorRoleService } from '../../user/actor-role.service';
+import { ActorRoleService } from '../../identity-access/user/actor-role.service';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
-import { uploadDiagnosticFile } from './diagnostic-upload.config';
+import { CompleteLabResultDto } from './dtos/complete-lab-result.dto';
+import {
+    DIAGNOSTIC_URL_EXPIRY_SECONDS,
+    assertFileSignature,
+    isExternalUrl,
+    presignDiagnosticFile,
+    uploadDiagnosticFile,
+} from './diagnostic-upload.config';
+
+/** Tệp được tính là "hình ảnh" khi hoàn tất báo cáo hình ảnh. */
+const IMAGE_FILE_TYPES = ['dicom', 'image', 'video'];
 
 type ResolvedValue = {
     parameterId: string;
@@ -40,6 +50,10 @@ const RESULT_INCLUDE = {
  *
  * Nộp kết quả = 1 transaction: lưu kết quả -> task 'completed' -> DiagnosticProgressService tính lại Order/Encounter.
  * Event chỉ phát SAU commit.
+ *
+ * NGOẠI LỆ — dịch vụ 'image_report' (siêu âm tim, X-quang ngực): nộp kết quả chỉ LƯU kết quả, task vẫn 'in_progress'
+ * để KTV tải hình ảnh lên. Task chỉ 'completed' (và bác sĩ mới được báo "có kết quả") khi gọi completeResult(), nơi
+ * kiểm tra đã có hình ảnh. Nhờ vậy bác sĩ không bao giờ nhận kết quả chỉ có chữ mà thiếu hình.
  */
 @Injectable()
 export class LabResultService {
@@ -158,6 +172,8 @@ export class LabResultService {
         const resolvedValues = hasValues ? await this.resolveAndValidateValues(dto.values!, service.serviceId) : [];
         const now = new Date();
 
+        const deferCompletion = service.resultKind === 'image_report';
+
         const { resultId, becameAwaitingReview } = await this.prisma.$transaction(async (tx) => {
             const created = await tx.diagnosticResult.create({
                 data: {
@@ -172,15 +188,24 @@ export class LabResultService {
                 },
             });
 
+            if (deferCompletion) {
+                return { resultId: created.resultId, becameAwaitingReview: false };
+            }
+
             await this.labTaskService.markCompleted(taskId, tx);
             const snapshot = await this.progress.recomputeForTask(taskId, tx);
 
             return { resultId: created.resultId, becameAwaitingReview: snapshot?.encounterBecameAwaitingReview ?? false };
         });
 
-        this.eventEmitter.emit(LAB_RESULT_SUBMITTED_EVENT, new LabResultSubmittedEvent(resultId, becameAwaitingReview));
+        if (!deferCompletion) {
+            this.eventEmitter.emit(LAB_RESULT_SUBMITTED_EVENT, new LabResultSubmittedEvent(resultId, becameAwaitingReview));
+        }
 
-        this.logger.log(`Đã lưu kết quả ${resultId} cho nhiệm vụ ${taskId} (${service.resultKind}, ${resolvedValues.length} chỉ số)`);
+        this.logger.log(
+            `Đã lưu kết quả ${resultId} cho nhiệm vụ ${taskId} (${service.resultKind}, ${resolvedValues.length} chỉ số)` +
+                (deferCompletion ? ' — chờ tải hình ảnh rồi hoàn tất (POST /lab-results/:id/complete)' : ''),
+        );
         return this.getById(resultId);
     }
 
@@ -243,7 +268,10 @@ export class LabResultService {
             }
         });
 
-        this.eventEmitter.emit(LAB_RESULT_SUBMITTED_EVENT, new LabResultSubmittedEvent(resultId, false));
+        // Báo cáo hình ảnh chưa hoàn tất: detection/thông báo chạy ở completeResult(), không chạy sớm ở đây.
+        if (existing.task.status === 'completed') {
+            this.eventEmitter.emit(LAB_RESULT_SUBMITTED_EVENT, new LabResultSubmittedEvent(resultId, false));
+        }
 
         this.logger.log(`Đã cập nhật kết quả ${resultId} (resultStatus: ${nextStatus})`);
         return this.getById(resultId);
@@ -301,6 +329,7 @@ export class LabResultService {
 
         let fileUrl: string;
         if (file) {
+            assertFileSignature(file, dto.fileType);
             fileUrl = (await uploadDiagnosticFile(file, `diagnostic-attachments/${resultId}`)).objectName;
         } else if (dto.fileUrl) {
             fileUrl = dto.fileUrl;
@@ -328,10 +357,96 @@ export class LabResultService {
         return attachment;
     }
 
-    async listAttachments(resultId: string) {
-        return this.prisma.diagnosticResultAttachment.findMany({
+    /**
+     * Hoàn tất kết quả dạng báo cáo hình ảnh (siêu âm tim, X-quang ngực): kiểm tra đã có hình -> task 'completed' ->
+     * tính lại Order/Encounter -> phát event (detection + thông báo bác sĩ). Người gọi phải là LAB_STAFF.
+     */
+    async completeResult(resultId: string, dto: CompleteLabResultDto, userId: string) {
+        await this.actorRoleService.assertActorRole(userId, [ACTOR_ROLE.LAB_STAFF]);
+
+        const result = await this.prisma.diagnosticResult.findUnique({
+            where: { resultId },
+            include: {
+                attachments: { select: { fileType: true } },
+                task: { include: { orderItem: { include: { service: { select: { resultKind: true, serviceName: true } } } } } },
+            },
+        });
+        if (!result) {
+            throw new NotFoundException(`Không tìm thấy kết quả ${resultId}`);
+        }
+        if (result.task.orderItem.service.resultKind !== 'image_report') {
+            throw new BadRequestException(
+                'Chỉ áp dụng cho dịch vụ dạng báo cáo hình ảnh (siêu âm, X-quang). Dịch vụ khác tự hoàn tất khi nộp kết quả.',
+            );
+        }
+        if (result.task.status === 'completed') {
+            throw new ConflictException('Kết quả này đã được hoàn tất trước đó.');
+        }
+        if (result.task.status !== 'in_progress') {
+            throw new BadRequestException(`Nhiệm vụ đang ở trạng thái '${result.task.status}', không thể hoàn tất.`);
+        }
+        if (result.resultStatus === 'cancelled') {
+            throw new BadRequestException('Kết quả đã bị huỷ, không thể hoàn tất.');
+        }
+
+        const hasImage = result.attachments.some((a) => IMAGE_FILE_TYPES.includes(a.fileType));
+        const reason = dto.noImageReason?.trim();
+        if (!hasImage && !reason) {
+            throw new BadRequestException(
+                `Chưa có hình ảnh (dicom/image/video) cho '${result.task.orderItem.service.serviceName}'. ` +
+                    'Hãy tải hình lên (POST /lab-results/:id/attachments) hoặc nêu lý do trong noImageReason.',
+            );
+        }
+
+        const taskId = result.taskId;
+        const becameAwaitingReview = await this.prisma.$transaction(async (tx) => {
+            if (!hasImage && reason) {
+                const note = `[Không có hình ảnh đính kèm: ${reason}]`;
+                await tx.diagnosticResult.update({
+                    where: { resultId },
+                    data: { findings: result.findings ? `${result.findings}\n${note}` : note },
+                });
+            }
+            await this.labTaskService.markCompleted(taskId, tx);
+            const snapshot = await this.progress.recomputeForTask(taskId, tx);
+            return snapshot?.encounterBecameAwaitingReview ?? false;
+        });
+
+        this.eventEmitter.emit(LAB_RESULT_SUBMITTED_EVENT, new LabResultSubmittedEvent(resultId, becameAwaitingReview));
+        this.logger.log(`Đã hoàn tất kết quả hình ảnh ${resultId} (nhiệm vụ ${taskId}${hasImage ? '' : ', KHÔNG có hình: ' + reason})`);
+        return this.getById(resultId);
+    }
+
+    /** Danh sách tệp đính kèm kèm presigned URL ngắn hạn. Chỉ LAB_STAFF / DOCTOR. */
+    async listAttachments(resultId: string, actingUserId: string) {
+        await this.actorRoleService.assertActorRole(actingUserId, [ACTOR_ROLE.LAB_STAFF, ACTOR_ROLE.DOCTOR]);
+
+        const rows = await this.prisma.diagnosticResultAttachment.findMany({
             where: { resultId },
             orderBy: { uploadedAt: 'asc' },
         });
+        this.logger.log(`User ${actingUserId} truy cập ${rows.length} tệp của kết quả ${resultId}`);
+        return Promise.all(rows.map((row) => this.withAccessUrl(row)));
+    }
+
+    /** Presigned URL cho 1 tệp. Chỉ LAB_STAFF / DOCTOR. */
+    async getAttachmentAccessUrl(attachmentId: string, actingUserId: string) {
+        await this.actorRoleService.assertActorRole(actingUserId, [ACTOR_ROLE.LAB_STAFF, ACTOR_ROLE.DOCTOR]);
+
+        const row = await this.prisma.diagnosticResultAttachment.findUnique({ where: { attachmentId } });
+        if (!row) {
+            throw new NotFoundException(`Không tìm thấy tệp đính kèm ${attachmentId}`);
+        }
+        this.logger.log(`User ${actingUserId} truy cập tệp ${attachmentId} (kết quả ${row.resultId})`);
+        return this.withAccessUrl(row);
+    }
+
+    private async withAccessUrl<T extends { fileUrl: string }>(row: T) {
+        const external = isExternalUrl(row.fileUrl);
+        return {
+            ...row,
+            accessUrl: external ? row.fileUrl : await presignDiagnosticFile(row.fileUrl),
+            accessUrlExpiresInSeconds: external ? null : DIAGNOSTIC_URL_EXPIRY_SECONDS,
+        };
     }
 }

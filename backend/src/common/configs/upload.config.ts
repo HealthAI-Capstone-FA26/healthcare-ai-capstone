@@ -17,6 +17,21 @@ export const minioClient = new Minio.Client({
 
 export const BUCKET_NAME = process.env.MINIO_BUCKET || 'app-uploads';
 
+/** Các thư mục (prefix) trong bucket được phép đọc công khai. Thêm thư mục mới vào đây MỘT cách có chủ đích. */
+export const PUBLIC_READ_PREFIXES = ['avatars', 'images', 'invoices', 'prescriptions'] as const;
+
+export const buildPublicReadPolicy = (bucket: string) => ({
+    Version: '2012-10-17',
+    Statement: [
+        {
+            Effect: 'Allow',
+            Principal: { AWS: ['*'] },
+            Action: ['s3:GetObject'],
+            Resource: PUBLIC_READ_PREFIXES.map((prefix) => `arn:aws:s3:::${bucket}/${prefix}/*`),
+        },
+    ],
+});
+
 // 2. Hàm kiểm tra kết nối & tự động tạo Bucket nếu chưa có
 export const checkMinioConnection = async (): Promise<boolean> => {
     try {
@@ -28,20 +43,12 @@ export const checkMinioConnection = async (): Promise<boolean> => {
             logger.log(`Bucket exists: ${BUCKET_NAME}`);
         }
 
-        // Set public read-only policy
-        const policy = {
-            Version: '2012-10-17',
-            Statement: [
-                {
-                    Effect: 'Allow',
-                    Principal: { AWS: ['*'] },
-                    Action: ['s3:GetObject'],
-                    Resource: [`arn:aws:s3:::${BUCKET_NAME}/*`],
-                },
-            ],
-        };
+        // Public read-only CHỈ cho các thư mục cố ý công khai (avatar, PDF hoá đơn/đơn thuốc).
+        // Dữ liệu cận lâm sàng (diagnostic-attachments/, tín hiệu ECG...) KHÔNG nằm trong danh sách này —
+        // chỉ truy cập qua presigned URL ngắn hạn sau khi kiểm tra quyền (xem LabResultService).
+        const policy = buildPublicReadPolicy(BUCKET_NAME);
         await minioClient.setBucketPolicy(BUCKET_NAME, JSON.stringify(policy));
-        logger.log(`Set public policy for bucket: ${BUCKET_NAME}`);
+        logger.log(`Set public-read policy (prefix: ${PUBLIC_READ_PREFIXES.join(', ')}) for bucket: ${BUCKET_NAME}`);
 
         logger.log('Connect to MinIO S3 successfully!');
         return true;
@@ -104,4 +111,4 @@ export const deleteFileFromS3 = async (objectName: string): Promise<void> => {
     } catch (error) {
         logger.error(`Failed to delete object ${objectName} from MinIO`, error);
     }
-};
+};

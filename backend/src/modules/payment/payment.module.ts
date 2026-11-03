@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { UserModule } from '../user/user.module';
+import { UserModule } from '../identity-access/user/user.module';
 import { LabTestModule } from '../lab-test/lab-test.module';
 
 import { ExaminationFeeController } from './examination-fee/examination-fee.controller';

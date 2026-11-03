@@ -1,7 +1,12 @@
 import { PrismaService } from 'prisma/prisma.service';
 
 /**
- * Ngưỡng cảnh báo rule-based cho xét nghiệm máu (ResultParameterThreshold) — CHỈ các tham số blood_test.
+ * Ngưỡng cảnh báo rule-based (ResultParameterThreshold) cho xét nghiệm máu VÀ các chỉ số số học của siêu âm tim / X-quang
+ * ngực (LVEF, LVIDd, đường kính nhĩ trái, CTR). Boolean của echo/X-quang không cần ngưỡng (true = bất thường);
+ * enum không được tự đánh giá.
+ *
+ * Lưu ý riêng cho LVEF/LVIDd/LA/CTR: `riskLevel` được dùng như THANG MỨC ĐỘ NGHIÊM TRỌNG (medium < high < critical),
+ * KHÔNG theo quy ước "low = thấp hơn bình thường" của xét nghiệm máu — vì với LVEF chính giá trị THẤP mới là nguy hiểm.
  * Đây là dữ liệu mà RuleBasedLabDetector (src/modules/lab-test/lab-anomaly/detectors/rule-based.detector.ts) và
  * ResultThresholdResolver đọc để sinh ResultValueAlert.
  *
@@ -51,6 +56,9 @@ export async function seedResultParameterThresholds(prisma: PrismaService): Prom
         TNT: 'ESC 2023 ACS Guidelines — hs-cTnT 99th percentile URL (Roche ≈14 ng/L; 52 ng/L = 5×URL rule-in 0/1h); ngưỡng theo assay của phòng Lab',
         CKMB: 'CK-MB mass — giới hạn trên tham chiếu thường dùng ≈5 ng/mL (phụ thuộc assay, cần phòng Lab xác nhận)',
         NTPB: 'ESC 2021 Heart Failure Guidelines + Januzzi et al. 2005 (ICON): rule-out < 125 pg/mL (ngoại trú); rule-in theo tuổi 450 / 900 / 1800 pg/mL',
+        LVEF: 'ESC 2021 Heart Failure Guidelines — phân loại LVEF: ≥50% bảo tồn · 41–49% giảm nhẹ · ≤40% giảm; <30% giảm nặng (ngưỡng nguy kịch theo thực hành lâm sàng, cần bác sĩ siêu âm xác nhận)',
+        ASE: 'ASE/EACVI Recommendations for Cardiac Chamber Quantification in Adults (Lang et al., 2015) — giới hạn bình thường & mức giãn theo giới (cần bác sĩ siêu âm xác nhận)',
+        CTR: 'X-quang ngực thẳng (PA) người lớn: CTR > 50% gợi ý tim to; > 60% tim to rõ (ngưỡng thực hành thường quy, cần bác sĩ CĐHA xác nhận)',
     };
 
     /** Làm tròn để tránh nhiễu số thực (vd 4.7 - 0.01 = 4.6899999...). */
@@ -138,6 +146,20 @@ export async function seedResultParameterThresholds(prisma: PrismaService): Prom
         ...build('NTPROBNP', 'NTPROBNP', [['normal', null], ['medium', 125], ['high', 450]], { step: 1, ageMin: 18, ageMax: 49, sourceReference: SRC.NTPB }),
         ...build('NTPROBNP', 'NTPROBNP', [['normal', null], ['medium', 125], ['high', 900]], { step: 1, ageMin: 50, ageMax: 74, sourceReference: SRC.NTPB }),
         ...build('NTPROBNP', 'NTPROBNP', [['normal', null], ['medium', 125], ['high', 1800]], { step: 1, ageMin: 75, ageMax: ADULT_MAX, sourceReference: SRC.NTPB }),
+
+        // ═════════════ Siêu âm tim (TTE) ═════════════
+        // LVEF (%): <30 giảm nặng · 30–40 giảm · 41–49 giảm nhẹ · ≥50 bảo tồn. LƯU Ý: khe giữa các dải = 0.1 -> nhập tối đa 1 chữ số thập phân.
+        ...build('TTE', 'LVEF', [['critical', null], ['high', 30], ['medium', 40.1], ['normal', 50]], { step: 0.1, sourceReference: SRC.LVEF }),
+        // LVIDd (mm) — ASE 2015: nam 42.0–58.4 · nữ 37.8–52.2; giãn nhẹ → vừa/nặng
+        ...build('TTE', 'LVIDD', [['normal', null], ['medium', 58.5], ['high', 64]], { step: 0.1, gender: 'male', sourceReference: SRC.ASE }),
+        ...build('TTE', 'LVIDD', [['normal', null], ['medium', 52.3], ['high', 57]], { step: 0.1, gender: 'female', sourceReference: SRC.ASE }),
+        // Đường kính nhĩ trái (mm) — ASE 2015: nam 30–40 · nữ 27–38; giãn nhẹ → vừa/nặng
+        ...build('TTE', 'LA_DIAM', [['normal', null], ['medium', 40.1], ['high', 47]], { step: 0.1, gender: 'male', sourceReference: SRC.ASE }),
+        ...build('TTE', 'LA_DIAM', [['normal', null], ['medium', 38.1], ['high', 43]], { step: 0.1, gender: 'female', sourceReference: SRC.ASE }),
+
+        // ═════════════ X-quang ngực thẳng (CXRPA) ═════════════
+        // CTR (%): ≤49.9 bình thường · 50–59.9 tim to · ≥60 tim to rõ
+        ...build('CXRPA', 'CTR', [['normal', null], ['medium', 50], ['high', 60]], { step: 0.1, sourceReference: SRC.CTR }),
     ];
 
     // ── Tra parameterId theo CẶP (serviceCode, parameterCode) — không bao giờ chỉ theo parameterCode ──
@@ -178,5 +200,5 @@ export async function seedResultParameterThresholds(prisma: PrismaService): Prom
     });
 
     const count = await prisma.resultParameterThreshold.count({ where: { isActive: true } });
-    console.log(`Seeded ${rows.length} result parameter thresholds (blood test), active in DB: ${count}`);
+    console.log(`Seeded ${rows.length} result parameter thresholds (blood_test + echo + xray), active in DB: ${count}`);
 }

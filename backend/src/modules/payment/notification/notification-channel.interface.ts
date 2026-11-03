@@ -1,4 +1,4 @@
-export type NotificationChannel = 'in_app' | 'email';
+export type NotificationChannel = 'in_app' | 'email' | 'sms' | 'zalo_oa';
 
 /**
  * Thông tin liên hệ của người nhận — resolve trước khi gọi dispatcher, để từng strategy

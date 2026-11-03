@@ -8,4 +8,4 @@
 export {
     OrderItemCancelledEvent,
     ORDER_ITEM_CANCELLED_EVENT,
-} from '../../../pre-doctor-examination/test-order/events/order-item-cancelled.event';
+} from '../../../clinical/pre-doctor-examination/test-order/events/order-item-cancelled.event';

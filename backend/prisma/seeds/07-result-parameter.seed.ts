@@ -1,8 +1,19 @@
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 
 /**
- * Danh mục tham số kết quả xét nghiệm máu (ResultParameter) — CHỈ các dịch vụ blood_test trong ServiceCatalog.
- * Tất cả tham số đều dataType = 'numeric' (RuleBasedLabDetector chỉ tự đánh giá numeric/boolean).
+ * Danh mục tham số kết quả (ResultParameter) cho:
+ *   - blood_test : toàn bộ tham số dataType = 'numeric'.
+ *   - echo (TTE) : chỉ số siêu âm tim có cấu trúc — numeric (LVEF, LVIDD, LA_DIAM), enum (mức độ hở/hẹp van),
+ *                  boolean (RWMA, tràn dịch màng ngoài tim).
+ *   - xray (CXRPA): chỉ số X-quang ngực — numeric (CTR), enum (ứ huyết phổi, tràn dịch màng phổi), boolean (đông đặc/thâm nhiễm).
+ * Echo/X-quang là 'image_report': nhập kết quả vẫn BẮT BUỘC có findings/kết luận; các tham số này là phần ĐO ĐẠC có cấu trúc
+ * (tuỳ chọn khi nhập) để theo dõi xu hướng và cảnh báo rule-based.
+ *
+ * RuleBasedLabDetector: numeric -> so ngưỡng (20-...) · boolean -> true = bất thường (mức 'high') · enum/text -> KHÔNG tự đánh giá.
+ * Vì vậy boolean ở đây đều mô tả "CÓ dấu hiệu bệnh lý".
+ *
+ * ⚠️ Mã LOINC của các chỉ số echo/X-quang để trống (null) — chưa xác nhận; cần bổ sung nếu liên thông HIS/FHIR.
  *
  * QUAN TRỌNG: @@unique là [serviceId, parameterCode] -> tra cứu BẮT BUỘC theo cặp (serviceCode, parameterCode),
  * không bao giờ chỉ theo parameterCode (xem 20-result-parameter-threshold.seed.ts).
@@ -13,10 +24,30 @@ import { PrismaService } from 'prisma/prisma.service';
  * Phụ thuộc ServiceCatalog (06-service-catalog.seed.ts) — seed này chạy SAU.
  */
 export async function seedResultParameters(prisma: PrismaService): Promise<void> {
-    const services = await prisma.serviceCatalog.findMany({ where: { modality: 'blood_test' } });
+    const services = await prisma.serviceCatalog.findMany({ where: { modality: { in: ['blood_test', 'echo', 'xray'] } } });
     const serviceMap = new Map(services.map((s) => [s.serviceCode, s.serviceId]));
 
-    const parameters = [
+    type ParamSeed = {
+        serviceCode: string;
+        parameterCode: string;
+        parameterName: string;
+        loincCode: string | null;
+        unit: string | null;
+        displayOrder: number;
+        dataType?: 'numeric' | 'boolean' | 'enum' | 'text';
+        allowedValues?: { value: string; label: string }[];
+    };
+
+    const grade5 = [
+        { value: 'none', label: 'Không' },
+        { value: 'trace', label: 'Vết' },
+        { value: 'mild', label: 'Nhẹ' },
+        { value: 'moderate', label: 'Vừa' },
+        { value: 'severe', label: 'Nặng' },
+    ];
+    const grade4 = grade5.filter((g) => g.value !== 'trace');
+
+    const parameters: ParamSeed[] = [
         { serviceCode: 'CBC', parameterCode: 'RBC', parameterName: 'Số lượng hồng cầu (RBC)', loincCode: '789-8', unit: '10^12/L', displayOrder: 1 },
         { serviceCode: 'CBC', parameterCode: 'HGB', parameterName: 'Hemoglobin', loincCode: '718-7', unit: 'g/dL', displayOrder: 2 },
         { serviceCode: 'CBC', parameterCode: 'HCT', parameterName: 'Hematocrit (dung tích hồng cầu)', loincCode: '4544-3', unit: '%', displayOrder: 3 },
@@ -44,6 +75,27 @@ export async function seedResultParameters(prisma: PrismaService): Promise<void>
         { serviceCode: 'HSTNT', parameterCode: 'HSTNT', parameterName: 'hs-Troponin T', loincCode: '67151-1', unit: 'ng/L', displayOrder: 1 },
         { serviceCode: 'CKMB', parameterCode: 'CKMB', parameterName: 'CK-MB (mass)', loincCode: '20109-5', unit: 'ng/mL', displayOrder: 1 },
         { serviceCode: 'NTPROBNP', parameterCode: 'NTPROBNP', parameterName: 'NT-proBNP', loincCode: '33762-6', unit: 'pg/mL', displayOrder: 1 },
+
+        // ── TTE — Siêu âm tim qua thành ngực ──
+        { serviceCode: 'TTE', parameterCode: 'LVEF', parameterName: 'Phân suất tống máu thất trái (LVEF)', loincCode: null, unit: '%', displayOrder: 1 },
+        { serviceCode: 'TTE', parameterCode: 'LVIDD', parameterName: 'Đường kính thất trái cuối tâm trương (LVIDd)', loincCode: null, unit: 'mm', displayOrder: 2 },
+        { serviceCode: 'TTE', parameterCode: 'LA_DIAM', parameterName: 'Đường kính nhĩ trái (trục dọc cạnh ức)', loincCode: null, unit: 'mm', displayOrder: 3 },
+        { serviceCode: 'TTE', parameterCode: 'MR_GRADE', parameterName: 'Hở van hai lá', loincCode: null, unit: null, displayOrder: 4, dataType: 'enum', allowedValues: grade5 },
+        { serviceCode: 'TTE', parameterCode: 'AR_GRADE', parameterName: 'Hở van động mạch chủ', loincCode: null, unit: null, displayOrder: 5, dataType: 'enum', allowedValues: grade5 },
+        { serviceCode: 'TTE', parameterCode: 'AS_GRADE', parameterName: 'Hẹp van động mạch chủ', loincCode: null, unit: null, displayOrder: 6, dataType: 'enum', allowedValues: grade4 },
+        { serviceCode: 'TTE', parameterCode: 'RWMA', parameterName: 'Rối loạn vận động vùng thành tim (RWMA)', loincCode: null, unit: null, displayOrder: 7, dataType: 'boolean' },
+        { serviceCode: 'TTE', parameterCode: 'PERICARD_EFF', parameterName: 'Tràn dịch màng ngoài tim', loincCode: null, unit: null, displayOrder: 8, dataType: 'boolean' },
+
+        // ── CXRPA — X-quang ngực thẳng ──
+        { serviceCode: 'CXRPA', parameterCode: 'CTR', parameterName: 'Chỉ số tim–ngực (CTR)', loincCode: null, unit: '%', displayOrder: 1 },
+        { serviceCode: 'CXRPA', parameterCode: 'PULM_CONGESTION', parameterName: 'Ứ huyết phổi / phù phổi', loincCode: null, unit: null, displayOrder: 2, dataType: 'enum', allowedValues: grade4 },
+        { serviceCode: 'CXRPA', parameterCode: 'PLEURAL_EFF', parameterName: 'Tràn dịch màng phổi', loincCode: null, unit: null, displayOrder: 3, dataType: 'enum', allowedValues: [
+            { value: 'none', label: 'Không' },
+            { value: 'left', label: 'Bên trái' },
+            { value: 'right', label: 'Bên phải' },
+            { value: 'bilateral', label: 'Hai bên' },
+        ] },
+        { serviceCode: 'CXRPA', parameterCode: 'LUNG_OPACITY', parameterName: 'Đông đặc / thâm nhiễm nhu mô phổi', loincCode: null, unit: null, displayOrder: 4, dataType: 'boolean' },
     ];
 
     for (const p of parameters) {
@@ -58,7 +110,8 @@ export async function seedResultParameters(prisma: PrismaService): Promise<void>
             parameterName: p.parameterName,
             loincCode: p.loincCode,
             unit: p.unit,
-            dataType: 'numeric',
+            dataType: p.dataType ?? 'numeric',
+            allowedValues: p.allowedValues ?? Prisma.JsonNull,
             displayOrder: p.displayOrder,
             isActive: true,
         };
@@ -71,5 +124,5 @@ export async function seedResultParameters(prisma: PrismaService): Promise<void>
     }
 
     const count = await prisma.resultParameter.count();
-    console.log(`Seeded result parameters (blood test), total in DB: ${count}`);
+    console.log(`Seeded result parameters (blood_test + echo + xray), total in DB: ${count}`);
 }

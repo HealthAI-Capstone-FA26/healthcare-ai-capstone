@@ -19,6 +19,7 @@ import { LabResultService } from './lab-result.service';
 import { SubmitLabResultDto } from './dtos/submit-lab-result.dto';
 import { UpdateLabResultDto } from './dtos/update-lab-result.dto';
 import { ReviewLabResultDto } from './dtos/review-lab-result.dto';
+import { CompleteLabResultDto } from './dtos/complete-lab-result.dto';
 import {
     AddLabAttachmentDto,
     LAB_ATTACHMENT_FILE_TYPES,
@@ -46,7 +47,8 @@ export class LabResultController {
             "Nhiệm vụ phải 'in_progress' (đã thanh toán + đã tiếp nhận). Dữ liệu bắt buộc theo resultKind của dịch vụ: " +
             'parametric -> values; image_report -> findings/overallConclusion; waveform (ECG) -> findings hoặc đã có ' +
             "bản ghi ECG hoàn tất. Lưu xong task 'completed', Order/Encounter được tính lại, detection chạy nền. " +
-            'Người gọi phải là LAB_STAFF.',
+            "NGOẠI LỆ image_report (siêu âm tim, X-quang ngực): chỉ lưu kết quả, task vẫn 'in_progress' — tải hình ảnh lên " +
+            'rồi gọi POST /lab-results/:id/complete để hoàn tất. Người gọi phải là LAB_STAFF.',
     })
     @ApiParam({ name: 'id', description: 'ID nhiệm vụ (taskId)', format: 'uuid' })
     @ApiCreatedResponse({ description: 'Kết quả đã lưu.' })
@@ -116,6 +118,25 @@ export class LabResultController {
         return this.labResultService.reviewResult(resultId, dto, reviewerUserId);
     }
 
+    @Post('lab-results/:id/complete')
+    @ApiOperation({
+        summary: 'Hoàn tất kết quả hình ảnh (siêu âm tim, X-quang ngực)',
+        description:
+            "Chỉ dùng cho dịch vụ image_report. Yêu cầu đã có ít nhất 1 tệp hình (dicom/image/video), hoặc nêu lý do trong " +
+            "noImageReason. Sau đó task 'completed', Order/Encounter được tính lại, bác sĩ được báo có kết quả. Chỉ LAB_STAFF.",
+    })
+    @ApiParam({ name: 'id', description: 'ID kết quả (resultId)', format: 'uuid' })
+    @ApiOkResponse({ description: 'Kết quả sau khi hoàn tất.' })
+    @ApiBadRequestResponse({ description: 'Chưa có hình ảnh và không có noImageReason, hoặc dịch vụ không phải image_report.' })
+    @ApiForbiddenResponse({ description: 'Người gọi không phải LAB_STAFF.' })
+    async complete(
+        @Param('id') resultId: string,
+        @Body() dto: CompleteLabResultDto,
+        @CurrentUser('userId') userId: string,
+    ) {
+        return this.labResultService.completeResult(resultId, dto, userId);
+    }
+
     @Post('lab-results/:id/attachments')
     @UseInterceptors(FileInterceptor('file', diagnosticUploadConfig))
     @ApiConsumes('multipart/form-data')
@@ -154,10 +175,29 @@ export class LabResultController {
     }
 
     @Get('lab-results/:id/attachments')
-    @ApiOperation({ summary: 'Danh sách tệp đính kèm của 1 kết quả' })
+    @ApiOperation({
+        summary: 'Danh sách tệp đính kèm của 1 kết quả (kèm presigned URL)',
+        description:
+            'Mỗi tệp có `accessUrl` — presigned URL hết hạn sau `accessUrlExpiresInSeconds` giây (ảnh y khoa không còn công khai). ' +
+            'Chỉ LAB_STAFF hoặc DOCTOR; mỗi lần truy cập được ghi log.',
+    })
     @ApiParam({ name: 'id', description: 'ID kết quả (resultId)', format: 'uuid' })
     @ApiOkResponse({ description: 'Danh sách tệp đính kèm.' })
-    async listAttachments(@Param('id') resultId: string) {
-        return this.labResultService.listAttachments(resultId);
+    @ApiForbiddenResponse({ description: 'Người gọi không phải LAB_STAFF hoặc DOCTOR.' })
+    async listAttachments(@Param('id') resultId: string, @CurrentUser('userId') actingUserId: string) {
+        return this.labResultService.listAttachments(resultId, actingUserId);
+    }
+
+    @Get('lab-attachments/:attachmentId/access-url')
+    @ApiOperation({
+        summary: 'Lấy presigned URL để xem/tải 1 tệp đính kèm',
+        description: 'URL hết hạn sau vài phút — gọi lại khi cần. Chỉ LAB_STAFF hoặc DOCTOR; mỗi lần truy cập được ghi log.',
+    })
+    @ApiParam({ name: 'attachmentId', format: 'uuid' })
+    @ApiOkResponse({ description: 'Tệp kèm accessUrl.' })
+    @ApiNotFoundResponse({ description: 'Không tìm thấy tệp đính kèm.' })
+    @ApiForbiddenResponse({ description: 'Người gọi không phải LAB_STAFF hoặc DOCTOR.' })
+    async attachmentAccessUrl(@Param('attachmentId') attachmentId: string, @CurrentUser('userId') actingUserId: string) {
+        return this.labResultService.getAttachmentAccessUrl(attachmentId, actingUserId);
     }
 }

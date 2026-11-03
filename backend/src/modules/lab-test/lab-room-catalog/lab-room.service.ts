@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { AssignLabStaffToRoomDto } from './dtos/assign-lab-staff-to-room.dto';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
-import { ActorRoleService } from '../../user/actor-role.service';
+import { ActorRoleService } from '../../identity-access/user/actor-role.service';
 
 /** Không trả password hash / trường nhạy cảm của User ra API phân công. */
 const SAFE_USER_SELECT = {
