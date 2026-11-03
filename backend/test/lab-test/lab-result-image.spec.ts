@@ -1,15 +1,15 @@
 import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
-import { assertFileSignature, isExternalUrl } from './diagnostic-upload.config';
-import { LabResultService } from './lab-result.service';
-import { LAB_RESULT_SUBMITTED_EVENT } from '../lab-anomaly/events/lab-result-submitted.event';
-import { buildPublicReadPolicy, PUBLIC_READ_PREFIXES } from '../../../common/configs/upload.config';
+import { assertFileSignature, isExternalUrl } from '../../src/modules/lab-test/lab-result-entry/diagnostic-upload.config';
+import { LabResultService } from '../../src/modules/lab-test/lab-result-entry/lab-result.service';
+import { LAB_RESULT_SUBMITTED_EVENT } from '../../src/modules/lab-test/lab-anomaly/events/lab-result-submitted.event';
+import { buildPublicReadPolicy, PUBLIC_READ_PREFIXES } from '../../src/common/configs/upload.config';
 
 // @nestjs/event-emitter phát hành ESM — Jest (CJS) không nạp được; chỉ cần kiểu cho constructor nên mock rỗng.
 jest.mock('@nestjs/event-emitter', () => ({ EventEmitter2: class {}, OnEvent: () => () => undefined }));
-jest.mock('../lab-task-intake/lab-task.service', () => ({ LabTaskService: class {} }));
-jest.mock('../lab-task-intake/diagnostic-progress.service', () => ({ DiagnosticProgressService: class {} }));
-jest.mock('./diagnostic-upload.config', () => {
-    const actual = jest.requireActual('./diagnostic-upload.config');
+jest.mock('../../src/modules/lab-test/lab-task-intake/lab-task.service', () => ({ LabTaskService: class {} }));
+jest.mock('../../src/modules/lab-test/lab-task-intake/diagnostic-progress.service', () => ({ DiagnosticProgressService: class {} }));
+jest.mock('../../src/modules/lab-test/lab-result-entry/diagnostic-upload.config', () => {
+    const actual = jest.requireActual('../../src/modules/lab-test/lab-result-entry/diagnostic-upload.config');
     return { ...actual, presignDiagnosticFile: jest.fn(async (key: string) => `https://minio.local/signed/${key}?X-Amz-Expires=900`) };
 });
 

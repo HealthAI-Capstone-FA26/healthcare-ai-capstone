@@ -1,12 +1,12 @@
 import { PDFDocument } from 'pdf-lib';
 import { pdflibAddPlaceholder } from '@signpdf/placeholder-pdf-lib';
 import * as forge from 'node-forge';
-import { PkiKeyVaultService } from './pki-key-vault.service';
-import { PkiAuthorityService } from './pki-authority.service';
-import { DoctorCertificateService } from './doctor-certificate.service';
-import { PdfSignatureService } from './pdf-signature.service';
-import { PdfSigner } from './pki.types';
-import { generateRsaKeyPair, randomSerialHex, toForgePrivateKey, certFingerprintSha256 } from './pki-x509.util';
+import { PkiKeyVaultService } from '../../src/modules/pharmacy/pki/pki-key-vault.service';
+import { PkiAuthorityService } from '../../src/modules/pharmacy/pki/pki-authority.service';
+import { DoctorCertificateService } from '../../src/modules/pharmacy/pki/doctor-certificate.service';
+import { PdfSignatureService } from '../../src/modules/pharmacy/pki/pdf-signature.service';
+import { PdfSigner } from '../../src/modules/pharmacy/pki/pki.types';
+import { generateRsaKeyPair, randomSerialHex, toForgePrivateKey, certFingerprintSha256 } from '../../src/modules/pharmacy/pki/pki-x509.util';
 
 /** Prisma giả tối thiểu (in-memory) cho các bảng PKI. */
 function makeFakePrisma() {
