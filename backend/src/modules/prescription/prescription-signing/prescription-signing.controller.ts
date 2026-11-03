@@ -29,7 +29,7 @@ export class PrescriptionSigningController {
     }
 
     @Get(':id/export')
-    @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.READ}:${Scope.ALL}`)
+    @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.READ}:${Scope.OWN}`)
     @ApiOperation({
         summary: 'Xuất PDF đơn thuốc',
         description:

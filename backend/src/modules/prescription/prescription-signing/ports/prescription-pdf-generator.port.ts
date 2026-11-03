@@ -104,11 +104,18 @@ export class PdfLibPrescriptionPdfGeneratorAdapter implements PrescriptionPdfGen
         const hash = createHash('sha256').update(buffer).digest('hex');
         const objectName = `prescriptions/${input.prescriptionId}.pdf`;
 
-        await minioClient.putObject(BUCKET_NAME, objectName, buffer, buffer.length, {
-            'Content-Type': 'application/pdf',
-        });
-
-        return { url: this.buildPublicUrl(objectName), hash };
+        try {
+            await minioClient.putObject(BUCKET_NAME, objectName, buffer, buffer.length, {
+                'Content-Type': 'application/pdf',
+            });
+            return { url: this.buildPublicUrl(objectName), hash };
+        } catch (minioErr) {
+            console.warn('MinIO upload error (falling back to data URL):', minioErr);
+            return {
+                url: `data:application/pdf;base64,${buffer.toString('base64')}`,
+                hash,
+            };
+        }
     }
 
     private buildPublicUrl(objectName: string): string {
