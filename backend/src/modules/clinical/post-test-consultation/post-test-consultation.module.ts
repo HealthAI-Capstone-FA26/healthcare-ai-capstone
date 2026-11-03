@@ -1,17 +1,17 @@
-import { Module } from '@nestjs/common';
-import { installBigIntJsonSerializer } from '../../../common/utils/bigint-json.util';
-import { UserModule } from '../../identity-access/user/user.module';
-import { DoctorModule } from '../../identity-access/doctor/doctor.module';
-import { Icd10CatalogModule } from '../icd10-catalog/icd10-catalog.module';
+import { Module } from "@nestjs/common";
+import { installBigIntJsonSerializer } from "../../../common/utils/bigint-json.util";
+import { UserModule } from "../../identity-access/user/user.module";
+import { DoctorModule } from "../../identity-access/doctor/doctor.module";
+import { Icd10CatalogModule } from "../icd10-catalog/icd10-catalog.module";
 
-import { CaseTimelineController } from './case-timeline/case-timeline.controller';
-import { CaseTimelineService } from './case-timeline/case-timeline.service';
+import { CaseTimelineController } from "./case-timeline/case-timeline.controller";
+import { CaseTimelineService } from "./case-timeline/case-timeline.service";
 
-import { DiagnosisConclusionController } from './diagnosis-conclusion/diagnosis-conclusion.controller';
-import { DiagnosisConclusionService } from './diagnosis-conclusion/diagnosis-conclusion.service';
+import { DiagnosisConclusionController } from "./diagnosis-conclusion/diagnosis-conclusion.controller";
+import { DiagnosisConclusionService } from "./diagnosis-conclusion/diagnosis-conclusion.service";
 
-import { TreatmentConsultationController } from './treatment-consultation/treatment-consultation.controller';
-import { TreatmentConsultationService } from './treatment-consultation/treatment-consultation.service';
+import { TreatmentConsultationController } from "./treatment-consultation/treatment-consultation.controller";
+import { TreatmentConsultationService } from "./treatment-consultation/treatment-consultation.service";
 
 // Timeline trả DiagnosticResultAttachment.sizeBytes / EcgRecording.signalSizeBytes (BigInt) — cài serializer JSON (idempotent).
 installBigIntJsonSerializer();
@@ -23,7 +23,7 @@ installBigIntJsonSerializer();
  *  1. Tổng hợp tiến trình bệnh án -> case-timeline (read-model thuần tuý: kết quả cận lâm sàng, ECG + AI, cảnh báo mở).
  *  2. Kết luận chuyên môn -> diagnosis-conclusion (bác sĩ TỰ kết luận, tạo Diagnosis.diagnosisType='final', chuẩn hoá
  *     ICD-10 qua Icd10CatalogModule dùng chung).
- *  3. Tư vấn điều trị -> treatment-consultation (ghi TreatmentConsultation; tái khám chỉ lưu gợi ý số ngày).
+ *     3. Tư vấn điều trị -> treatment-consultation (ghi TreatmentConsultation và tạo/cập nhật lịch tái khám theo slot).
  *
  * Không còn AI gợi ý/phản biện chẩn đoán (đã gỡ khỏi phạm vi). CỔNG GHI: chỉ khi Encounter = 'awaiting_review' (do
  * lab-test đặt khi mọi cận lâm sàng xong). Module KHÔNG đổi trạng thái Encounter — việc kê đơn, hẹn tái khám và đóng
@@ -33,8 +33,16 @@ installBigIntJsonSerializer();
  * Không export provider nào (không module nào import service của module này).
  */
 @Module({
-    imports: [UserModule, DoctorModule, Icd10CatalogModule],
-    controllers: [CaseTimelineController, DiagnosisConclusionController, TreatmentConsultationController],
-    providers: [CaseTimelineService, DiagnosisConclusionService, TreatmentConsultationService],
+  imports: [UserModule, DoctorModule, Icd10CatalogModule],
+  controllers: [
+    CaseTimelineController,
+    DiagnosisConclusionController,
+    TreatmentConsultationController,
+  ],
+  providers: [
+    CaseTimelineService,
+    DiagnosisConclusionService,
+    TreatmentConsultationService,
+  ],
 })
-export class PostTestConsultationModule { }
+export class PostTestConsultationModule {}
