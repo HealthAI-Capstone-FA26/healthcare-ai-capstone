@@ -18,7 +18,7 @@ export const minioClient = new Minio.Client({
 export const BUCKET_NAME = process.env.MINIO_BUCKET || 'app-uploads';
 
 /** Các thư mục (prefix) trong bucket được phép đọc công khai. Thêm thư mục mới vào đây MỘT cách có chủ đích. */
-export const PUBLIC_READ_PREFIXES = ['avatars', 'images', 'invoices', 'prescriptions'] as const;
+export const PUBLIC_READ_PREFIXES = ['avatars', 'images'] as const;
 
 export const buildPublicReadPolicy = (bucket: string) => ({
     Version: '2012-10-17',
@@ -111,4 +111,4 @@ export const deleteFileFromS3 = async (objectName: string): Promise<void> => {
     } catch (error) {
         logger.error(`Failed to delete object ${objectName} from MinIO`, error);
     }
-};
+};
