@@ -364,6 +364,7 @@ export class InvoiceService {
    */
   async getOrGeneratePdfUrl(invoiceId: string): Promise<{ url: string }> {
     const invoice = await this.ensurePdfGenerated(invoiceId);
-    return { url: invoice.pdfFileUrl! };
+    const url = await this.invoicePdfGenerator.getPresignedUrl(invoice.invoiceId, 900);
+    return { url };
   }
 }
