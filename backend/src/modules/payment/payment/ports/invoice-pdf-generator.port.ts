@@ -29,6 +29,7 @@ export interface InvoicePdfInput {
 export interface InvoicePdfGeneratorPort {
   /** Render PDF hoá đơn rồi upload lên bucket có sẵn, trả về URL public để lưu vào Invoice.pdfFileUrl. */
   generateAndUpload(input: InvoicePdfInput): Promise<{ url: string }>;
+  getPresignedUrl(invoiceId: string, expirySeconds?: number): Promise<string>;
 }
 
 /**
@@ -56,7 +57,13 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     let y = 800;
     const marginX = 50;
     const drawLine = (text: string, size = 11, f = font) => {
-      page.drawText(text, { x: marginX, y, size, font: f, color: rgb(0, 0, 0) });
+      const safeText = (text ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .replace(/[^\x20-\x7E]/g, ' ');
+      page.drawText(safeText, { x: marginX, y, size, font: f, color: rgb(0, 0, 0) });
       y -= size + 8;
     };
     const money = (n: number) => `${n.toLocaleString('en-US')} ${input.currency}`;
@@ -84,6 +91,11 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     });
 
     return { url: this.buildPublicUrl(objectName) };
+  }
+
+  async getPresignedUrl(invoiceId: string, expirySeconds = 900): Promise<string> {
+    const objectName = `invoices/${invoiceId}.pdf`;
+    return minioClient.presignedGetObject(BUCKET_NAME, objectName, expirySeconds);
   }
 
   private buildPublicUrl(objectName: string): string {
