@@ -104,35 +104,21 @@ describe('DoctorScheduleService - createSchedule (Function 11)', () => {
     expect(result?.schedule.session).toBe(ScheduleSession.AFTERNOON);
   });
 
-  // UTCID03 [Boundary]: Tạo lịch cho ngày mai (ngưỡng sớm nhất hợp lệ)
-  it('UTCID03 [B]: should allow creating schedule for tomorrow (boundary valid advance date)', async () => {
-    // Arrange: Tạo mốc ngày mai
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
+  // UTCID03 [Abnormal]: Bác sĩ không tồn tại (doc-404) -> Quăng lỗi NotFoundException
+  it('UTCID03 [A]: should throw NotFoundException when doctor does not exist', async () => {
+    // Arrange
     const dto: CreateDoctorScheduleDto = {
-      doctorId: 'doc-01',
-      workDate: tomorrowStr,
+      doctorId: 'doc-404',
+      workDate: '2026-11-20',
       session: ScheduleSession.MORNING,
     };
 
-    mockPrisma.doctor.findUnique.mockResolvedValue(mockDoctor);
-    mockPrisma.doctorSchedule.findUnique.mockResolvedValue(null);
-    mockPrisma.doctorSchedule.create.mockResolvedValue({
-      scheduleId: 'sched-03',
-      doctorId: 'doc-01',
-      workDate: new Date(`${tomorrowStr}T00:00:00.000Z`),
-      session: ScheduleSession.MORNING,
-    });
-    mockAppointmentSlotService.generateSlotsForSchedule.mockResolvedValue(8);
+    mockPrisma.doctor.findUnique.mockResolvedValue(null); // Không tìm thấy bác sĩ
 
-    // Act
-    const result = await service.create(dto);
-
-    // Assert
-    expect(result).toBeDefined();
-    expect(mockPrisma.doctorSchedule.create).toHaveBeenCalled();
+    // Act & Assert
+    await expect(service.create(dto)).rejects.toThrow(NotFoundException);
+    expect(mockPrisma.doctorSchedule.findUnique).not.toHaveBeenCalled();
+    expect(mockPrisma.doctorSchedule.create).not.toHaveBeenCalled();
   });
 
   // UTCID04 [Abnormal]: Bác sĩ đã có lịch trực ca này -> Quăng lỗi ConflictException
@@ -175,21 +161,34 @@ describe('DoctorScheduleService - createSchedule (Function 11)', () => {
     expect(mockPrisma.doctorSchedule.create).not.toHaveBeenCalled();
   });
 
-  // UTCID06 [Abnormal]: Bác sĩ không tồn tại (doc-404) -> Quăng lỗi NotFoundException
-  it('UTCID06 [A]: should throw NotFoundException when doctor does not exist', async () => {
-    // Arrange
+  // UTCID06 [Boundary]: Tạo lịch cho ngày mai (ngưỡng sớm nhất hợp lệ)
+  it('UTCID06 [B]: should allow creating schedule for tomorrow (boundary valid advance date)', async () => {
+    // Arrange: Tạo mốc ngày mai
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
     const dto: CreateDoctorScheduleDto = {
-      doctorId: 'doc-404',
-      workDate: '2026-11-20',
+      doctorId: 'doc-01',
+      workDate: tomorrowStr,
       session: ScheduleSession.MORNING,
     };
 
-    mockPrisma.doctor.findUnique.mockResolvedValue(null); // Không tìm thấy bác sĩ
+    mockPrisma.doctor.findUnique.mockResolvedValue(mockDoctor);
+    mockPrisma.doctorSchedule.findUnique.mockResolvedValue(null);
+    mockPrisma.doctorSchedule.create.mockResolvedValue({
+      scheduleId: 'sched-03',
+      doctorId: 'doc-01',
+      workDate: new Date(`${tomorrowStr}T00:00:00.000Z`),
+      session: ScheduleSession.MORNING,
+    });
+    mockAppointmentSlotService.generateSlotsForSchedule.mockResolvedValue(8);
 
-    // Act & Assert
-    await expect(service.create(dto)).rejects.toThrow(NotFoundException);
-    expect(mockPrisma.doctorSchedule.findUnique).not.toHaveBeenCalled();
-    expect(mockPrisma.doctorSchedule.create).not.toHaveBeenCalled();
+    // Act
+    const result = await service.create(dto);
+
+    // Assert
+    expect(result).toBeDefined();
+    expect(mockPrisma.doctorSchedule.create).toHaveBeenCalled();
   });
 });
-
