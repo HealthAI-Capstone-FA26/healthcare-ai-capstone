@@ -3,7 +3,7 @@ import { DoctorScheduleService } from '../../src/modules/patient-flow/doctor-sch
 import { ScheduleSession } from '../../src/common/constants/schedule-session.constants';
 import { CreateDoctorScheduleDto } from '../../src/modules/patient-flow/doctor-schedule/dto/create-doctor-schedule.dto';
 
-describe('DoctorScheduleService - createSchedule (Function 11)', () => {
+describe('DoctorScheduleService - create (Function 11)', () => {
   let service: DoctorScheduleService;
   let mockPrisma: any;
   let mockAppointmentSlotService: any;
