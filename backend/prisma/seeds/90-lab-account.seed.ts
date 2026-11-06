@@ -24,12 +24,31 @@ export async function seedLabAccount(prisma: PrismaService | PrismaClient): Prom
     const roles = await prisma.role.findMany();
     const roleMap = new Map(roles.map((r) => [r.roleCode, r.roleId]));
 
-    // Gán full permissions cho các role nội bộ để không bị chặn quyền RBAC
+    // Gán full permissions cho các role nội bộ (trừ PATIENT chỉ được gán quyền :own)
     const allPermissions = await prisma.permission.findMany();
     if (allPermissions.length > 0) {
+        const patientRoleObj = roles.find((r) => r.roleCode.toUpperCase() === ACTOR_ROLE.PATIENT);
+        if (patientRoleObj) {
+            const nonOwnPermIds = allPermissions
+                .filter((p) => !p.permissionCode.endsWith(':own'))
+                .map((p) => p.permissionId);
+            if (nonOwnPermIds.length > 0) {
+                await prisma.rolePermission.deleteMany({
+                    where: {
+                        roleId: patientRoleObj.roleId,
+                        permissionId: { in: nonOwnPermIds },
+                    },
+                });
+            }
+        }
+
         const rolePermData: { roleId: string; permissionId: string }[] = [];
         for (const r of roles) {
+            const isPatientRole = r.roleCode.toUpperCase() === ACTOR_ROLE.PATIENT;
             for (const p of allPermissions) {
+                if (isPatientRole && !p.permissionCode.endsWith(':own')) {
+                    continue;
+                }
                 rolePermData.push({ roleId: r.roleId, permissionId: p.permissionId });
             }
         }
