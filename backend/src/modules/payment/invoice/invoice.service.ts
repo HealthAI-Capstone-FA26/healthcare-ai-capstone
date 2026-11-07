@@ -223,7 +223,12 @@ export class InvoiceService {
   async findById(invoiceId: string) {
     const invoice = await this.prisma.invoice.findUnique({
       where: { invoiceId },
-      include: { items: true, payments: true },
+      include: {
+        items: true,
+        payments: { orderBy: { createdAt: 'desc' } },
+        patient: true,
+        encounter: true,
+      },
     });
     if (!invoice) {
       throw new NotFoundException(`Không tìm thấy hoá đơn ${invoiceId}`);
@@ -247,7 +252,12 @@ export class InvoiceService {
         ...(query.status ? { status: query.status } : {}),
       },
       orderBy: { createdAt: 'desc' },
-      include: { items: true, payments: true },
+      include: {
+        items: true,
+        payments: { orderBy: { createdAt: 'desc' } },
+        patient: true,
+        encounter: true,
+      },
     });
   }
 
@@ -328,13 +338,44 @@ export class InvoiceService {
 
   /**
    * §3.5 — sinh PDF hoá đơn + upload MinIO nếu Invoice.pdfFileUrl chưa có, rồi lưu URL lại.
-   * Idempotent: gọi lại khi đã có pdfFileUrl thì bỏ qua, không sinh lại.
+   * Nếu force = true thì sẽ luôn sinh lại PDF mới nhất với dữ liệu đầy đủ.
    */
-  private async ensurePdfGenerated(invoiceId: string) {
-    const invoice = await this.findById(invoiceId);
-    if (invoice.pdfFileUrl) {
+  private async ensurePdfGenerated(invoiceId: string, force = false) {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { invoiceId },
+      include: {
+        items: true,
+        payments: { orderBy: { createdAt: 'desc' } },
+        patient: true,
+        encounter: true,
+      },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException(`Không tìm thấy hoá đơn ${invoiceId}`);
+    }
+
+    if (invoice.pdfFileUrl && !force) {
       return invoice;
     }
+
+    const latestSuccessPayment = invoice.payments.find((p) => p.status === 'success');
+    let paymentMethod = 'Chưa thanh toán';
+    let paidAt: Date | undefined = undefined;
+    let paymentStatus = invoice.status === 'paid' ? 'Đã thanh toán (Đã thu tiền)' : 'Chờ thanh toán';
+
+    if (latestSuccessPayment) {
+      paymentMethod =
+        latestSuccessPayment.paymentMethod === 'cash'
+          ? 'Tiền mặt tại quầy'
+          : 'Chuyển khoản VietQR (PayOS)';
+      paidAt = latestSuccessPayment.paidAt ?? latestSuccessPayment.createdAt;
+      paymentStatus = 'Đã thanh toán (Đã thu tiền)';
+    }
+
+    const patientDob = invoice.patient?.dateOfBirth
+      ? new Date(invoice.patient.dateOfBirth).toLocaleDateString('en-GB')
+      : undefined;
 
     const { url } = await this.invoicePdfGenerator.generateAndUpload({
       invoiceId: invoice.invoiceId,
@@ -350,6 +391,30 @@ export class InvoiceService {
       totalAmount: Number(invoice.totalAmount),
       currency: invoice.currency,
       issuedAt: invoice.issuedAt,
+
+      // Thông tin người bệnh
+      patientName: invoice.patient?.fullName,
+      patientCode: invoice.patient?.patientCode,
+      patientIdentityNumber: invoice.patient?.identityNumber ?? undefined,
+      patientDob,
+      patientGender:
+        invoice.patient?.gender === 'male'
+          ? 'Nam'
+          : invoice.patient?.gender === 'female'
+            ? 'Nữ'
+            : (invoice.patient?.gender ?? undefined),
+      patientPhone: invoice.patient?.phoneNumber ?? undefined,
+      patientAddress: invoice.patient?.address ?? undefined,
+
+      // Thông tin thanh toán
+      paymentMethod,
+      paidAt,
+      paymentStatus,
+
+      // Thông tin lượt khám & cơ sở y tế
+      encounterCode: invoice.encounter?.encounterCode ?? undefined,
+      clinicName: 'PHÒNG KHÁM CHUYÊN KHOA TIM MẠCH 4AM',
+      clinicAddress: '123 Nguyễn Trãi, Phường 2, Quận 5, TP. Hồ Chí Minh - Hotline: 1900 6868',
     });
 
     return this.prisma.invoice.update({
@@ -363,7 +428,9 @@ export class InvoiceService {
    * hoặc muốn xem trước) -> generate on-demand rồi trả.
    */
   async getOrGeneratePdfUrl(invoiceId: string): Promise<{ url: string }> {
-    const invoice = await this.ensurePdfGenerated(invoiceId);
-    return { url: invoice.pdfFileUrl! };
+    // Luôn force = true để đảm bảo PDF luôn cập nhật mẫu mới nhất và trạng thái thanh toán mới nhất
+    const invoice = await this.ensurePdfGenerated(invoiceId, true);
+    const url = await this.invoicePdfGenerator.getPresignedUrl(invoice.invoiceId, 900);
+    return { url };
   }
 }
