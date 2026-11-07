@@ -1,6 +1,30 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, PDFFont } from 'pdf-lib';
+import * as fontkit from '@pdf-lib/fontkit';
+import * as fs from 'fs';
+import * as path from 'path';
 import { minioClient, BUCKET_NAME } from '../../../../common/configs/upload.config';
+
+function findFontBuffer(fileName: string, winFallbackName: string): Buffer | null {
+  const candidates = [
+    path.resolve(process.cwd(), 'src/assets/fonts', fileName),
+    path.resolve(process.cwd(), 'dist/src/assets/fonts', fileName),
+    path.resolve(__dirname, '../../../../assets/fonts', fileName),
+    path.resolve(__dirname, '../../../../../src/assets/fonts', fileName),
+    path.join('C:\\Windows\\Fonts', winFallbackName),
+  ];
+
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        return fs.readFileSync(p);
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return null;
+}
 
 /**
  * Cổng (port) xuất PDF hoá đơn + upload lên object storage — §3.5, §4.
@@ -71,19 +95,45 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
   async generateAndUpload(input: InvoicePdfInput): Promise<{ url: string }> {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]); // A4: 595.28 x 841.89
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    const removeAccents = (text: string) => {
-      return (text ?? '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/đ/g, 'd')
-        .replace(/Đ/g, 'D')
-        .replace(/[^\x20-\x7E]/g, ' ');
+    // Nạp font tiếng Việt Unicode qua fontkit (fallback an toàn về StandardFonts nếu không tải được font)
+    const regularBuffer = findFontBuffer('Arial-Regular.ttf', 'arial.ttf');
+    const boldBuffer = findFontBuffer('Arial-Bold.ttf', 'arialbd.ttf');
+
+    let font: PDFFont;
+    let bold: PDFFont;
+    let isUnicode = false;
+
+    if (regularBuffer && boldBuffer) {
+      try {
+        pdfDoc.registerFontkit((fontkit as any).default || fontkit);
+        font = await pdfDoc.embedFont(regularBuffer);
+        bold = await pdfDoc.embedFont(boldBuffer);
+        isUnicode = true;
+      } catch (err) {
+        this.logger.warn(`Failed to embed Unicode font, fallback to Helvetica: ${err}`);
+        font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      }
+    } else {
+      font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    }
+
+    const fmt = (text: string | null | undefined): string => {
+      const raw = (text ?? '').trim();
+      if (!isUnicode) {
+        return raw
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/đ/g, 'd')
+          .replace(/Đ/g, 'D')
+          .replace(/[^\x20-\x7E]/g, ' ');
+      }
+      return raw.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
     };
 
-    const money = (n: number) => `${n.toLocaleString('en-US')} ${input.currency}`;
+    const money = (n: number) => `${n.toLocaleString('vi-VN')} ${input.currency}`;
 
     let y = 805;
     const startX = 40;
@@ -91,7 +141,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     const contentWidth = endX - startX;
 
     // ── 1. HEADER CƠ SỞ Y TẾ ────────────────────────────────────────────────
-    page.drawText(removeAccents(input.clinicName || 'PHONG KHAM CHUYEN KHOA TIM MACH 4AM'), {
+    page.drawText(fmt(input.clinicName || 'PHÒNG KHÁM CHUYÊN KHOA TIM MẠCH 4AM'), {
       x: startX,
       y,
       size: 13,
@@ -101,7 +151,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     y -= 14;
 
     page.drawText(
-      removeAccents(input.clinicAddress || 'Dia chi: TP. Ho Chi Minh - Hotline: 1900 6868'),
+      fmt(input.clinicAddress || 'Địa chỉ: 123 Nguyễn Trãi, Phường 2, Quận 5, TP. Hồ Chí Minh - Hotline: 1900 6868'),
       {
         x: startX,
         y,
@@ -122,7 +172,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     y -= 22;
 
     // ── 2. TIÊU ĐỀ HÓA ĐƠN ──────────────────────────────────────────────────
-    const title = 'HOA DON THANH TOAN VIEN PHI';
+    const title = fmt('HÓA ĐƠN THANH TOÁN VIỆN PHÍ');
     const titleWidth = bold.widthOfTextAtSize(title, 16);
     page.drawText(title, {
       x: startX + (contentWidth - titleWidth) / 2,
@@ -133,7 +183,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     });
     y -= 14;
 
-    const subTitle = '(PHIEU THU TIEN DICH VU Y TE)';
+    const subTitle = fmt('(PHIẾU THU TIỀN DỊCH VỤ Y TẾ)');
     const subTitleWidth = font.widthOfTextAtSize(subTitle, 9);
     page.drawText(subTitle, {
       x: startX + (contentWidth - subTitleWidth) / 2,
@@ -145,8 +195,8 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     y -= 16;
 
     // Mã hóa đơn & ngày lập
-    const invoiceCodeText = `Ma hoa don: ${input.invoiceCode}`;
-    const issuedDateText = `Ngay lap: ${input.issuedAt.toLocaleDateString('en-GB')}`;
+    const invoiceCodeText = fmt(`Mã hóa đơn: ${input.invoiceCode}`);
+    const issuedDateText = fmt(`Ngày lập: ${input.issuedAt.toLocaleDateString('vi-VN')}`);
     page.drawText(invoiceCodeText, { x: startX, y, size: 10, font: bold, color: rgb(0.1, 0.1, 0.1) });
     const issuedDateWidth = font.widthOfTextAtSize(issuedDateText, 10);
     page.drawText(issuedDateText, { x: endX - issuedDateWidth, y, size: 10, font, color: rgb(0.3, 0.3, 0.3) });
@@ -169,14 +219,14 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     const infoRightX = startX + 280;
 
     // Dòng 1: Họ tên + Mã BN
-    page.drawText(`Ho va ten: ${removeAccents(input.patientName || 'Khach vang lai')}`, {
+    page.drawText(fmt(`Họ và tên: ${input.patientName || 'Khách vãng lai'}`), {
       x: infoLeftX,
       y: infoY,
       size: 9.5,
       font: bold,
       color: rgb(0.15, 0.15, 0.15),
     });
-    page.drawText(`Ma benh nhan: ${input.patientCode || 'N/A'}`, {
+    page.drawText(fmt(`Mã bệnh nhân: ${input.patientCode || 'N/A'}`), {
       x: infoRightX,
       y: infoY,
       size: 9.5,
@@ -186,17 +236,17 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     infoY -= 14;
 
     // Dòng 2: Ngày sinh, Giới tính + SĐT
-    const dobText = input.patientDob ? `Ngay sinh: ${input.patientDob}` : '';
-    const genderText = input.patientGender ? `Gioi tinh: ${removeAccents(input.patientGender)}` : '';
-    const dobGender = [dobText, genderText].filter(Boolean).join('  |  ') || 'Ngay sinh: N/A';
-    page.drawText(dobGender, {
+    const dobText = input.patientDob ? `Ngày sinh: ${input.patientDob}` : '';
+    const genderText = input.patientGender ? `Giới tính: ${input.patientGender}` : '';
+    const dobGender = [dobText, genderText].filter(Boolean).join('  |  ') || 'Ngày sinh: N/A';
+    page.drawText(fmt(dobGender), {
       x: infoLeftX,
       y: infoY,
       size: 9,
       font,
       color: rgb(0.3, 0.3, 0.3),
     });
-    page.drawText(`So dien thoai: ${input.patientPhone || 'N/A'}`, {
+    page.drawText(fmt(`Số điện thoại: ${input.patientPhone || 'N/A'}`), {
       x: infoRightX,
       y: infoY,
       size: 9,
@@ -206,7 +256,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     infoY -= 14;
 
     // Dòng 3: Số CCCD + Mã lượt khám
-    page.drawText(`So CCCD / Dinh danh: ${input.patientIdentityNumber || 'N/A'}`, {
+    page.drawText(fmt(`Số CCCD / Định danh: ${input.patientIdentityNumber || 'Chưa cập nhật'}`), {
       x: infoLeftX,
       y: infoY,
       size: 9,
@@ -214,7 +264,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
       color: rgb(0.3, 0.3, 0.3),
     });
     if (input.encounterCode) {
-      page.drawText(`Ma luot kham: ${input.encounterCode}`, {
+      page.drawText(fmt(`Mã lượt khám: ${input.encounterCode}`), {
         x: infoRightX,
         y: infoY,
         size: 9,
@@ -225,7 +275,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     infoY -= 14;
 
     // Dòng 4: Địa chỉ
-    page.drawText(`Dia chi: ${removeAccents(input.patientAddress || 'Chua cap nhat')}`, {
+    page.drawText(fmt(`Địa chỉ: ${input.patientAddress || 'Chưa cập nhật'}`), {
       x: infoLeftX,
       y: infoY,
       size: 9,
@@ -272,7 +322,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     }
 
     const headerTextY = y - headerH + 7.5;
-    const thStt = 'STT';
+    const thStt = fmt('STT');
     page.drawText(thStt, {
       x: colCenter.stt - bold.widthOfTextAtSize(thStt, 8.5) / 2,
       y: headerTextY,
@@ -281,7 +331,8 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
       color: rgb(0.1, 0.2, 0.4),
     });
 
-    page.drawText('NOI DUNG THU PHI / DICH VU', {
+    const thDesc = fmt('NỘI DUNG THU PHÍ / DỊCH VỤ');
+    page.drawText(thDesc, {
       x: colTextLeft.desc,
       y: headerTextY,
       size: 8.5,
@@ -289,7 +340,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
       color: rgb(0.1, 0.2, 0.4),
     });
 
-    const thQty = 'SL';
+    const thQty = fmt('SL');
     page.drawText(thQty, {
       x: colCenter.qty - bold.widthOfTextAtSize(thQty, 8.5) / 2,
       y: headerTextY,
@@ -298,7 +349,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
       color: rgb(0.1, 0.2, 0.4),
     });
 
-    const thPrice = 'DON GIA';
+    const thPrice = fmt('ĐƠN GIÁ');
     page.drawText(thPrice, {
       x: colTextRight.price - bold.widthOfTextAtSize(thPrice, 8.5),
       y: headerTextY,
@@ -307,7 +358,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
       color: rgb(0.1, 0.2, 0.4),
     });
 
-    const thTotal = 'THANH TIEN';
+    const thTotal = fmt('THÀNH TIỀN');
     page.drawText(thTotal, {
       x: colTextRight.total - bold.widthOfTextAtSize(thTotal, 8.5),
       y: headerTextY,
@@ -358,7 +409,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
       });
 
       // Cột 2: Tên dịch vụ
-      page.drawText(removeAccents(item.description || 'Dich vu'), {
+      page.drawText(fmt(item.description || 'Dịch vụ'), {
         x: colTextLeft.desc,
         y: rowTextY,
         size: 9,
@@ -404,8 +455,8 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     // ── 5. KHỐI TỔNG KẾT & PHƯƠNG THỨC THANH TOÁN ───────────────────────────
     const summaryBoxY = y;
     // Cột trái: Thông tin thanh toán thực tế
-    page.drawText('THONG TIN THANH TOAN:', { x: startX, y: summaryBoxY, size: 9, font: bold, color: rgb(0.2, 0.2, 0.2) });
-    page.drawText(`- Hinh thuc: ${removeAccents(input.paymentMethod || 'Tien mat tai quay')}`, {
+    page.drawText(fmt('THÔNG TIN THANH TOÁN:'), { x: startX, y: summaryBoxY, size: 9, font: bold, color: rgb(0.2, 0.2, 0.2) });
+    page.drawText(fmt(`- Hình thức: ${input.paymentMethod || 'Tiền mặt tại quầy'}`), {
       x: startX,
       y: summaryBoxY - 14,
       size: 9,
@@ -413,7 +464,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
       color: rgb(0.3, 0.3, 0.3),
     });
     if (input.paidAt) {
-      page.drawText(`- Thoi gian: ${input.paidAt.toLocaleString('en-GB')}`, {
+      page.drawText(fmt(`- Thời gian: ${input.paidAt.toLocaleString('vi-VN')}`), {
         x: startX,
         y: summaryBoxY - 26,
         size: 9,
@@ -421,7 +472,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
         color: rgb(0.3, 0.3, 0.3),
       });
     }
-    page.drawText(`- Trang thai: ${removeAccents(input.paymentStatus || 'Da thanh toan (Da thu tien)')}`, {
+    page.drawText(fmt(`- Trạng thái: ${input.paymentStatus || 'Đã thanh toán (Đã thu tiền)'}`), {
       x: startX,
       y: summaryBoxY - (input.paidAt ? 38 : 26),
       size: 9,
@@ -433,7 +484,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     const sumRightLabelX = 350;
     let sumRightY = summaryBoxY;
 
-    page.drawText('Tam tinh:', { x: sumRightLabelX, y: sumRightY, size: 9.5, font, color: rgb(0.35, 0.35, 0.35) });
+    page.drawText(fmt('Tạm tính:'), { x: sumRightLabelX, y: sumRightY, size: 9.5, font, color: rgb(0.35, 0.35, 0.35) });
     const subtotalText = money(input.subtotalAmount);
     page.drawText(subtotalText, {
       x: endX - font.widthOfTextAtSize(subtotalText, 9.5),
@@ -445,7 +496,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     sumRightY -= 15;
 
     if (input.discountAmount > 0) {
-      page.drawText('Giam tru (BHYT/KM):', { x: sumRightLabelX, y: sumRightY, size: 9.5, font, color: rgb(0.1, 0.6, 0.3) });
+      page.drawText(fmt('Giảm trừ (BHYT/KM):'), { x: sumRightLabelX, y: sumRightY, size: 9.5, font, color: rgb(0.1, 0.6, 0.3) });
       const discountText = `- ${money(input.discountAmount)}`;
       page.drawText(discountText, {
         x: endX - font.widthOfTextAtSize(discountText, 9.5),
@@ -464,7 +515,7 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
       color: rgb(0.7, 0.7, 0.7),
     });
 
-    page.drawText('TONG CONG:', { x: sumRightLabelX, y: sumRightY - 6, size: 11, font: bold, color: rgb(0.1, 0.2, 0.45) });
+    page.drawText(fmt('TỔNG CỘNG:'), { x: sumRightLabelX, y: sumRightY - 6, size: 11, font: bold, color: rgb(0.1, 0.2, 0.45) });
     const totalText = money(input.totalAmount);
     page.drawText(totalText, {
       x: endX - bold.widthOfTextAtSize(totalText, 12),
@@ -480,12 +531,15 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
     const signColLeft = startX + 45;
     const signColRight = endX - 165;
 
-    page.drawText('NGUOI NOP TIEN', { x: signColLeft, y, size: 9.5, font: bold, color: rgb(0.2, 0.2, 0.2) });
-    page.drawText('NGUOI THU TIEN / THU NGAN', { x: signColRight, y, size: 9.5, font: bold, color: rgb(0.2, 0.2, 0.2) });
+    const thSignLeft = fmt('NGƯỜI NỘP TIỀN');
+    const thSignRight = fmt('NGƯỜI THU TIỀN / THU NGÂN');
+    page.drawText(thSignLeft, { x: signColLeft, y, size: 9.5, font: bold, color: rgb(0.2, 0.2, 0.2) });
+    page.drawText(thSignRight, { x: signColRight, y, size: 9.5, font: bold, color: rgb(0.2, 0.2, 0.2) });
     y -= 12;
 
-    page.drawText('(Ky, ghi ro ho ten)', { x: signColLeft + 5, y, size: 8, font, color: rgb(0.5, 0.5, 0.5) });
-    page.drawText('(Ky, ghi ro ho ten)', { x: signColRight + 15, y, size: 8, font, color: rgb(0.5, 0.5, 0.5) });
+    const thSubSign = fmt('(Ký, ghi rõ họ tên)');
+    page.drawText(thSubSign, { x: signColLeft + 5, y, size: 8, font, color: rgb(0.5, 0.5, 0.5) });
+    page.drawText(thSubSign, { x: signColRight + 15, y, size: 8, font, color: rgb(0.5, 0.5, 0.5) });
 
     const pdfBytes = await pdfDoc.save();
     const buffer = Buffer.from(pdfBytes);
