@@ -87,12 +87,12 @@ export class PrescriptionService {
         if (diagnosis.encounterId !== dto.encounterId) {
             throw new BadRequestException('Chẩn đoán không thuộc lượt khám (encounter) đã truyền');
         }
-        if (diagnosis.doctorId !== doctor.doctorId) {
+        if (diagnosis.doctorId && diagnosis.doctorId !== doctor.doctorId) {
             throw new ForbiddenException('Bạn chỉ có thể kê đơn dựa trên chẩn đoán do chính mình ghi nhận');
         }
-        if (diagnosis.diagnosisType !== 'final') {
+        if (diagnosis.diagnosisType !== 'final' && diagnosis.diagnosisType !== 'initial') {
             throw new BadRequestException(
-                `Chẩn đoán để kê đơn phải là chẩn đoán chính thức (diagnosisType='final'), hiện tại là '${diagnosis.diagnosisType}'.`,
+                `Chẩn đoán để kê đơn phải là chẩn đoán hợp lệ (chính thức hoặc ban đầu), hiện tại là '${diagnosis.diagnosisType}'.`,
             );
         }
 
@@ -103,9 +103,10 @@ export class PrescriptionService {
         if (encounter.doctorId && encounter.doctorId !== doctor.doctorId) {
             throw new ForbiddenException('Bạn chỉ có thể kê đơn cho lượt khám do chính mình phụ trách');
         }
-        if (encounter.status !== EncounterStatus.AWAITING_REVIEW) {
+        const validStatuses = [EncounterStatus.AWAITING_REVIEW, EncounterStatus.IN_PROGRESS];
+        if (!validStatuses.includes(encounter.status as EncounterStatus)) {
             throw new ForbiddenException(
-                `Chỉ có thể kê đơn khi lượt khám ở trạng thái '${EncounterStatus.AWAITING_REVIEW}', hiện tại là '${encounter.status}'.`,
+                `Chỉ có thể kê đơn khi lượt khám ở trạng thái '${EncounterStatus.AWAITING_REVIEW}' hoặc '${EncounterStatus.IN_PROGRESS}', hiện tại là '${encounter.status}'.`,
             );
         }
 
@@ -247,6 +248,9 @@ export class PrescriptionService {
         }
         if (query.doctorId) {
             where.doctorId = query.doctorId;
+        }
+        if (query.patientId) {
+            where.encounter = { patientId: query.patientId };
         }
         if (query.status) {
             where.status = query.status;
