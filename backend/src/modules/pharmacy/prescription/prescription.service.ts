@@ -3,9 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../common/utils/code-generator.util';
 import { EncounterStatus } from '../../../common/utils/encounter-status.util';
-import { ACTOR_ROLE, normalizeActorRole } from '../../../common/constants/actor-role.constant';
-import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
-import { hasPermissionScope } from '../../../common/utils/permission.util';
+import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { RequestUser } from '../../identity-access/auth/strategies/jwt.strategy';
 import { DoctorService } from '../../identity-access/doctor/doctor.service';
 import { ActorRoleService } from '../../identity-access/user/actor-role.service';
@@ -243,23 +241,7 @@ export class PrescriptionService {
     }
 
     // GET /prescriptions
-    findMany(query: FindPrescriptionsQueryDto, currentUser?: RequestUser) {
-        const isStaff =
-            currentUser &&
-            normalizeActorRole(currentUser.roleCode) !== ACTOR_ROLE.PATIENT &&
-            (hasPermissionScope(
-                currentUser.permissions,
-                Resource.PRESCRIPTION,
-                Action.READ,
-                Scope.ALL,
-            ) ||
-                hasPermissionScope(
-                    currentUser.permissions,
-                    Resource.PRESCRIPTION,
-                    Action.READ,
-                    Scope.GROUP,
-                ));
-
+    findMany(query: FindPrescriptionsQueryDto) {
         const where: Prisma.PrescriptionWhereInput = {};
         if (query.encounterId) {
             where.encounterId = query.encounterId;
@@ -269,12 +251,6 @@ export class PrescriptionService {
         }
         if (query.patientId) {
             where.encounter = { patientId: query.patientId };
-        }
-        if (!isStaff && currentUser) {
-            where.encounter = {
-                ...(where.encounter as Prisma.EncounterWhereInput),
-                patient: { userId: currentUser.userId },
-            };
         }
         if (query.status) {
             where.status = query.status;

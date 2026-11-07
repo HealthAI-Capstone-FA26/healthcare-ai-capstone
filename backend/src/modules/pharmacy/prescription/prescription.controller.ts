@@ -60,7 +60,7 @@ export class PrescriptionController {
     @Get()
     @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.READ}:${Scope.OWN}`)
     @ApiOperation({ summary: 'Liệt kê đơn thuốc theo bộ lọc (encounterId, doctorId, status)' })
-    findMany(@Query() query: FindPrescriptionsQueryDto, @CurrentUser() user: RequestUser) {
-        return this.prescriptionService.findMany(query, user);
+    findMany(@Query() query: FindPrescriptionsQueryDto) {
+        return this.prescriptionService.findMany(query);
     }
 }
