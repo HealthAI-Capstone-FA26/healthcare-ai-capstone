@@ -76,7 +76,7 @@ jobs:
 
       # prisma/migrations chỉ chứa các migration tăng dần (không có baseline) nên dựng schema bằng db push.
       - name: Create schema
-        run: npx prisma db push --skip-generate
+        run: npx prisma db push
 
       - name: Seed reference data (roles, permissions, consent policies, vital items...)
         run: npx prisma db seed
