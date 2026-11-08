@@ -51,14 +51,14 @@ export class PrescriptionController {
     }
 
     @Get(':id')
-    @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.READ}:${Scope.ALL}`)
+    @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.READ}:${Scope.OWN}`)
     @ApiOperation({ summary: 'Chi tiết đơn thuốc kèm items (tên thuốc) và safetyAlerts' })
     findOne(@Param('id') id: string) {
         return this.prescriptionService.findById(id);
     }
 
     @Get()
-    @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.READ}:${Scope.ALL}`)
+    @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.READ}:${Scope.OWN}`)
     @ApiOperation({ summary: 'Liệt kê đơn thuốc theo bộ lọc (encounterId, doctorId, status)' })
     findMany(@Query() query: FindPrescriptionsQueryDto) {
         return this.prescriptionService.findMany(query);
