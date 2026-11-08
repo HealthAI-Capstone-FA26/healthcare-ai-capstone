@@ -1,0 +1,85 @@
+name: E2E - Appointment registration
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hospital_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # E2E_DATABASE_URL là biến bắt buộc của test (chống chạy nhầm lên DB dev/prod);
+      # DATABASE_URL cho Prisma CLI (db push / db seed).
+      E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hospital_e2e
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hospital_e2e
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-jwt-secret
+      REFRESH_TOKEN_SECRET: ci-refresh-secret
+      RESET_PASSWORD_SECRET: ci-reset-secret
+      MAIL_FROM_EMAIL: noreply@ci.test
+      BREVO_API_KEY: ci-dummy
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # prisma/migrations chỉ chứa các migration tăng dần (không có baseline) nên dựng schema bằng db push.
+      - name: Create schema
+        run: npx prisma db push --skip-generate
+
+      - name: Seed reference data (roles, permissions, consent policies, vital items...)
+        run: npx prisma db seed
+
+      - name: Run e2e - E2E - Appointment registration
+        run: npm run test:e2e -- appointment-registration
