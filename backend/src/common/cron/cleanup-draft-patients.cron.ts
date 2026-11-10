@@ -4,7 +4,6 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { RedisService } from 'src/redis/redis.service';
 import { PatientStatus, DRAFT_PATIENT_RETENTION_DAYS } from '../constants/patient-status.constants';
-import { canCancelAppointment } from '../utils/appointment-status.util';
 
 const LOCK_TTL_SECONDS = 5 * 60;
 const LOCK_KEY_PREFIX = 'cleanup-draft-patients';
@@ -12,14 +11,8 @@ const LOCK_KEY_PREFIX = 'cleanup-draft-patients';
 /**
  * Chạy hàng ngày: Patient status='draft' (tạo tự động từ luồng đặt lịch guest qua OTP — xem
  * GuestAppointmentService) mà quá DRAFT_PATIENT_RETENTION_DAYS ngày vẫn CHƯA được lễ tân xác
- * nhận chuyển sang status='main' (xem PatientService.confirmMain) thì bị xoá.
- *
- * Trước khi xoá Patient phải xử lý các Appointment liên quan (FK appointments.patient_id là
- * ON DELETE RESTRICT — không xoá thẳng patient được nếu còn appointment tham chiếu tới):
- *  - Appointment đang ở trạng thái còn huỷ được (pending/confirmed) -> trả lại chỗ slot rồi xoá.
- *  - Nếu patient có bất kỳ appointment nào đã đi quá xa (checked_in/in_progress/completed...),
- *    coi như patient này ĐÃ thực sự đến khám -> KHÔNG xoá (bỏ qua, để nhân viên xử lý thủ công
- *    việc set status='main' thay vì mất dữ liệu khám bệnh thật).
+ * nhận chuyển sang status='main' (xem PatientService.confirmMain) thì bị xoá cùng các
+ * Appointment liên quan.
  */
 @Injectable()
 export class CleanupDraftPatientsCron {
@@ -53,27 +46,19 @@ export class CleanupDraftPatientsCron {
 
     const candidates = await this.prisma.patient.findMany({
       where: { status: PatientStatus.DRAFT, createdAt: { lt: cutoff } },
-      include: { appointments: true },
+      include: { appointments: true, suggestedAppointments: true },
     });
 
     let deletedCount = 0;
     let skippedCount = 0;
 
     for (const patient of candidates) {
-      const hasProgressedAppointment = patient.appointments.some(
-        (appt) => !canCancelAppointment(appt.status) && appt.status !== 'cancelled' && appt.status !== 'no_show',
-      );
-
-      if (hasProgressedAppointment) {
-        // Patient thực sự đã đến khám (checked_in/in_progress/completed...) -> không tự ý xoá.
-        skippedCount++;
-        continue;
-      }
+      const appointments = [...patient.appointments, ...patient.suggestedAppointments];
 
       try {
         await this.prisma.$transaction(async (tx) => {
-          for (const appt of patient.appointments) {
-            if (canCancelAppointment(appt.status) && appt.slotId) {
+          for (const appt of appointments) {
+            if (appt.slotId) {
               await tx.appointmentSlot.update({
                 where: { slotId: appt.slotId },
                 data: { bookedCount: { decrement: 1 }, status: 'free' },
@@ -100,7 +85,7 @@ export class CleanupDraftPatientsCron {
     }
 
     this.logger.log(
-      `Đã xoá ${deletedCount} patient draft quá hạn (>${DRAFT_PATIENT_RETENTION_DAYS} ngày), bỏ qua ${skippedCount}`,
+      `Đã xoá ${deletedCount} patient draft quá hạn (>${DRAFT_PATIENT_RETENTION_DAYS} ngày) cùng appointment, bỏ qua ${skippedCount}`,
     );
     return { deletedCount, skippedCount };
   }
