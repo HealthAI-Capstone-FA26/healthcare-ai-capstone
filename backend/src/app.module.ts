@@ -22,6 +22,7 @@ import { DoctorExaminationModule } from './modules/clinical/pre-doctor-examinati
 import { PaymentModule } from './modules/payment/payment.module';
 import { PostTestConsultationModule } from './modules/clinical/post-test-consultation/post-test-consultation.module';
 import { PrescriptionModule } from './modules/pharmacy/prescription/prescription.module';
+import { StatisticsModule } from './modules/platform/statistics/statistics.module';
 
 @Module({
   imports: [
@@ -45,7 +46,8 @@ import { PrescriptionModule } from './modules/pharmacy/prescription/prescription
     DoctorExaminationModule,
     PaymentModule,
     PostTestConsultationModule,
-    PrescriptionModule
+    PrescriptionModule,
+    StatisticsModule
   ],
   controllers: [AppController],
   providers: [AppService],
