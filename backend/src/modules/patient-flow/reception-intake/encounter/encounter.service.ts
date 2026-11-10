@@ -287,13 +287,40 @@ export class EncounterService {
     return encounter;
   }
 
-  // GET /encounters?patientId=&doctorId=&status= — tra cứu lịch sử lượt khám của 1 bệnh nhân, hoặc lọc
-  // theo trạng thái / bác sĩ cho màn hình vận hành của lễ tân / bác sĩ.
+  // GET /encounters?patientId=&doctorId=&status=&date=&from=&to= — tra cứu lịch sử lượt khám của 1 bệnh nhân, hoặc lọc
+  // theo trạng thái / bác sĩ / ngày cho màn hình vận hành của lễ tân / bác sĩ.
   async findMany(query: FindEncountersQueryDto) {
+    let arrivedAtFilter: Prisma.DateTimeFilter | undefined;
+
+    if (query.date) {
+      const start = new Date(`${query.date}T00:00:00.000Z`);
+      const end = new Date(`${query.date}T23:59:59.999Z`);
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        arrivedAtFilter = {
+          gte: start,
+          lte: end,
+        };
+      }
+    } else if (query.from || query.to) {
+      const filter: Prisma.DateTimeFilter = {};
+      if (query.from) {
+        const start = new Date(`${query.from}T00:00:00.000Z`);
+        if (!isNaN(start.getTime())) filter.gte = start;
+      }
+      if (query.to) {
+        const end = new Date(`${query.to}T23:59:59.999Z`);
+        if (!isNaN(end.getTime())) filter.lte = end;
+      }
+      if (Object.keys(filter).length > 0) {
+        arrivedAtFilter = filter;
+      }
+    }
+
     const where: Prisma.EncounterWhereInput = {
       ...(query.patientId && { patientId: query.patientId }),
       ...(query.doctorId && { doctorId: query.doctorId }),
       ...(query.status && { status: query.status }),
+      ...(arrivedAtFilter && { arrivedAt: arrivedAtFilter }),
     };
 
     return this.prisma.encounter.findMany({
