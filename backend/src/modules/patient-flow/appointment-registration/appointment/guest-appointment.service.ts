@@ -21,10 +21,8 @@ const APPOINTMENT_CODE_PREFIX = 'LH';
 const GUEST_OTP_RATE_LIMIT = 5;
 const GUEST_OTP_RATE_LIMIT_WINDOW_SECONDS = 10 * 60; // 10 phút
 
-// Chỉ gợi ý patient status='main' khi đồng thời khớp số điện thoại và CCCD.
-interface MatchCandidate {
-  patientId: string;
-  matchedFields: string[];
+function normalizeFullName(name: string): string {
+  return name.trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
 @Injectable()
@@ -51,6 +49,9 @@ export class GuestAppointmentService {
 
     // Kiểm tra slot còn trống, đúng bác sĩ và chưa quá hạn trước khi gửi OTP
     await this.assertSlotBookable(dto.doctorId, dto.slotId);
+
+    // Kiểm tra sớm xung đột hồ sơ bệnh nhân (SĐT/Email đã thuộc về hồ sơ khác tên) trước khi gửi OTP
+    await this.findAndValidateExistingPatient(this.prisma, dto);
 
     await this.enforceRateLimit(dto.phoneNumber);
 
@@ -172,40 +173,44 @@ export class GuestAppointmentService {
     return result;
   }
 
-  // Chỉ query patient main khi cả số điện thoại và CCCD cùng khớp.
+  // Tìm hồ sơ bệnh nhân hiện có (main hoặc draft) theo SĐT hoặc Email:
+  // - Nếu khớp hồ sơ có sẵn và đúng họ tên:
+  //   + status = 'main' -> gán suggestedPatientId (để lễ tân đối chiếu qua sync-patient).
+  //   + status = 'draft' -> tái sử dụng luôn patientId của hồ sơ draft đó (không tạo bản ghi trùng).
+  // - Nếu trùng SĐT/Email với hồ sơ có sẵn nhưng lệch họ tên (hoặc SĐT/Email thuộc 2 hồ sơ khác nhau) -> báo lỗi ConflictException.
+  // - Nếu chưa có hồ sơ nào -> tạo mới Patient status = 'draft'.
   private async resolvePatientForBooking(
     tx: Prisma.TransactionClient,
     dto: GuestRequestOtpDto,
   ): Promise<{ patientId: string | null; suggestedPatientId: string | null; suggestedReason: string | null }> {
-    const mainCandidates = await tx.patient.findMany({
-      where: {
-        status: PatientStatus.MAIN,
-        phoneNumber: dto.phoneNumber,
-        identityNumber: dto.identityNumber,
-      },
-    });
+    const existingPatient = await this.findAndValidateExistingPatient(tx, dto);
 
-    const best = this.pickBestMatch(mainCandidates, dto);
+    if (existingPatient) {
+      if (dto.email && !existingPatient.email) {
+        await tx.patient.update({
+          where: { patientId: existingPatient.patientId },
+          data: { email: dto.email },
+        });
+      }
 
-    if (best) {
+      if (existingPatient.status === PatientStatus.MAIN) {
+        const matchedFields: string[] = ['phoneNumber'];
+        if (dto.email && existingPatient.email?.toLowerCase() === dto.email.toLowerCase()) {
+          matchedFields.push('email');
+        }
+        return {
+          patientId: null,
+          suggestedPatientId: existingPatient.patientId,
+          suggestedReason: matchedFields.join(','),
+        };
+      }
+
+      // Hồ sơ đang ở trạng thái 'draft' -> tái sử dụng luôn cho lịch hẹn mới
       return {
-        patientId: null,
-        suggestedPatientId: best.patientId,
-        suggestedReason: best.matchedFields.join(','),
+        patientId: existingPatient.patientId,
+        suggestedPatientId: null,
+        suggestedReason: null,
       };
-    }
-
-    // CCCD là unique. Nếu một lần đặt lịch trước đó đã tạo draft với cùng CCCD,
-    // dùng lại draft này thay vì cố tạo bản ghi mới rồi bị lỗi duplicate.
-    const existingDraft = await tx.patient.findFirst({
-      where: {
-        status: PatientStatus.DRAFT,
-        identityNumber: dto.identityNumber,
-      },
-      select: { patientId: true },
-    });
-    if (existingDraft) {
-      return { patientId: existingDraft.patientId, suggestedPatientId: null, suggestedReason: null };
     }
 
     // Không tìm thấy patient main hoặc draft hiện có -> tạo patient draft mới.
@@ -214,7 +219,6 @@ export class GuestAppointmentService {
         fullName: dto.fullName,
         dateOfBirth: dto.dateOfBirth,
         gender: dto.gender,
-        identityNumber: dto.identityNumber,
         phoneNumber: dto.phoneNumber,
         email: dto.email,
       },
@@ -224,28 +228,55 @@ export class GuestAppointmentService {
     return { patientId: draftPatient.patientId, suggestedPatientId: null, suggestedReason: null };
   }
 
-  private pickBestMatch(
-    candidates: { patientId: string; fullName: string; dateOfBirth: Date; phoneNumber: string; identityNumber: string | null }[],
+  private async findAndValidateExistingPatient(
+    db: Prisma.TransactionClient | PrismaService,
     dto: GuestRequestOtpDto,
-  ): MatchCandidate | null {
-    let best: MatchCandidate | null = null;
-
-    for (const candidate of candidates) {
-      const matchedFields: string[] = [];
-
-      if (candidate.phoneNumber === dto.phoneNumber) {
-        matchedFields.push('phoneNumber');
-      }
-      if (candidate.identityNumber && candidate.identityNumber === dto.identityNumber) {
-        matchedFields.push('identityNumber');
-      }
-
-      if (!best || matchedFields.length > best.matchedFields.length) {
-        best = { patientId: candidate.patientId, matchedFields };
-      }
+  ) {
+    const orConditions: Prisma.PatientWhereInput[] = [{ phoneNumber: dto.phoneNumber }];
+    if (dto.email) {
+      orConditions.push({ email: { equals: dto.email, mode: 'insensitive' } });
     }
 
-    return best;
+    const candidates = await db.patient.findMany({
+      where: { OR: orConditions },
+    });
+
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    const byPhone = candidates.find((p) => p.phoneNumber === dto.phoneNumber);
+    const byEmail = dto.email
+      ? candidates.find((p) => p.email?.toLowerCase() === dto.email!.toLowerCase())
+      : undefined;
+
+    if (byPhone && byEmail && byPhone.patientId !== byEmail.patientId) {
+      throw new ConflictException(
+        'Số điện thoại và email đang thuộc về hai hồ sơ bệnh nhân khác nhau. Vui lòng kiểm tra lại thông tin',
+      );
+    }
+
+    const matched = byPhone ?? byEmail!;
+
+    if (matched.phoneNumber !== dto.phoneNumber) {
+      throw new ConflictException(
+        'Email này đã được đăng ký với một số điện thoại khác. Vui lòng nhập đúng số điện thoại của hồ sơ đã có hoặc dùng email khác',
+      );
+    }
+
+    if (dto.email && matched.email && matched.email.toLowerCase() !== dto.email.toLowerCase()) {
+      throw new ConflictException(
+        'Số điện thoại này đã được đăng ký với một email khác. Vui lòng nhập đúng email của hồ sơ đã có hoặc dùng số điện thoại khác',
+      );
+    }
+
+    if (normalizeFullName(matched.fullName) !== normalizeFullName(dto.fullName)) {
+      throw new ConflictException(
+        'Số điện thoại hoặc email này đã được đăng ký cho hồ sơ bệnh nhân khác. Vui lòng nhập đúng họ tên hồ sơ cũ hoặc dùng SĐT/Email khác',
+      );
+    }
+
+    return matched;
   }
 
   private async assertSlotBookable(doctorId: string, slotId: string) {

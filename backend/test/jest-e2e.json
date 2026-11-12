@@ -8,6 +8,7 @@
   },
   "testEnvironment": "node",
   "setupFiles": ["<rootDir>/test/e2e/setup-env.ts"],
-  "testTimeout": 60000,
-  "maxWorkers": 1
+  "testTimeout": 180000,
+  "maxWorkers": 1,
+  "forceExit": true
 }

@@ -47,11 +47,6 @@ export class GuestRequestOtpDto {
   @IsEnum(PatientGender)
   gender: PatientGender;
 
-  @ApiProperty({ example: '079090001234' })
-  @IsString()
-  @MaxLength(20)
-  identityNumber: string;
-
   @ApiProperty({
     description: 'Bác sĩ được chọn để đặt lịch; slot phải thuộc bác sĩ này',
     example: '8b7e2f7d-3a2a-4f5f-8f0c-123456789abc',

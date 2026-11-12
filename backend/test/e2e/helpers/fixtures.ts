@@ -21,13 +21,14 @@ export interface Fixtures {
 const randomDigits = (length: number) =>
   Array.from(randomBytes(length), (b) => b % 10).join('');
 
-/** Thông tin bệnh nhân mới, identityNumber/phone random để các lần chạy không đụng unique. */
+/** Thông tin bệnh nhân mới, identityNumber/insuranceNumber/phone random để các lần chạy không đụng unique. */
 export function newPatientPayload() {
   return {
     fullName: 'Nguyen Van E2E',
     dateOfBirth: '1990-05-20',
     gender: 'male',
     identityNumber: `079${randomDigits(9)}`,
+    insuranceNumber: `HS4${randomDigits(12)}`,
     phoneNumber: `09${randomDigits(8)}`,
   };
 }

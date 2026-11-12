@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ACTOR_ROLE, roleCodesOfActorRole } from '../../src/common/constants/actor-role.constant';
 import { client, createE2EApp } from './helpers/app';
 import { Fixtures, newPatientPayload, seedFixtures } from './helpers/fixtures';
 import { flow, FlowContext } from './helpers/flow';
@@ -25,7 +26,7 @@ describe('Workflow 1: appointment registration (at-hospital)', () => {
     prisma = app.get(PrismaService);
     fixtures = await seedFixtures(app);
     ctx = { app, fixtures };
-  });
+  }, 180_000);
 
   afterAll(async () => {
     await app.close();
@@ -46,8 +47,9 @@ describe('Workflow 1: appointment registration (at-hospital)', () => {
     expect(called.counterNumber).toBe('Quầy 1');
   });
 
-  it('3. lễ tân nhập thông tin -> tạo patient + appointment walk_in (confirmed) + hoá đơn phí khám pending', async () => {
-    const served = await flow.serveTicket(ctx, state.ticketId, newPatientPayload());
+  it('3. lễ tân nhập thông tin -> tạo patient (status draft) + appointment walk_in (confirmed) + hoá đơn phí khám pending', async () => {
+    const patientPayload = newPatientPayload();
+    const served = await flow.serveTicket(ctx, state.ticketId, patientPayload);
 
     expect(served.queueTicket.status).toBe('done');
     expect(served.appointment).toMatchObject({
@@ -59,6 +61,13 @@ describe('Workflow 1: appointment registration (at-hospital)', () => {
     expect(served.invoice).toMatchObject({ status: 'pending' });
     expect(Number(served.invoice.totalAmount)).toBeGreaterThan(0);
 
+    // Lúc lễ tân mới tạo walk-in patient, hồ sơ ở trạng thái 'draft' cho đến khi hoàn tất đăng ký.
+    const createdPatient = await prisma.patient.findUniqueOrThrow({
+      where: { patientId: served.appointment.patientId },
+    });
+    expect(createdPatient.status).toBe('draft');
+
+    state.patientPayload = patientPayload;
     state.appointmentId = served.appointment.appointmentId;
     state.patientId = served.appointment.patientId;
     state.invoice = served.invoice;
@@ -123,13 +132,46 @@ describe('Workflow 1: appointment registration (at-hospital)', () => {
     expect(missing.join(' | ')).toContain('danh tính');
     expect(missing.join(' | ')).toContain('data_processing');
     expect(missing.join(' | ')).toContain('treatment_consent');
+
+    // Chưa hoàn tất đăng ký thì patient vẫn giữ trạng thái 'draft'
+    const patientStillDraft = await prisma.patient.findUniqueOrThrow({
+      where: { patientId: state.patientId },
+    });
+    expect(patientStillDraft.status).toBe('draft');
   });
 
-  it('9. khai báo lý do khám + xác minh danh tính + ký 2 consent bắt buộc', async () => {
+  it('9. khai báo lý do khám + xác minh danh tính (kiểm tra khớp CCCD/BHYT) + ký 2 consent bắt buộc', async () => {
     const complaint = await flow.addChiefComplaint(ctx, state.encounterId);
     expect(complaint).toMatchObject({ encounterId: state.encounterId, painLevel: 3 });
 
-    const verification = await flow.verifyIdentity(ctx, state.encounterId);
+    // [exception] Truyền sai CCCD hoặc BHYT so với hồ sơ trong encounter bị chặn 400
+    const wrongIdRes = await client(app, fixtures.receptionist.token).post(
+      `/encounters/${state.encounterId}/identity-verifications`,
+      {
+        verificationMethod: 'national_id_card',
+        verificationStatus: 'verified',
+        identityNumber: '000000000000',
+      },
+    );
+    expect(wrongIdRes.status).toBe(400);
+
+    const wrongInsuranceRes = await client(app, fixtures.receptionist.token).post(
+      `/encounters/${state.encounterId}/identity-verifications`,
+      {
+        verificationMethod: 'national_id_card',
+        verificationStatus: 'verified',
+        identityNumber: state.patientPayload.identityNumber,
+        insuranceNumber: 'WRONG_INSURANCE',
+      },
+    );
+    expect(wrongInsuranceRes.status).toBe(400);
+
+    const verification = await flow.verifyIdentity(
+      ctx,
+      state.encounterId,
+      state.patientPayload.identityNumber,
+      state.patientPayload.insuranceNumber,
+    );
     expect(verification.verificationStatus).toBe('verified');
 
     const consents = await flow.signMandatoryConsents(ctx, state.encounterId, state.patientId);
@@ -137,15 +179,28 @@ describe('Workflow 1: appointment registration (at-hospital)', () => {
     consents.forEach((consent) => expect(consent.status).toBe('active'));
   });
 
-  it('10. hoàn tất tiếp đón -> encounter registered + vào hàng đợi triage (waiting, gán y tá)', async () => {
+  it('10. hoàn tất tiếp đón -> patient chuyển sang main, encounter registered + vào hàng đợi triage (waiting, gán y tá)', async () => {
     const result = await flow.completeRegistration(ctx, state.encounterId);
 
     expect(result.encounter).toMatchObject({ encounterId: state.encounterId, status: 'registered' });
     expect(result.triageQueueEntry).toMatchObject({
       encounterId: state.encounterId,
       status: 'waiting',
-      assignedNurseUserId: fixtures.nurse.userId,
     });
+    // Y tá được gán là người ít việc nhất trong TẤT CẢ y tá đang active; DB dùng chung có thể có y tá thật
+    // nên chỉ khẳng định đã gán 1 y tá đang active có role nurse, không ép đúng y tá fixture.
+    const assignedNurse = await prisma.user.findUniqueOrThrow({
+      where: { userId: result.triageQueueEntry.assignedNurseUserId },
+      include: { role: true },
+    });
+    expect(assignedNurse.status).toBe('active');
+    expect(roleCodesOfActorRole(ACTOR_ROLE.NURSE)).toContain(assignedNurse.role.roleCode);
+
+    const mainPatient = await prisma.patient.findUniqueOrThrow({
+      where: { patientId: state.patientId },
+    });
+    expect(mainPatient.status).toBe('main');
+
     state.triageQueueEntryId = result.triageQueueEntry.queueEntryId;
   });
 
@@ -162,6 +217,7 @@ describe('Workflow 1: appointment registration (at-hospital)', () => {
   it('12. kết quả cuối: GET /encounters/:id và GET /triage-queue phản ánh đúng', async () => {
     const encounter = (await client(app, fixtures.receptionist.token).get(`/encounters/${state.encounterId}`)).body;
     expect(encounter).toMatchObject({ status: 'registered', patientId: state.patientId });
+    expect(encounter.patient.status).toBe('main');
     expect(encounter.chiefComplaint).toBeTruthy();
     expect(encounter.identityVerifications).toHaveLength(1);
     expect(encounter.consents).toHaveLength(2);

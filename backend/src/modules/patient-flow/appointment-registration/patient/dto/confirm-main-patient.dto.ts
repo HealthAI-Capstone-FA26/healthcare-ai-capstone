@@ -6,8 +6,6 @@ export class ConfirmMainPatientDto extends PartialType(
     'fullName',
     'dateOfBirth',
     'gender',
-    'identityNumber',
-    'insuranceNumber',
     'phoneNumber',
   ] as const),
 ) {}

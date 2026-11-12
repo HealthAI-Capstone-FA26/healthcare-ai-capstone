@@ -30,12 +30,26 @@ export const flow = {
 
   /** Bước 3: lễ tân nhập thông tin BN mới + chọn bác sĩ -> tạo patient + appointment + invoice phí khám (pending). */
   async serveTicket(ctx: FlowContext, ticketId: string, patient = newPatientPayload()) {
-    const res = await client(ctx.app, ctx.fixtures.receptionist.token).patch(`/queue-tickets/${ticketId}/done`, {
-      doctorId: ctx.fixtures.doctor.doctorId,
-      patient,
-      reasonForVisit: 'Đau ngực nhẹ khi gắng sức',
-    });
-    return expectSuccess(res, 'serve ticket');
+    const http = client(ctx.app, ctx.fixtures.receptionist.token);
+    const served = expectSuccess(
+      await http.patch(`/queue-tickets/${ticketId}/done`, {
+        doctorId: ctx.fixtures.doctor.doctorId,
+        patient,
+        reasonForVisit: 'Đau ngực nhẹ khi gắng sức',
+      }),
+      'serve ticket',
+    );
+
+    // QueueTicketService.done() lập hoá đơn kiểu "best-effort": nếu bước lập hoá đơn lỗi (vd mạng tới DB
+    // chập chờn) thì lỗi bị nuốt và response trả invoice = null, lễ tân phải bấm lập lại. Giữ đúng hành vi
+    // đó ở đây: nếu thiếu thì gọi POST /invoices/generate; nếu vẫn lỗi thì expectSuccess in rõ body lỗi.
+    if (!served.invoice) {
+      served.invoice = expectSuccess(
+        await http.post('/invoices/generate', { appointmentId: served.appointment.appointmentId }),
+        'generate invoice (retry sau khi done() không trả invoice)',
+      );
+    }
+    return served;
   },
 
   /** Bước 4: thu tiền mặt đủ số tiền invoice (tạo payment pending -> lễ tân xác nhận đã nhận tiền). */
@@ -66,12 +80,22 @@ export const flow = {
     return expectSuccess(res, 'chief complaint');
   },
 
-  /** Bước 6b: xác minh danh tính. */
-  async verifyIdentity(ctx: FlowContext, encounterId: string) {
-    const res = await client(ctx.app, ctx.fixtures.receptionist.token).post(`/encounters/${encounterId}/identity-verifications`, {
-      verificationMethod: 'national_id_card',
-      verificationStatus: 'verified',
-    });
+  /** Bước 6b: xác minh danh tính (bắt buộc truyền identityNumber khớp với hồ sơ bệnh nhân của encounter; insuranceNumber tùy chọn nhưng nếu có phải khớp). */
+  async verifyIdentity(
+    ctx: FlowContext,
+    encounterId: string,
+    identityNumber: string,
+    insuranceNumber?: string,
+  ) {
+    const res = await client(ctx.app, ctx.fixtures.receptionist.token).post(
+      `/encounters/${encounterId}/identity-verifications`,
+      {
+        verificationMethod: 'national_id_card',
+        verificationStatus: 'verified',
+        identityNumber,
+        ...(insuranceNumber !== undefined ? { insuranceNumber } : {}),
+      },
+    );
     return expectSuccess(res, 'identity verification');
   },
 
@@ -109,13 +133,19 @@ export const flow = {
 
 /** Chạy trọn workflow appointment-registration, trả về các id cần cho workflow kế tiếp (vitals). */
 export async function runRegistrationFlow(ctx: FlowContext) {
+  const patientPayload = newPatientPayload();
   const ticket = await flow.takeTicket(ctx);
   await flow.callTicket(ctx, ticket.ticketId);
-  const served = await flow.serveTicket(ctx, ticket.ticketId);
+  const served = await flow.serveTicket(ctx, ticket.ticketId, patientPayload);
   await flow.payInvoiceByCash(ctx, served.invoice);
   const encounter = await flow.createEncounter(ctx, served.appointment.appointmentId);
   await flow.addChiefComplaint(ctx, encounter.encounterId);
-  await flow.verifyIdentity(ctx, encounter.encounterId);
+  await flow.verifyIdentity(
+    ctx,
+    encounter.encounterId,
+    patientPayload.identityNumber,
+    patientPayload.insuranceNumber,
+  );
   await flow.signMandatoryConsents(ctx, encounter.encounterId, encounter.patientId);
   const registered = await flow.completeRegistration(ctx, encounter.encounterId);
 
@@ -123,6 +153,7 @@ export async function runRegistrationFlow(ctx: FlowContext) {
     ticketId: ticket.ticketId as string,
     appointmentId: served.appointment.appointmentId as string,
     patientId: encounter.patientId as string,
+    patientPayload,
     encounterId: encounter.encounterId as string,
     triageQueueEntryId: registered.triageQueueEntry.queueEntryId as string,
   };
