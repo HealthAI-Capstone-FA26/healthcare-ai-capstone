@@ -356,7 +356,9 @@ export class QueueTicketService {
             throw new NotFoundException('Không tìm thấy hồ sơ bệnh nhân');
           }
         } else {
-          patientId = (await this.patientService.createMainPatientRecord(dto.patient!, tx)).patientId;
+          // Walk-in mới: tạo hồ sơ status='draft'. Chỉ được chuyển sang 'main' khi lễ tân hoàn tất
+          // đăng ký (identity/chief complaint/consent/thanh toán) — xem EncounterService.completeRegistration.
+          patientId = (await this.patientService.createDraftPatientRecord(dto.patient!, tx)).patientId;
         }
 
         currentAppointment = await tx.appointment.create({

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
 
 export enum VerificationMethod {
   NATIONAL_ID_CARD = 'national_id_card',
@@ -31,4 +31,16 @@ export class CreateIdentityVerificationDto {
   @IsString()
   @MaxLength(255)
   mismatchNotes?: string;
+
+  @ApiProperty({ example: '079090001234', description: 'Số CCCD/CMND đối chiếu với hồ sơ bệnh nhân khi xác minh (bắt buộc)' })
+  @IsNotEmpty({ message: 'Số CCCD/CMND là bắt buộc' })
+  @IsString()
+  @MaxLength(20)
+  identityNumber: string;
+
+  @ApiPropertyOptional({ example: 'HS4010123456789', description: 'Số BHYT đối chiếu với hồ sơ bệnh nhân khi xác minh (không bắt buộc, nếu có phải khớp)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  insuranceNumber?: string;
 }

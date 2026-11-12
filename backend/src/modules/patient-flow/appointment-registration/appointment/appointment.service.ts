@@ -157,10 +157,9 @@ export class AppointmentService {
 
     if (
       suggestedPatient.fullName.trim().toLowerCase() !== dto.fullName.trim().toLowerCase() ||
-      suggestedPatient.identityNumber !== dto.identityNumber ||
       suggestedPatient.phoneNumber !== dto.phoneNumber
     ) {
-      throw new BadRequestException('Họ tên, CCCD/CMND hoặc số điện thoại không khớp với hồ sơ bệnh nhân được gợi ý');
+      throw new BadRequestException('Họ tên hoặc số điện thoại không khớp với hồ sơ bệnh nhân được gợi ý');
     }
 
     return this.prisma.appointment.update({

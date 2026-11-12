@@ -31,7 +31,7 @@ export class CreatePatientDto {
   @IsEnum(PatientGender)
   gender: PatientGender;
 
-  @ApiPropertyOptional({ example: '079090001234' })
+  @ApiProperty({ example: '079090001234' })
   @IsString()
   @MaxLength(20)
   identityNumber: string;

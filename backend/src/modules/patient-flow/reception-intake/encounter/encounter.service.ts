@@ -4,6 +4,7 @@ import { PrismaService } from '../../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../../common/utils/code-generator.util';
 import { EncounterStatus } from '../../../../common/utils/encounter-status.util';
 import { AppointmentStatus } from '../../../../common/utils/appointment-status.util';
+import { PatientStatus } from '../../../../common/constants/patient-status.constants';
 import { MANDATORY_CONSENT_POLICY_TYPES } from '../../../../common/constants/triage-queue.constants';
 import { RequestUser } from '../../../identity-access/auth/strategies/jwt.strategy';
 import { ConsentService } from '../consent/consent.service';
@@ -254,6 +255,13 @@ export class EncounterService {
           }
           throw error;
         });
+
+      // Hoàn tất đăng ký -> hồ sơ bệnh nhân (draft) trở thành chính thức (main), cùng transaction
+      // với việc đưa vào triage queue. Chỉ đổi khi đang 'draft' (online đã main thì bỏ qua).
+      await tx.patient.updateMany({
+        where: { patientId: updatedEncounter.patientId, status: PatientStatus.DRAFT },
+        data: { status: PatientStatus.MAIN },
+      });
 
       const triageQueueEntry = await this.triageQueueService.enqueue(
         tx,
