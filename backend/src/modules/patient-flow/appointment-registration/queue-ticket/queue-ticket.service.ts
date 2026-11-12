@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Appointment, Prisma, QueueTicket } from '@prisma/client';
 import { PrismaService } from '../../../../../prisma/prisma.service';
@@ -26,6 +26,8 @@ import { FindQueueTicketsQueryDto } from './dto/find-queue-tickets-query.dto';
 
 @Injectable()
 export class QueueTicketService {
+  private readonly logger = new Logger(QueueTicketService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly patientService: PatientService, // [MỚI] tạo hồ sơ BN at-hospital ngay lúc done()
@@ -438,7 +440,11 @@ export class QueueTicketService {
       invoice = await this.invoiceService.generate({
         appointmentId: result.appointment.appointmentId,
       });
-    } catch {
+    } catch (error) {
+      // Không làm hỏng việc tiếp nhận, nhưng PHẢI log để biết vì sao không lập được hoá đơn.
+      this.logger.error(
+        `Không lập được hoá đơn phí khám cho appointment ${result.appointment.appointmentId}: ${(error as Error)?.message}`,
+      );
       invoice = await this.prisma.invoice.findFirst({
         where: { appointmentId: result.appointment.appointmentId, status: { not: 'cancelled' } },
         orderBy: { createdAt: 'desc' },

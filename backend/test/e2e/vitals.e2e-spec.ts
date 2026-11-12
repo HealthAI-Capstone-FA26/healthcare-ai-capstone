@@ -39,15 +39,19 @@ describe('Workflow 2: vitals -> doctor queue', () => {
 
     // Tiền điều kiện = output của workflow 1.
     Object.assign(state, await runRegistrationFlow(ctx));
-  });
+  }, 180_000);
 
   afterAll(async () => {
     await app.close();
   });
 
-  it('1. tiền điều kiện: encounter registered và đang waiting ở hàng đợi triage của y tá', async () => {
-    const encounter = await prisma.encounter.findUniqueOrThrow({ where: { encounterId: state.encounterId } });
+  it('1. tiền điều kiện: encounter registered, patient đã là main và đang waiting ở hàng đợi triage của y tá', async () => {
+    const encounter = await prisma.encounter.findUniqueOrThrow({
+      where: { encounterId: state.encounterId },
+      include: { patient: true },
+    });
     expect(encounter.status).toBe('registered');
+    expect(encounter.patient.status).toBe('main');
 
     const queue = expectSuccess(await client(app, fixtures.nurse.token).get('/triage-queue?status=waiting'), 'list triage queue');
     expect(queue.map((entry: any) => entry.queueEntryId)).toContain(state.triageQueueEntryId);
@@ -145,11 +149,24 @@ describe('Workflow 2: vitals -> doctor queue', () => {
     expect(result.current.encounterStatus).toBe('waiting_for_doctor');
     expect(result.queueEntry).toMatchObject({
       encounterId: state.encounterId,
-      doctorId: fixtures.doctor.doctorId,
       status: 'waiting',
-      queueOrder: 1,
       intakeChannel: 'walk_in',
     });
+    expect(result.queueEntry.queueOrder).toBeGreaterThanOrEqual(1);
+
+    // DB có thể còn bác sĩ thật đang trong ca (dữ liệu dùng chung) nên KHÔNG thể khẳng định bác sĩ được chọn
+    // chính là bác sĩ fixture. Kiểm tra đúng luật điều phối: bác sĩ được chọn nằm trong danh sách ứng viên
+    // đang trong ca (có cả bác sĩ fixture) và có tải thấp nhất.
+    const candidates: { doctorId: string; load: number }[] = result.assignment.candidates;
+    const chosenDoctorId: string = result.queueEntry.doctorId;
+    const candidateIds = candidates.map((c) => c.doctorId);
+    expect(candidateIds).toContain(fixtures.doctor.doctorId);
+    expect(candidateIds).toContain(chosenDoctorId);
+    const chosen = candidates.find((c) => c.doctorId === chosenDoctorId)!;
+    expect(chosen.load).toBe(Math.min(...candidates.map((c) => c.load)));
+    expect(result.current.doctor.doctorId).toBe(chosenDoctorId);
+
+    state.routedDoctorId = chosenDoctorId;
   });
 
   it('9. [exception] điều phối lần 2 bị chặn, không tạo trùng entry', async () => {
@@ -165,9 +182,9 @@ describe('Workflow 2: vitals -> doctor queue', () => {
       'final encounter',
     );
 
-    expect(encounter).toMatchObject({ status: 'waiting_for_doctor', doctorId: fixtures.doctor.doctorId });
+    expect(encounter).toMatchObject({ status: 'waiting_for_doctor', doctorId: state.routedDoctorId });
     expect(encounter.vitalSignSessions).toHaveLength(1);
     expect(encounter.vitalSignSessions[0].observations.length).toBeGreaterThanOrEqual(9); // 8 chỉ số + BMI
-    expect(encounter.doctorQueueEntry).toMatchObject({ doctorId: fixtures.doctor.doctorId, status: 'waiting' });
+    expect(encounter.doctorQueueEntry).toMatchObject({ doctorId: state.routedDoctorId, status: 'waiting' });
   });
 });

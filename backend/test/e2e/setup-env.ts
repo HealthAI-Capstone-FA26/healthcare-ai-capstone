@@ -12,6 +12,10 @@ if (!e2eDatabaseUrl) {
 process.env.DATABASE_URL = e2eDatabaseUrl;
 process.env.NODE_ENV = 'test';
 
+// Trong môi trường test/e2e, trỏ MINIO_ENDPOINT về 127.0.0.1 để tránh Windows tốn nhiều giây
+// phân giải DNS/NetBIOS cho hostname 'minio' từ .env khi chạy ngoài Docker.
+process.env.MINIO_ENDPOINT = '127.0.0.1';
+
 // Chỉ điền giá trị mặc định nếu chưa có (CI đặt qua `env:`, local lấy từ .env).
 const defaults: Record<string, string> = {
   JWT_SECRET: 'e2e-jwt-secret',
