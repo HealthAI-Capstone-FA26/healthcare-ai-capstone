@@ -558,6 +558,10 @@ export class PdfInvoiceGeneratorAdapter implements InvoicePdfGeneratorPort {
   }
 
   private buildPublicUrl(objectName: string): string {
+    // Dịch vụ managed (Supabase...): dùng S3_PUBLIC_URL, vd https://<ref>.supabase.co/storage/v1/object/public/<bucket>
+    if (process.env.S3_PUBLIC_URL) {
+      return `${process.env.S3_PUBLIC_URL.replace(/\/+$/, '')}/${objectName}`;
+    }
     const endPoint = process.env.MINIO_ENDPOINT || 'localhost';
     const port = process.env.MINIO_PORT || '9000';
     const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';

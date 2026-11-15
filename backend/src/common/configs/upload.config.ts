@@ -2,18 +2,73 @@ import 'dotenv/config';
 import { memoryStorage } from 'multer';
 import { extname } from 'path';
 import { BadRequestException, Logger } from '@nestjs/common';
-import * as Minio from 'minio';
+import type { Readable } from 'stream';
+import {
+    S3Client,
+    PutObjectCommand,
+    GetObjectCommand,
+    DeleteObjectCommand,
+    HeadBucketCommand,
+    CreateBucketCommand,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const logger = new Logger('MinioSetup');
 
-// 1. Khởi tạo MinIO Client
-export const minioClient = new Minio.Client({
-    endPoint: process.env.MINIO_ENDPOINT || 'localhost',
-    port: parseInt(process.env.MINIO_PORT || '9000', 10),
-    useSSL: process.env.MINIO_USE_SSL === 'true',
-    accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
-    secretKey: process.env.MINIO_SECRET_KEY || '12345678',
+// 1. Khởi tạo S3 Client (AWS SDK) — chạy được với Supabase Storage, Cloudflare R2, MinIO...
+// Endpoint phải là URL đầy đủ (gồm cả đường dẫn), vd Supabase: https://<ref>.storage.supabase.co/storage/v1/s3
+// Không đặt S3_ENDPOINT thì ghép từ MINIO_ENDPOINT/MINIO_PORT/MINIO_USE_SSL như cũ (chạy MinIO local).
+const resolveEndpoint = (): string => {
+    if (process.env.S3_ENDPOINT) return process.env.S3_ENDPOINT;
+    const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
+    return `${protocol}://${process.env.MINIO_ENDPOINT || 'localhost'}:${process.env.MINIO_PORT || '9000'}`;
+};
+
+const s3 = new S3Client({
+    endpoint: resolveEndpoint(),
+    region: process.env.S3_REGION || 'us-east-1', // Supabase: điền đúng region của project
+    forcePathStyle: true, // bắt buộc với Supabase/MinIO (dạng endpoint/bucket/key)
+    credentials: {
+        accessKeyId: process.env.MINIO_ACCESS_KEY || 'minioadmin',
+        secretAccessKey: process.env.MINIO_SECRET_KEY || '12345678',
+    },
 });
+
+// Giữ nguyên tên `minioClient` + chữ ký các hàm để các module khác (lab-test, payment) không phải sửa.
+export const minioClient = {
+    async putObject(
+        bucket: string,
+        objectName: string,
+        body: Buffer,
+        _size?: number,
+        meta?: Record<string, string>,
+    ): Promise<void> {
+        await s3.send(
+            new PutObjectCommand({
+                Bucket: bucket,
+                Key: objectName,
+                Body: body,
+                ContentLength: body.length,
+                ContentType: meta?.['Content-Type'],
+            }),
+        );
+    },
+
+    async getObject(bucket: string, objectName: string): Promise<Readable> {
+        const res = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: objectName }));
+        return res.Body as Readable;
+    },
+
+    async removeObject(bucket: string, objectName: string): Promise<void> {
+        await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: objectName }));
+    },
+
+    presignedGetObject(bucket: string, objectName: string, expirySeconds = 900): Promise<string> {
+        return getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: objectName }), {
+            expiresIn: expirySeconds,
+        });
+    },
+};
 
 export const BUCKET_NAME = process.env.MINIO_BUCKET || 'app-uploads';
 
@@ -32,29 +87,27 @@ export const buildPublicReadPolicy = (bucket: string) => ({
     ],
 });
 
-// 2. Hàm kiểm tra kết nối & tự động tạo Bucket nếu chưa có
+// 2. Hàm kiểm tra kết nối & tự tạo Bucket nếu chưa có (chỉ có tác dụng với MinIO local)
 export const checkMinioConnection = async (): Promise<boolean> => {
     try {
-        const exists = await minioClient.bucketExists(BUCKET_NAME);
-        if (!exists) {
-            await minioClient.makeBucket(BUCKET_NAME);
-            logger.log(`Created bucket: ${BUCKET_NAME}`);
-        } else {
+        try {
+            await s3.send(new HeadBucketCommand({ Bucket: BUCKET_NAME }));
             logger.log(`Bucket exists: ${BUCKET_NAME}`);
+        } catch (error) {
+            // Bucket chưa có -> tạo mới; lỗi khác (sai key, sai endpoint...) thì ném tiếp
+            const name = error instanceof Error ? error.name : '';
+            if (name !== 'NotFound' && name !== 'NoSuchBucket') throw error;
+            await s3.send(new CreateBucketCommand({ Bucket: BUCKET_NAME }));
+            logger.log(`Created bucket: ${BUCKET_NAME}`);
         }
 
-        // Public read-only CHỈ cho các thư mục cố ý công khai (avatar, PDF hoá đơn/đơn thuốc).
-        // Dữ liệu cận lâm sàng (diagnostic-attachments/, tín hiệu ECG...) KHÔNG nằm trong danh sách này —
-        // chỉ truy cập qua presigned URL ngắn hạn sau khi kiểm tra quyền (xem LabResultService).
-        const policy = buildPublicReadPolicy(BUCKET_NAME);
-        await minioClient.setBucketPolicy(BUCKET_NAME, JSON.stringify(policy));
-        logger.log(`Set public-read policy (prefix: ${PUBLIC_READ_PREFIXES.join(', ')}) for bucket: ${BUCKET_NAME}`);
-
-        logger.log('Connect to MinIO S3 successfully!');
+        // KHÔNG còn gọi setBucketPolicy: Supabase/R2 không cho đặt policy theo prefix.
+        // Quyền đọc công khai được bật ở mức bucket trên dashboard (Supabase: bucket > Public bucket).
+        logger.log('Connect to S3 storage successfully!');
         return true;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.error(`Failed to connect to MinIO S3: ${errorMessage}`);
+        logger.error(`Failed to connect to S3 storage: ${errorMessage}`);
         return false;
     }
 };
