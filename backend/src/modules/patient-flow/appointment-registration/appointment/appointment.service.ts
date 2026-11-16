@@ -13,6 +13,8 @@ import {
   canCancelAppointment,
   isValidAppointmentTransition,
 } from '../../../../common/utils/appointment-status.util';
+import { EncounterStatus } from '../../../../common/utils/encounter-status.util';
+import { DoctorQueueStatus } from '../../../../common/constants/doctor-queue.constants';
 import { PatientService } from '../patient/patient.service';
 import { PatientGender } from '../patient/dto/create-patient.dto';
 import { QueueTicketService } from '../queue-ticket/queue-ticket.service';
@@ -354,9 +356,55 @@ export class AppointmentService {
     return this.transitionTo(appointmentId, AppointmentStatus.IN_PROGRESS);
   }
 
-  // PATCH /appointments/:id/complete — bác sĩ hoàn tất khám (in_progress -> completed).
+  // PATCH /appointments/:id/complete — bác sĩ hoàn tất khám (in_progress -> completed) và đồng bộ Encounter -> finished.
   async complete(appointmentId: string) {
-    return this.transitionTo(appointmentId, AppointmentStatus.COMPLETED);
+    const appointment = await this.findById(appointmentId);
+
+    if (!isValidAppointmentTransition(appointment.status, AppointmentStatus.COMPLETED)) {
+      throw new BadRequestException(
+        `Không thể chuyển trạng thái từ '${appointment.status}' sang '${AppointmentStatus.COMPLETED}'`,
+      );
+    }
+
+    const now = new Date();
+
+    return this.prisma.$transaction(async (tx) => {
+      const updatedAppointment = await tx.appointment.update({
+        where: { appointmentId },
+        data: { status: AppointmentStatus.COMPLETED },
+      });
+
+      const encounter = await tx.encounter.findUnique({
+        where: { appointmentId },
+        select: {
+          encounterId: true,
+          status: true,
+          doctorQueueEntry: { select: { queueEntryId: true } },
+        },
+      });
+
+      if (encounter) {
+        if (
+          [EncounterStatus.IN_PROGRESS, EncounterStatus.AWAITING_REVIEW].includes(
+            encounter.status as EncounterStatus,
+          )
+        ) {
+          await tx.encounter.update({
+            where: { encounterId: encounter.encounterId },
+            data: { status: EncounterStatus.FINISHED, finishedAt: now },
+          });
+        }
+
+        if (encounter.doctorQueueEntry) {
+          await tx.doctorQueueEntry.update({
+            where: { encounterId: encounter.encounterId },
+            data: { status: DoctorQueueStatus.DONE, examEndedAt: now },
+          });
+        }
+      }
+
+      return updatedAppointment;
+    });
   }
 
   // PATCH /appointments/:id/no-show — bệnh nhân không đến (pending/confirmed/checked_in -> no_show).

@@ -22,9 +22,9 @@ export class ClinicalExaminationController {
     @Post('start')
     @AllowActorRoles(ACTOR_ROLE.DOCTOR)
     @ApiOperation({
-        summary: 'Bác sĩ bắt đầu khám (waiting_for_doctor → in_progress)',
+        summary: 'Bác sĩ bắt đầu khám (Encounter: waiting_for_doctor → in_progress, Appointment: checked_in → in_progress)',
         description:
-            'Idempotent. Đồng bộ DoctorQueueEntry (in_progress + examStartedAt) và gán Encounter.doctorId nếu còn trống. ' +
+            'Idempotent. Đồng bộ DoctorQueueEntry (in_progress + examStartedAt), Appointment (checked_in -> in_progress) và gán Encounter.doctorId nếu còn trống. ' +
             'Có thể bỏ qua: lưu phiếu khám / chẩn đoán lần đầu cũng tự bắt đầu khám.',
     })
     @ApiParam({ name: 'encounterId', format: 'uuid' })
