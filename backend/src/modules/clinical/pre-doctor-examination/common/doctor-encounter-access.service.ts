@@ -5,6 +5,7 @@ import { ActorRoleService } from '../../../identity-access/user/actor-role.servi
 import { DoctorService } from '../../../identity-access/doctor/doctor.service';
 import { ACTOR_ROLE } from '../../../../common/constants/actor-role.constant';
 import { EncounterStatus } from '../../../../common/utils/encounter-status.util';
+import { AppointmentStatus } from '../../../../common/utils/appointment-status.util';
 import { DoctorQueueStatus } from '../../../../common/constants/doctor-queue.constants';
 import { assertEncounterStatusIn } from './encounter-status.guard';
 
@@ -13,7 +14,7 @@ import { assertEncounterStatusIn } from './encounter-status.guard';
  *   1. actorRole phải là DOCTOR và có hồ sơ Doctor;
  *   2. Encounter tồn tại và đang ở trạng thái cho phép;
  *   3. đúng bác sĩ phụ trách (Encounter.doctorId do routing gán) — bác sĩ khác không được ghi đè hồ sơ.
- * Đồng thời gom logic "bắt đầu khám" (waiting_for_doctor -> in_progress + đồng bộ DoctorQueueEntry).
+ * Đồng thời gom logic "bắt đầu khám" (waiting_for_doctor -> in_progress + đồng bộ DoctorQueueEntry & Appointment).
  */
 @Injectable()
 export class DoctorEncounterAccessService {
@@ -46,19 +47,29 @@ export class DoctorEncounterAccessService {
     /**
      * Bác sĩ bắt đầu khám. Idempotent và an toàn khi 2 request đồng thời (updateMany có điều kiện status):
      *  - Encounter waiting_for_doctor -> in_progress; gán doctorId nếu còn trống;
-     *  - DoctorQueueEntry waiting|called -> in_progress, ghi examStartedAt.
-     * Trả về true nếu lần gọi này thực sự chuyển trạng thái.
+     *  - DoctorQueueEntry waiting|called -> in_progress, ghi examStartedAt;
+     *  - Appointment checked_in -> in_progress.
+     * Trả về true nếu lần gọi này thực sự chuyển trạng thái Encounter.
      */
     async startExaminationIfNeeded(
         tx: Prisma.TransactionClient,
-        encounter: Pick<Encounter, 'encounterId' | 'status' | 'doctorId'>,
+        encounter: Pick<Encounter, 'encounterId' | 'status' | 'doctorId'> & { appointmentId?: string },
         doctorId: string,
     ): Promise<boolean> {
         const { encounterId } = encounter;
+        const appointmentWhere = encounter.appointmentId
+            ? { appointmentId: encounter.appointmentId }
+            : { encounter: { encounterId } };
 
         if (encounter.status !== EncounterStatus.WAITING_FOR_DOCTOR) {
             if (!encounter.doctorId) {
                 await tx.encounter.updateMany({ where: { encounterId, doctorId: null }, data: { doctorId } });
+            }
+            if (tx.appointment?.updateMany) {
+                await tx.appointment.updateMany({
+                    where: { ...appointmentWhere, status: AppointmentStatus.CHECKED_IN },
+                    data: { status: AppointmentStatus.IN_PROGRESS, ...(encounter.doctorId ? {} : { doctorId }) },
+                });
             }
             return false;
         }
@@ -73,6 +84,13 @@ export class DoctorEncounterAccessService {
             where: { encounterId, status: { in: [DoctorQueueStatus.WAITING, DoctorQueueStatus.CALLED] } },
             data: { status: DoctorQueueStatus.IN_PROGRESS, examStartedAt: new Date() },
         });
+
+        if (tx.appointment?.updateMany) {
+            await tx.appointment.updateMany({
+                where: { ...appointmentWhere, status: AppointmentStatus.CHECKED_IN },
+                data: { status: AppointmentStatus.IN_PROGRESS, ...(encounter.doctorId ? {} : { doctorId }) },
+            });
+        }
         return true;
     }
 }

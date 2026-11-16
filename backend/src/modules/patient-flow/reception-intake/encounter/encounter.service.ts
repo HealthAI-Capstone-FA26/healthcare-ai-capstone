@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Appointment, Prisma, ReceptionCheckin } from '@prisma/client';
 import { PrismaService } from '../../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../../common/utils/code-generator.util';
-import { EncounterStatus } from '../../../../common/utils/encounter-status.util';
+import { EncounterStatus, isValidEncounterTransition } from '../../../../common/utils/encounter-status.util';
 import { AppointmentStatus } from '../../../../common/utils/appointment-status.util';
+import { DoctorQueueStatus } from '../../../../common/constants/doctor-queue.constants';
 import { PatientStatus } from '../../../../common/constants/patient-status.constants';
 import { MANDATORY_CONSENT_POLICY_TYPES } from '../../../../common/constants/triage-queue.constants';
 import { RequestUser } from '../../../identity-access/auth/strategies/jwt.strategy';
@@ -270,6 +271,86 @@ export class EncounterService {
       );
 
       return { encounter: updatedEncounter, triageQueueEntry };
+    });
+  }
+
+  /**
+   * Kết thúc lượt khám (sau khi bác sĩ đã tư vấn / kê đơn xong ở SE05-SE06):
+   * - Encounter.status: in_progress | awaiting_review -> finished (ghi finishedAt)
+   * - Appointment.status: -> completed
+   * - DoctorQueueEntry.status: waiting | called | in_progress -> done (ghi examEndedAt)
+   */
+  async finishEncounter(encounterId: string, currentUser?: RequestUser) {
+    const encounter = await this.prisma.encounter.findUnique({
+      where: { encounterId },
+      include: {
+        appointment: true,
+        doctorQueueEntry: true,
+      },
+    });
+    if (!encounter) {
+      throw new NotFoundException('Không tìm thấy lượt khám');
+    }
+
+    if (currentUser?.userId) {
+      const doctor = await this.prisma.doctor.findUnique({
+        where: { userId: currentUser.userId },
+        select: { doctorId: true },
+      });
+      if (doctor && encounter.doctorId && encounter.doctorId !== doctor.doctorId) {
+        throw new ForbiddenException('Bạn chỉ có thể kết thúc lượt khám do chính mình phụ trách');
+      }
+    }
+
+    if (!isValidEncounterTransition(encounter.status, EncounterStatus.FINISHED)) {
+      throw new BadRequestException(
+        `Không thể kết thúc lượt khám khi đang ở trạng thái '${encounter.status}' (chỉ hợp lệ khi đang '${EncounterStatus.IN_PROGRESS}' hoặc '${EncounterStatus.AWAITING_REVIEW}')`,
+      );
+    }
+
+    const now = new Date();
+
+    return this.prisma.$transaction(async (tx) => {
+      const updatedEncounter = await tx.encounter
+        .update({
+          where: {
+            encounterId,
+            status: { in: [EncounterStatus.IN_PROGRESS, EncounterStatus.AWAITING_REVIEW] },
+          },
+          data: {
+            status: EncounterStatus.FINISHED,
+            finishedAt: now,
+          },
+        })
+        .catch((error) => {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+            throw new BadRequestException(
+              'Lượt khám vừa được cập nhật bởi thao tác khác (không còn ở trạng thái cho phép kết thúc)',
+            );
+          }
+          throw error;
+        });
+
+      const updatedAppointment = await tx.appointment.update({
+        where: { appointmentId: encounter.appointmentId },
+        data: { status: AppointmentStatus.COMPLETED },
+      });
+
+      const updatedDoctorQueueEntry = encounter.doctorQueueEntry
+        ? await tx.doctorQueueEntry.update({
+            where: { encounterId },
+            data: {
+              status: DoctorQueueStatus.DONE,
+              examEndedAt: now,
+            },
+          })
+        : null;
+
+      return {
+        encounter: updatedEncounter,
+        appointment: updatedAppointment,
+        doctorQueueEntry: updatedDoctorQueueEntry,
+      };
     });
   }
 
