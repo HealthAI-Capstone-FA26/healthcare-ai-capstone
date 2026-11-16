@@ -81,5 +81,5 @@ jobs:
       - name: Seed reference data (roles, permissions, consent policies, vital items...)
         run: npx prisma db seed
 
-      - name: Run e2e - E2E - Appointment registration
-        run: npm run test:e2e -- appointment-registration
+      - name: Run appointment registration tests
+        run: npm test -- --runInBand test/appointment-registration

@@ -81,5 +81,5 @@ jobs:
       - name: Seed reference data (roles, permissions, consent policies, vital items...)
         run: npx prisma db seed
 
-      - name: Run e2e - E2E - Vitals to doctor queue
-        run: npm run test:e2e -- vitals
+      - name: Run vitals tests
+        run: npm test -- --runInBand test/vitals
