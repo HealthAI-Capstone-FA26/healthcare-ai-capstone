@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { PrismaService } from 'prisma/prisma.service';
 import { RedisService } from 'src/redis/redis.service';
 import {
@@ -29,7 +29,7 @@ const LOCK_TTL_SECONDS = 5 * 60;
  * resolveDoctorsToGenerate() bên dưới.
  */
 @Injectable()
-export class WeeklyScheduleGenCron {
+export class WeeklyScheduleGenCron implements OnApplicationBootstrap {
   private readonly logger = new Logger(WeeklyScheduleGenCron.name);
 
   constructor(
@@ -38,8 +38,22 @@ export class WeeklyScheduleGenCron {
     private readonly doctorScheduleService: DoctorScheduleService,
   ) { }
 
-  @Cron(CronExpression.EVERY_WEEK) // 00:00 mỗi Chủ nhật
+  // Chạy bù khi server khởi động lại hoặc thức dậy sau khi ngủ đông mà không chặn việc bind port
+  onApplicationBootstrap() {
+    this.ensureSchedules().catch((err) =>
+      this.logger.error('Lỗi khi chạy bù sinh lịch bác sĩ lúc khởi động', err),
+    );
+  }
+
+  // Chạy mỗi ngày lúc 01:00 sáng theo giờ Việt Nam; run() đã idempotent nên chạy lại không tạo trùng
+  @Cron('0 1 * * *', { timeZone: 'Asia/Ho_Chi_Minh' })
   async handleCron() {
+    await this.ensureSchedules();
+  }
+
+  // Đảm bảo cả tuần hiện tại và tuần kế tiếp đều đã được sinh lịch đầy đủ
+  private async ensureSchedules() {
+    await this.triggerWeeklyGeneration(getCurrentWeekMonday(new Date()));
     await this.triggerWeeklyGeneration();
   }
 
@@ -83,6 +97,8 @@ export class WeeklyScheduleGenCron {
       for (let dayOffset = 0; dayOffset < 7; dayOffset += 1) {
         // thứ 2 (offset 0) -> Chủ nhật (offset 6), đủ 7 ngày (bệnh viện khám ngoại trú cả tuần)
         const workDate = addDays(weekMonday, dayOffset);
+        // Bỏ qua các ngày đã qua khi chạy bù cho tuần hiện tại
+        if (workDate < startOfUtcDay(new Date())) continue;
 
         for (const session of Object.values(ScheduleSession)) {
           const sessionDefault = SESSION_DEFAULTS[session];
@@ -150,4 +166,10 @@ function addDays(date: Date, days: number): Date {
 
 function formatIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
+}
+
+// Tính ngày Thứ 2 của tuần hiện tại theo UTC
+function getCurrentWeekMonday(from: Date): Date {
+  const daysSinceMonday = (from.getUTCDay() + 6) % 7;
+  return addDays(startOfUtcDay(from), -daysSinceMonday);
 }

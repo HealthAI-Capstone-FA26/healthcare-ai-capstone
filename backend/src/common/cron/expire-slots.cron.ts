@@ -19,7 +19,8 @@ export class ExpireSlotsCron {
     private readonly redisService: RedisService,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_11PM)
+  // Chạy lúc 23:00 mỗi ngày theo múi giờ Việt Nam
+  @Cron(CronExpression.EVERY_DAY_AT_11PM, { timeZone: 'Asia/Ho_Chi_Minh' })
   async handleCron() {
     // Chuẩn hóa về đầu ngày để chỉ những lịch của các ngày trước mới hết hạn.
     const today = startOfUtcDay(new Date());
