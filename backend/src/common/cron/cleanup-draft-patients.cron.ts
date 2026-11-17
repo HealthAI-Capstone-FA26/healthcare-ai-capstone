@@ -23,7 +23,8 @@ export class CleanupDraftPatientsCron {
     private readonly redisService: RedisService,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  // Chạy lúc 01:00 sáng mỗi ngày theo múi giờ Việt Nam
+  @Cron(CronExpression.EVERY_DAY_AT_1AM, { timeZone: 'Asia/Ho_Chi_Minh' })
   async handleCron() {
     const today = new Date().toISOString().slice(0, 10);
     const lockKey = `${LOCK_KEY_PREFIX}:${today}`;
