@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+# Dịch vụ AI ECG. Build từ thư mục gốc TSAD_PTBXL:  docker build -f Dockerfile.service -t ecg-ai .
+FROM python:3.11-slim
+WORKDIR /app
+# torch CPU ~200MB: mạng chậm dễ 'Read timed out' -> tăng timeout/retries và cache pip để build lại không tải lại từ đầu.
+ENV PIP_DEFAULT_TIMEOUT=300 PIP_RETRIES=10
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install torch --index-url https://download.pytorch.org/whl/cpu
+COPY service/requirements-service.txt service/requirements-service.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r service/requirements-service.txt
+COPY model/ model/
+COPY utils/ utils/
+COPY service/ service/
+# Bundle KHÔNG đóng vào image: mount thư mục checkpoints (xem docker-compose của backend) hoặc đặt ECG_BUNDLE_PATH.
+ENV ECG_BUNDLE_PATH=/app/checkpoints/ECG_wsize100_deploy.pt PYTHONUNBUFFERED=1
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD python -c "import urllib.request as u;u.urlopen('http://localhost:8000/health')"
+CMD ["uvicorn", "service.app:app", "--host", "0.0.0.0", "--port", "8000"]

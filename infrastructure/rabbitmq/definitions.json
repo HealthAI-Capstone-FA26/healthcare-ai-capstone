@@ -1,0 +1,50 @@
+{
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "users": [
+    {
+      "name": "rabbitmqadmin",
+      "password": "12345678",
+      "tags": "administrator"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "rabbitmqadmin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "queues": [
+    {
+      "name": "vitals-abnormal-queue",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "image-abnormal-queue",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "lab-abnormal-queue",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "doc-summary-queue",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "timeline-synthesis-queue",
+      "vhost": "/",
+      "durable": true
+    }
+  ]
+}

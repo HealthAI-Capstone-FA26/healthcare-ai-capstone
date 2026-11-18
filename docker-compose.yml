@@ -1,0 +1,88 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: healthcare_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+      - redis
+      - minio
+      - ecg-ai
+
+  # Dịch vụ AI phát hiện bất thường ECG (TSAD_PTBXL/service). Backend gọi POST http://ecg-ai:8000/v1/ecg/analyze.
+  # Cần bundle đã train: ${ECG_AI_CONTEXT}/checkpoints/ECG_wsize100_deploy.pt (nếu thiếu: /health trả 503, analysis -> 'failed',
+  # luồng nhập ECG thủ công vẫn chạy bình thường).
+  ecg-ai:
+    build:
+      context: ${ECG_AI_CONTEXT:-../TSAD_PTBXL}
+      dockerfile: Dockerfile.service
+    container_name: healthcare_ecg_ai
+    restart: unless-stopped
+    environment:
+      ECG_BUNDLE_PATH: /app/checkpoints/ECG_wsize100_deploy.pt
+      ECG_AI_API_KEY: ${ECG_AI_API_KEY:-}
+      ECG_AI_DEVICE: cpu
+      ECG_AI_SEVERITY: high
+      ECG_AI_MERGE_GAP_STEPS: "0"
+    volumes:
+      - ./TSAD_PTBXL/checkpoints:/app/checkpoints:ro
+    ports:
+      - "8000:8000"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: healthcare_rabbitmq
+    restart: always
+    ports:
+      - "5672:5672" # service communication port
+      - "15672:15672" # UI communication port
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmqadmin
+      RABBITMQ_DEFAULT_PASS: "12345678"
+    volumes:
+      - ./infrastructure/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./infrastructure/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+
+  redis:
+    image: redis:7-alpine
+    container_name: healthcare_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  minio:
+    image: minio/minio
+    container_name: healthcare_minio
+    restart: always
+    ports:
+      - "9000:9000" # service communication port
+      - "9001:9001" # UI communication port
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: "12345678"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc
+    container_name: healthcare_minio_init
+    depends_on:
+      - minio
+    volumes:
+      - ./infrastructure/minio-s3/create-buckets.sh:/create-buckets.sh
+    entrypoint: /bin/sh /create-buckets.sh
+
+volumes:
+  minio_data:
+  redis_data:
