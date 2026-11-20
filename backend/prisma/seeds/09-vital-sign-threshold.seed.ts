@@ -23,7 +23,7 @@ export async function seedVitalSignThresholds(prisma: PrismaService) {
     // minWarning/maxWarning). Value nằm ngoài [minNormal, maxNormal] = bất thường (critical),
     // không có vùng đệm/cảnh báo trung gian.
     //
-    // ⚠️ LƯU Ý VỀ NHIỄU CẢNH BÁO: nhiều dải minNormal/maxNormal dưới đây được tính bằng
+    // LƯU Ý VỀ NHIỄU CẢNH BÁO: nhiều dải minNormal/maxNormal dưới đây được tính bằng
     // mean±1 standard deviation (NCFIT nhi, Su et al. 2022 người già) — về mặt thống kê,
     // mean±1SD chỉ bao phủ ~68% dân số khỏe mạnh. Nghĩa là ~32% người khỏe mạnh bình thường
     // sẽ có ít nhất 1 chỉ số rơi ngoài dải này và bị gắn nhãn 'critical' ngay, dù trước đây

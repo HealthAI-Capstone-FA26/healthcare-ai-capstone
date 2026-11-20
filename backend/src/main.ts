@@ -3,10 +3,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { checkMinioConnection } from './common/configs/upload.config'; // <-- Import hàm check
+import { EcgStreamIoAdapter } from './modules/lab-test/ecg-stream/ecg-stream-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
+  // Nâng giới hạn message Socket.IO để nhận tệp ECG upload qua '/ecg-stream' (xem EcgStreamIoAdapter).
+  app.useWebSocketAdapter(new EcgStreamIoAdapter(app));
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(

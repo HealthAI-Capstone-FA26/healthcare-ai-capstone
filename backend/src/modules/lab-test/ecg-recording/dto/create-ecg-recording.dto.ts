@@ -3,7 +3,7 @@ import { Transform, Type } from 'class-transformer';
 import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsISO8601, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export const ECG_RECORDING_TYPES = ['resting_12_lead', 'continuous_monitoring', 'holter', 'rhythm_strip'] as const;
-export const ECG_SIGNAL_FORMATS = ['wfdb', 'edf', 'csv', 'json', 'dicom_ecg', 'scp_ecg'] as const;
+export const ECG_SIGNAL_FORMATS = ['wfdb', 'edf', 'csv', 'json', 'npy', 'dicom_ecg', 'scp_ecg'] as const;
 
 /** multipart chỉ gửi chuỗi: nhận mảng JSON '["I","II"]' hoặc danh sách 'I,II,III'. */
 const toStringArray = ({ value }: { value: unknown }) => {
@@ -32,7 +32,7 @@ export class CreateEcgRecordingDto {
 
     @ApiProperty({
         enum: ECG_SIGNAL_FORMATS,
-        description: 'Định dạng tệp — phần mở rộng phải khớp: csv→.csv, json→.json, edf→.edf, wfdb→.zip (.hea+.dat), dicom_ecg→.dcm, scp_ecg→.scp',
+        description: 'Định dạng tệp — phần mở rộng phải khớp: csv→.csv, json→.json, npy→.npy (mảng số steps×kênh), edf→.edf, wfdb→.zip (.hea+.dat), dicom_ecg→.dcm, scp_ecg→.scp',
     })
     @IsIn(ECG_SIGNAL_FORMATS)
     signalFormat: (typeof ECG_SIGNAL_FORMATS)[number];

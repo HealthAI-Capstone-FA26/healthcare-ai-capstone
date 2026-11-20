@@ -12,39 +12,30 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
-      - postgres-hospital
       - rabbitmq
       - redis
       - minio
+      - ecg-ai
 
-  postgres:
-    image: pgvector/pgvector:pg15
-    container_name: healthcare_postgres
-    restart: always
+  # Dịch vụ AI phát hiện bất thường ECG (TSAD_PTBXL/service). Backend gọi POST http://ecg-ai:8000/v1/ecg/analyze.
+  # Cần bundle đã train: ${ECG_AI_CONTEXT}/checkpoints/ECG_wsize100_deploy.pt (nếu thiếu: /health trả 503, analysis -> 'failed',
+  # luồng nhập ECG thủ công vẫn chạy bình thường).
+  ecg-ai:
+    build:
+      context: ${ECG_AI_CONTEXT:-../TSAD_PTBXL}
+      dockerfile: Dockerfile.service
+    container_name: healthcare_ecg_ai
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgresadmin
-      POSTGRES_PASSWORD: "12345678"
-      POSTGRES_DB: healthcare_db
-    ports:
-      - "5432:5432"
+      ECG_BUNDLE_PATH: /app/checkpoints/ECG_wsize100_deploy.pt
+      ECG_AI_API_KEY: ${ECG_AI_API_KEY:-}
+      ECG_AI_DEVICE: cpu
+      ECG_AI_SEVERITY: high
+      ECG_AI_MERGE_GAP_STEPS: "0"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  postgres-hospital:
-    image: pgvector/pgvector:pg15 # <--- ĐỔI THÀNH IMAGE NÀY
-    container_name: healthcare_hospital_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: hospitaladmin
-      POSTGRES_PASSWORD: "12345678"
-      POSTGRES_DB: hospital_db
+      - ./TSAD_PTBXL/checkpoints:/app/checkpoints:ro
     ports:
-      - "5433:5432"
-    volumes:
-      - hospital_postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/postgres-hospital/init-hospital.sql:/docker-entrypoint-initdb.d/init.sql
+      - "8000:8000"
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -93,7 +84,5 @@ services:
     entrypoint: /bin/sh /create-buckets.sh
 
 volumes:
-  postgres_data:
-  hospital_postgres_data:
   minio_data:
   redis_data:

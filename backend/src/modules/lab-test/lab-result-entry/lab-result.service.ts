@@ -48,6 +48,9 @@ const RESULT_INCLUDE = {
  * ServiceCatalog.resultKind: parametric (values) · image_report (findings/kết luận) · waveform (ECG: findings hoặc
  * đã có EcgRecording hoàn tất).
  *
+ * XÉT NGHIỆM MÁU = 1 dịch vụ Full panel (BLOODFULL): kết quả muốn chốt 'final' (submit / update / bác sĩ finalize) phải đủ
+ * mọi chỉ số đang hoạt động của panel (assertBloodPanelComplete); 'preliminary' vẫn cho nhập thiếu.
+ *
  * Nộp kết quả = 1 transaction: lưu kết quả -> task 'completed' -> DiagnosticProgressService tính lại Order/Encounter.
  * Event chỉ phát SAU commit.
  *
@@ -65,7 +68,7 @@ export class LabResultService {
         private readonly progress: DiagnosticProgressService,
         private readonly eventEmitter: EventEmitter2,
         private readonly actorRoleService: ActorRoleService,
-    ) {}
+    ) { }
 
     /** Validate + chuẩn hoá values theo ResultParameter.dataType; tham số phải thuộc đúng dịch vụ của task. */
     private async resolveAndValidateValues(values: LabResultValueDto[], serviceId: string): Promise<ResolvedValue[]> {
@@ -136,6 +139,42 @@ export class LabResultService {
         return typeof s === 'string' && s.trim().length > 0;
     }
 
+    /**
+     * Xét nghiệm máu (modality 'blood_test') là Full panel: muốn chốt 'final' phải có ĐỦ mọi chỉ số đang hoạt động
+     * (ResultParameter.isActive) của dịch vụ. 'preliminary' vẫn cho nhập thiếu. Không áp dụng cho ECG/echo/X-quang.
+     *
+     * @param existingResultId kết quả đã có (update/finalize) — các chỉ số đã lưu được tính là đã có.
+     * @param incomingParameterIds các chỉ số đang được nộp/sửa trong lần gọi này.
+     */
+    private async assertBloodPanelComplete(
+        service: { serviceId: string; modality: string },
+        existingResultId: string | null,
+        incomingParameterIds: string[],
+    ): Promise<void> {
+        if (service.modality !== 'blood_test') return;
+
+        const activeParams = await this.prisma.resultParameter.findMany({
+            where: { serviceId: service.serviceId, isActive: true },
+            select: { parameterId: true, parameterCode: true },
+            orderBy: { displayOrder: 'asc' },
+        });
+        if (activeParams.length === 0) return;
+
+        const have = new Set(incomingParameterIds);
+        if (existingResultId) {
+            const saved = await this.prisma.resultValue.findMany({ where: { resultId: existingResultId }, select: { parameterId: true } });
+            saved.forEach((v) => have.add(v.parameterId));
+        }
+
+        const missing = activeParams.filter((p) => !have.has(p.parameterId)).map((p) => p.parameterCode);
+        if (missing.length > 0) {
+            throw new BadRequestException(
+                `Kết quả xét nghiệm máu (Full panel) chỉ được chốt 'final' khi đủ ${activeParams.length} chỉ số. Còn thiếu ${missing.length}: ${missing.join(', ')}. ` +
+                `Có thể lưu tạm với resultStatus = 'preliminary'.`,
+            );
+        }
+    }
+
     /** Nộp kết quả lần đầu. Người nhập (JWT) phải là LAB_STAFF. */
     async submitResult(taskId: string, dto: SubmitLabResultDto, enteredByUserId: string) {
         await this.actorRoleService.assertActorRole(enteredByUserId, [ACTOR_ROLE.LAB_STAFF]);
@@ -170,6 +209,9 @@ export class LabResultService {
         }
 
         const resolvedValues = hasValues ? await this.resolveAndValidateValues(dto.values!, service.serviceId) : [];
+        if (dto.resultStatus === 'final') {
+            await this.assertBloodPanelComplete(service, null, resolvedValues.map((v) => v.parameterId));
+        }
         const now = new Date();
 
         const deferCompletion = service.resultKind === 'image_report';
@@ -204,7 +246,7 @@ export class LabResultService {
 
         this.logger.log(
             `Đã lưu kết quả ${resultId} cho nhiệm vụ ${taskId} (${service.resultKind}, ${resolvedValues.length} chỉ số)` +
-                (deferCompletion ? ' — chờ tải hình ảnh rồi hoàn tất (POST /lab-results/:id/complete)' : ''),
+            (deferCompletion ? ' — chờ tải hình ảnh rồi hoàn tất (POST /lab-results/:id/complete)' : ''),
         );
         return this.getById(resultId);
     }
@@ -234,7 +276,7 @@ export class LabResultService {
 
         const existing = await this.prisma.diagnosticResult.findUnique({
             where: { resultId },
-            include: { task: { include: { orderItem: { select: { serviceId: true } } } } },
+            include: { task: { include: { orderItem: { select: { serviceId: true, service: { select: { serviceId: true, modality: true } } } } } } },
         });
         if (!existing) {
             throw new NotFoundException(`Không tìm thấy kết quả ${resultId}`);
@@ -247,6 +289,15 @@ export class LabResultService {
 
         const hasContentChanges = hasValueChanges || dto.findings !== undefined || dto.overallConclusion !== undefined;
         const nextStatus = dto.resultStatus ?? (hasContentChanges && existing.resultStatus === 'final' ? 'corrected' : existing.resultStatus);
+
+        // Chốt 'final' (đổi từ trạng thái khác sang final) phải đủ mọi chỉ số của panel máu: gộp chỉ số đã lưu + chỉ số đang sửa.
+        if (nextStatus === 'final') {
+            await this.assertBloodPanelComplete(
+                existing.task.orderItem.service,
+                resultId,
+                resolvedValues.map((v) => v.parameterId),
+            );
+        }
 
         await this.prisma.$transaction(async (tx) => {
             await tx.diagnosticResult.update({
@@ -284,12 +335,18 @@ export class LabResultService {
     async reviewResult(resultId: string, dto: ReviewLabResultDto, reviewerUserId: string) {
         await this.actorRoleService.assertActorRole(reviewerUserId, [ACTOR_ROLE.DOCTOR]);
 
-        const existing = await this.prisma.diagnosticResult.findUnique({ where: { resultId } });
+        const existing = await this.prisma.diagnosticResult.findUnique({
+            where: { resultId },
+            include: { task: { include: { orderItem: { select: { service: { select: { serviceId: true, modality: true } } } } } } },
+        });
         if (!existing) {
             throw new NotFoundException(`Không tìm thấy kết quả ${resultId}`);
         }
         if (existing.resultStatus === 'cancelled') {
             throw new BadRequestException('Kết quả đã bị huỷ, không thể duyệt.');
+        }
+        if (dto.finalize && existing.resultStatus !== 'final') {
+            await this.assertBloodPanelComplete(existing.task.orderItem.service, resultId, []);
         }
 
         await this.prisma.diagnosticResult.update({
@@ -394,7 +451,7 @@ export class LabResultService {
         if (!hasImage && !reason) {
             throw new BadRequestException(
                 `Chưa có hình ảnh (dicom/image/video) cho '${result.task.orderItem.service.serviceName}'. ` +
-                    'Hãy tải hình lên (POST /lab-results/:id/attachments) hoặc nêu lý do trong noImageReason.',
+                'Hãy tải hình lên (POST /lab-results/:id/attachments) hoặc nêu lý do trong noImageReason.',
             );
         }
 

@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { installBigIntJsonSerializer } from '../../common/utils/bigint-json.util';
 import { UserModule } from '../identity-access/user/user.module';
@@ -28,12 +30,16 @@ import { LabReferenceRangeService } from './lab-reference-range/lab-reference-ra
 import { ResultThresholdResolver } from './lab-reference-range/result-threshold.resolver';
 
 import { EcgRecordingController } from './ecg-recording/ecg-recording.controller';
+import { EcgDatasetCatalog } from './ecg-stream/ecg-dataset.catalog';
+import { EcgStreamGateway } from './ecg-stream/ecg-stream.gateway';
+import { EcgStreamService } from './ecg-stream/ecg-stream.service';
 import { EcgRecordingService } from './ecg-recording/ecg-recording.service';
 import { ECG_SIGNAL_STORAGE, MinioEcgSignalStorage } from './ecg-recording/ecg-signal-storage.port';
 
 import { EcgAnalysisController } from './ecg-ai-analysis/ecg-analysis.controller';
 import { EcgAnalysisService } from './ecg-ai-analysis/ecg-analysis.service';
 import { EcgAnalysisListener } from './ecg-ai-analysis/ecg-analysis.listener';
+import { EcgModelService } from './ecg-ai-analysis/ecg-model.service';
 import { EcgAnomalyEventService } from './ecg-ai-analysis/ecg-anomaly-event.service';
 import { ECG_ANOMALY_PROVIDER } from './ecg-ai-analysis/ecg-anomaly-provider.port';
 import { HttpEcgAnomalyProvider, readEcgAiConfigFromEnv } from './ecg-ai-analysis/http-ecg-anomaly.provider';
@@ -75,11 +81,19 @@ installBigIntJsonSerializer();
  * hình chỉ làm analysis 'failed'/'skipped' — nhập kết quả ECG thủ công không bị chặn. Cấu hình: ECG_AI_BASE_URL,
  * ECG_AI_TIMEOUT_MS, ECG_AI_API_KEY.
  *
+ * ECG stream realtime: socket '/ecg-stream' phát lại bản ghi ECG theo từng điểm — 'stream-ecg' (ecg-point) và
+ * 'stream-ecg-anomaly' (ecg-point-anomaly, kèm isAnomaly 0/1 từ kết quả AI). Nguồn: file upload (.npy/.csv) · dataset
+ * ECG_A..F (ECG_DATASET_DIR) · recordingId. Xem ecg-stream/ecg-stream.gateway.ts.
+ *
  * AUTH: mọi controller gắn JwtAuthGuard cấp class. Actor lấy từ JWT, vai trò assert qua ActorRoleService
  * (LAB_STAFF cho API phòng thực hiện, DOCTOR cho resolve-exception/review, ADMIN cho phân công nhân sự).
  */
 @Module({
-    imports: [UserModule],
+    imports: [
+        UserModule,
+        // Xác thực JWT khi kết nối socket /lab-alerts (cùng JWT_SECRET với AuthModule).
+        JwtModule.registerAsync({ inject: [ConfigService], useFactory: (config: ConfigService) => ({ secret: config.getOrThrow<string>('JWT_SECRET') }) }),
+    ],
     controllers: [
         LabRoomController,
         LabTaskController,
@@ -109,9 +123,13 @@ installBigIntJsonSerializer();
         { provide: ECG_SIGNAL_STORAGE, useClass: MinioEcgSignalStorage },
         { provide: ECG_ANOMALY_PROVIDER, useFactory: () => new HttpEcgAnomalyProvider(readEcgAiConfigFromEnv()) },
         EcgRecordingService,
+        EcgDatasetCatalog,
+        EcgStreamService,
+        EcgStreamGateway,
         EcgAnalysisService,
         EcgAnalysisListener,
         EcgAnomalyEventService,
+        EcgModelService,
         { provide: EMAIL_SENDER_PORT, useClass: DefaultEmailSenderAdapter },
         InAppNotificationStrategy,
         EmailNotificationStrategy,
@@ -121,4 +139,4 @@ installBigIntJsonSerializer();
     ],
     exports: [LabTaskService, LabResultService, EcgRecordingService, EcgAnalysisService, LabResultDetectionOrchestrator, LabAlertGateway],
 })
-export class LabTestModule {}
+export class LabTestModule { }

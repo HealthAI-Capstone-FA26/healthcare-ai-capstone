@@ -33,4 +33,4 @@ npx tsx tools/ecg-benchmark/generate-fixtures.ts              # sinh 35 bản gh
 npx tsx tools/ecg-benchmark/mock-ai-server.ts 8099 &         # server mẫu (heuristic RR, chỉ đọc CSV)
 npx tsx tools/ecg-benchmark/run-benchmark.ts --manifest tools/ecg-benchmark/fixtures/manifest.jsonl --base-url http://localhost:8099
 ```
-⚠️ Dữ liệu tổng hợp + server mẫu **chỉ để kiểm tra harness/hợp đồng**. Kết quả 100% ở đó dễ phân tách nên **không có ý nghĩa lâm sàng** và không nói gì về model thật.
+Dữ liệu tổng hợp + server mẫu **chỉ để kiểm tra harness/hợp đồng**. Kết quả 100% ở đó dễ phân tách nên **không có ý nghĩa lâm sàng** và không nói gì về model thật.
