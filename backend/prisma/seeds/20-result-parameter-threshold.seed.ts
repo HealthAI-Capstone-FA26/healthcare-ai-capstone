@@ -1,11 +1,7 @@
 import { PrismaService } from 'prisma/prisma.service';
 
 /**
-<<<<<<< HEAD
  * Ngưỡng cảnh báo rule-based (ResultParameterThreshold) cho xét nghiệm máu (dịch vụ 'BLOODFULL', 27 chỉ số — mọi chỉ số đều có ngưỡng) VÀ các chỉ số số học của siêu âm tim / X-quang
-=======
- * Ngưỡng cảnh báo rule-based (ResultParameterThreshold) cho xét nghiệm máu VÀ các chỉ số số học của siêu âm tim / X-quang
->>>>>>> origin/dev_updated
  * ngực (LVEF, LVIDd, đường kính nhĩ trái, CTR). Boolean của echo/X-quang không cần ngưỡng (true = bất thường);
  * enum không được tự đánh giá.
  *
