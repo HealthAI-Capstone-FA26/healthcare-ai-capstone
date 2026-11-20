@@ -35,7 +35,7 @@ export class TreatmentConsultationService {
     private readonly prisma: PrismaService,
     private readonly actorRoleService: ActorRoleService,
     private readonly doctorService: DoctorService,
-  ) {}
+  ) { }
 
   async upsert(
     encounterId: string,
@@ -61,7 +61,7 @@ export class TreatmentConsultationService {
       if (finalDiagnosisCount === 0) {
         throw new BadRequestException(
           "Lượt khám chưa có chẩn đoán chính thức (final) nào — cần hoàn tất bước kết luận chuyên môn " +
-            "(post-test-consultation/.../diagnosis-conclusion) trước khi tư vấn điều trị.",
+          "trước khi tư vấn điều trị.",
         );
       }
     }
@@ -88,11 +88,11 @@ export class TreatmentConsultationService {
 
     const appointmentCode = followUpRequired
       ? await generateUniqueCode(APPOINTMENT_CODE_PREFIX, async (code) => {
-          const existingAppointment = await this.prisma.appointment.findUnique({
-            where: { appointmentCode: code },
-          });
-          return Boolean(existingAppointment);
-        })
+        const existingAppointment = await this.prisma.appointment.findUnique({
+          where: { appointmentCode: code },
+        });
+        return Boolean(existingAppointment);
+      })
       : null;
 
     return this.prisma.$transaction(async (tx) => {

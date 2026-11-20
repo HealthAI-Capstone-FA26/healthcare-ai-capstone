@@ -13,7 +13,7 @@ import { ServeQueueTicketDto } from './dto/serve-queue-ticket.dto';
 
 @ApiTags('Queue Ticket')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('queue-tickets')
 export class QueueTicketController {
   constructor(private readonly queueTicketService: QueueTicketService) { }
@@ -36,7 +36,7 @@ export class QueueTicketController {
 
   @Patch(':id/call')
   @UseGuards(JwtAuthGuard)
-  // @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Gọi số (chỉ reception staff)' })
   call(@Param('id') id: string, @Body() dto: CallQueueTicketDto) {
     return this.queueTicketService.call(id, dto);
@@ -44,7 +44,7 @@ export class QueueTicketController {
 
   @Patch(':id/done')
   @UseGuards(JwtAuthGuard)
-  // @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({
     summary:
       'Kết thúc lượt gọi số: tạo/gắn Appointment, tạo ReceptionCheckin và lập invoice phí khám pending. Encounter chỉ tạo sau khi invoice examination fee được thanh toán',

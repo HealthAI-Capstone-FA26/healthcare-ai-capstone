@@ -25,14 +25,14 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('cash')
-  // @RequirePermissions(`${Resource.PAYMENT}:${Action.CREATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.PAYMENT}:${Action.CREATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Ghi nhận thanh toán tiền mặt — RECEPTIONIST' })
   createCash(@Body() dto: CreateCashPaymentDto) {
     return this.paymentService.createCashPayment(dto);
   }
 
   @Post('cash/:id/confirm')
-  // @RequirePermissions(`${Resource.PAYMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.PAYMENT}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Xác nhận đã thu tiền mặt (đối soát cuối ca) — RECEPTIONIST' })
   confirmCash(
     @Param('id', ParseUUIDPipe) id: string,
@@ -43,7 +43,7 @@ export class PaymentController {
   }
 
   @Post('bank-transfer')
-  // @RequirePermissions(`${Resource.PAYMENT}:${Action.CREATE}:${Scope.OWN}`)
+  @RequirePermissions(`${Resource.PAYMENT}:${Action.CREATE}:${Scope.OWN}`)
   @ApiOperation({
     summary: 'Tạo link/QR thanh toán qua PayOS — RECEPTIONIST hoặc PATIENT (tự thanh toán hoá đơn của mình)',
   })

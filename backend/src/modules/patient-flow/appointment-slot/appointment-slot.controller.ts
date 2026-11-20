@@ -7,7 +7,7 @@ import { AppointmentSlotService } from './appointment-slot.service';
 // Route nằm dưới tài nguyên "doctors" (không phải "doctor-schedules") theo đúng path spec Phase 3.
 @ApiTags('Appointment-slot')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('doctors')
 export class AppointmentSlotController {
   constructor(private readonly appointmentSlotService: AppointmentSlotService) {}
