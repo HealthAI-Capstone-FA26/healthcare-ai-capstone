@@ -39,6 +39,14 @@ export async function seedServiceCatalog(prisma: PrismaService): Promise<void> {
     // ── Xét nghiệm máu: 1 dịch vụ duy nhất (Full panel) ───────────────────────────────────────────────
     // price = 500.000đ là GIÁ MẪU (= tổng 7 gói cũ), cần thay bằng bảng giá thật.
     // turnaroundMins = 240 theo chỉ số chậm nhất (lipid) — hs-TnT trong combo ra chậm; ca đau ngực cấp cần chỉ định STAT riêng.
+    // requiresFasting = true vì gói có glucose đói (Labcorp: CMP nên nhịn 12 giờ, renal panel ưu tiên 12 giờ, tối thiểu 8 giờ):
+    //   https://www.labcorp.com/tests/322000/comprehensive-metabolic-panel-cmp
+    //   https://www.labcorp.com/tests/322777/renal-function-panel
+    // Riêng mỡ máu thì nhịn ăn KHÔNG bắt buộc thường quy (chỉ nên lặp lại lúc đói khi TG không nhịn > 440 mg/dL theo EAS/EFLM,
+    // hoặc TG >= 400 mg/dL theo hướng dẫn AHA/ACC 2018):
+    //   https://pmc.ncbi.nlm.nih.gov/articles/PMC4929379   (đồng thuận EAS/EFLM 2016)
+    //   https://pmc.ncbi.nlm.nih.gov/articles/PMC8243861   (tổng quan các hướng dẫn quốc tế)
+    // Phòng Lab quyết định có chấp nhận mẫu không nhịn ăn cho BLOODFULL hay không.
     const bloodFull = {
         serviceCode: 'BLOODFULL',
         serviceName: 'Xét nghiệm máu tổng quát tim mạch (Full panel: CBC, sinh hóa, điện giải, mỡ máu, dấu ấn tim)',
@@ -47,7 +55,7 @@ export async function seedServiceCatalog(prisma: PrismaService): Promise<void> {
         resultKind: 'parametric',
         specimenType: 'whole_blood', // combo gồm cả mẫu huyết thanh/máu toàn phần — KTV tự tách ống theo chỉ số
         requiresFasting: true,
-        preparationNote: 'Nhịn ăn 9–12 giờ trước khi lấy máu (chỉ uống nước lọc); tránh rượu bia 24 giờ trước.',
+        preparationNote: 'Nhịn ăn 9–12 giờ trước khi lấy máu (chỉ uống nước lọc) để đo glucose lúc đói; tránh rượu bia 24 giờ trước.',
         price: 500000,
         turnaroundMins: 240,
     };

@@ -19,8 +19,35 @@ import { PrismaService } from 'prisma/prisma.service';
  * QUAN TRỌNG: @@unique là [serviceId, parameterCode] -> tra cứu BẮT BUỘC theo cặp (serviceCode, parameterCode),
  * không bao giờ chỉ theo parameterCode (xem 20-result-parameter-threshold.seed.ts).
  *
- * Mã LOINC lấy theo loinc.org; một số mã (hs-Troponin T, CK-MB, NT-proBNP, LDL-C) phụ thuộc phương pháp/hãng máy
- * -> cần phòng Lab xác nhận lại theo analyzer thực tế.
+ * ── Nguồn đối chiếu mã LOINC cho BLOODFULL (kiểm tra lần cuối 20/11/2026) ───────────────────────────
+ * Tra cứu mã chuẩn tại https://loinc.org/<mã>. Các mã dưới đây đã đối chiếu như sau:
+ *   - CBC (RBC, HGB, HCT, MCV, MCH, MCHC, RDW, WBC, PLT, công thức bạch cầu %):
+ *       https://www.labcorp.com/tests/005009/complete-blood-count-cbc-with-differential
+ *       https://loinc.org/718-7
+ *       https://cdn.loinc.org/57021-8   (panel CBC có công thức bạch cầu tự động)
+ *   - MPV: dùng 32623-1 (phương pháp Automated count, thuộc CBC panel 58410-2)
+ *       https://www.findacode.com/loinc/32623-1--platelet-entitic-mean-volume-in-blood-by-automated-count.html
+ *     KHÔNG dùng 776-5: đó là phương pháp Rees-Ecker (thủ công)
+ *       https://findacode.com/loinc/776-5--pmv-bld-rees-ecker.html
+ *   - Sinh hóa / điện giải (GLU, URE, CREA, NA, K):
+ *       https://www.labcorp.com/tests/322000/comprehensive-metabolic-panel-cmp
+ *       https://www.labcorp.com/tests/322777/renal-function-panel
+ *     GLU 2345-7 là glucose huyết thanh/huyết tương nói chung; "đói" là điều kiện lấy mẫu (xem 06-), không nằm trong mã.
+ *   - Mỡ máu (TC, LDLC, HDLC, TG):
+ *       https://www.labcorp.com/tests/303756/lipid-panel
+ *     LDLC 13457-7 là LDL TÍNH TOÁN (công thức), không tính được khi TG > 800 mg/dL. Nếu analyzer đo LDL trực tiếp thì đổi
+ *     sang 18262-6:
+ *       https://www.labcorp.com/tests/123836/lipid-cascade-with-reflex-to-lipoprotein-particle-assessment-by-nmr-with-graph-if-reflexed
+ *   - hs-Troponin T 67151-1 (mẫu huyết thanh/huyết tương, phương pháp độ nhạy cao): https://loinc.org/67151-1
+ *   - CK-MB mass 13969-1: https://www.findacode.com/loinc/13969-1--ck-mb-serpl-mcnc.html
+ *     (mã 20109-5 từng dùng ở bản trước KHÔNG phải CK-MB; đã bỏ)
+ *   - NT-proBNP 33762-6:
+ *       https://www.findacode.com/loinc/33762-6--natriuretic-peptideb-prohormone-n-terminal-massvolume-in-serum-or-plasma.html
+ * Lưu ý về nguồn: loinc.org (Regenstrief Institute) là nguồn chuẩn. Find-A-Code là bản sao dữ liệu LOINC; trang Labcorp là bảng
+ * ánh xạ của một phòng xét nghiệm, dùng để đối chiếu mã đang được dùng trong thực tế, không thay thế loinc.org.
+ *
+ * Đơn vị trong cột `unit` là chuỗi hiển thị. Nếu liên thông HIS/FHIR thì dùng ký hiệu UCUM (vd 10*12/L, 10*9/L), không dùng 10^12/L.
+ * hs-Troponin T, CK-MB, NT-proBNP và LDL-C phụ thuộc phương pháp/hãng máy -> cần phòng Lab xác nhận lại theo analyzer thực tế.
  *
  * Phụ thuộc ServiceCatalog (06-service-catalog.seed.ts) — seed này chạy SAU.
  */
@@ -64,18 +91,18 @@ export async function seedResultParameters(prisma: PrismaService): Promise<void>
         { serviceCode: 'BLOODFULL', parameterCode: 'EOS', parameterName: 'Bạch cầu ái toan (Eosinophil %)', loincCode: '713-8', unit: '%', displayOrder: 12 },
         { serviceCode: 'BLOODFULL', parameterCode: 'BASO', parameterName: 'Bạch cầu ái kiềm (Basophil %)', loincCode: '706-2', unit: '%', displayOrder: 13 },
         { serviceCode: 'BLOODFULL', parameterCode: 'PLT', parameterName: 'Tiểu cầu (Platelet)', loincCode: '777-3', unit: '10^9/L', displayOrder: 14 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'MPV', parameterName: 'Thể tích trung bình tiểu cầu (MPV)', loincCode: '776-5', unit: 'fL', displayOrder: 15 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'MPV', parameterName: 'Thể tích trung bình tiểu cầu (MPV)', loincCode: '32623-1', unit: 'fL', displayOrder: 15 },
         { serviceCode: 'BLOODFULL', parameterCode: 'GLU', parameterName: 'Glucose (đói)', loincCode: '2345-7', unit: 'mg/dL', displayOrder: 16 },
         { serviceCode: 'BLOODFULL', parameterCode: 'URE', parameterName: 'Urea (BUN)', loincCode: '3094-0', unit: 'mg/dL', displayOrder: 17 },
         { serviceCode: 'BLOODFULL', parameterCode: 'CREA', parameterName: 'Creatinine', loincCode: '2160-0', unit: 'mg/dL', displayOrder: 18 },
         { serviceCode: 'BLOODFULL', parameterCode: 'NA', parameterName: 'Natri (Na+)', loincCode: '2951-2', unit: 'mmol/L', displayOrder: 19 },
         { serviceCode: 'BLOODFULL', parameterCode: 'K', parameterName: 'Kali (K+)', loincCode: '2823-3', unit: 'mmol/L', displayOrder: 20 },
         { serviceCode: 'BLOODFULL', parameterCode: 'TC', parameterName: 'Cholesterol toàn phần (Total Cholesterol)', loincCode: '2093-3', unit: 'mg/dL', displayOrder: 21 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'LDLC', parameterName: 'LDL-Cholesterol', loincCode: '13457-7', unit: 'mg/dL', displayOrder: 22 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'LDLC', parameterName: 'LDL-Cholesterol (tính toán)', loincCode: '13457-7', unit: 'mg/dL', displayOrder: 22 },
         { serviceCode: 'BLOODFULL', parameterCode: 'HDLC', parameterName: 'HDL-Cholesterol', loincCode: '2085-9', unit: 'mg/dL', displayOrder: 23 },
         { serviceCode: 'BLOODFULL', parameterCode: 'TG', parameterName: 'Triglyceride', loincCode: '2571-8', unit: 'mg/dL', displayOrder: 24 },
         { serviceCode: 'BLOODFULL', parameterCode: 'HSTNT', parameterName: 'hs-Troponin T', loincCode: '67151-1', unit: 'ng/L', displayOrder: 25 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'CKMB', parameterName: 'CK-MB (mass)', loincCode: '20109-5', unit: 'ng/mL', displayOrder: 26 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'CKMB', parameterName: 'CK-MB (mass)', loincCode: '13969-1', unit: 'ng/mL', displayOrder: 26 },
         { serviceCode: 'BLOODFULL', parameterCode: 'NTPROBNP', parameterName: 'NT-proBNP', loincCode: '33762-6', unit: 'pg/mL', displayOrder: 27 },
 
         // ── TTE — Siêu âm tim qua thành ngực ──
