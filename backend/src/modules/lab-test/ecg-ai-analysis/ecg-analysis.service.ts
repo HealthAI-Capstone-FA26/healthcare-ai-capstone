@@ -55,7 +55,7 @@ export class EcgAnalysisService {
         private readonly dispatcher: NotificationDispatcherService,
         @Inject(ECG_SIGNAL_STORAGE) private readonly storage: EcgSignalStorage,
         @Inject(ECG_ANOMALY_PROVIDER) private readonly provider: EcgAnomalyProvider,
-    ) {}
+    ) { }
 
     // ------------------------------------------------------------------------------------------------------------
     // Xếp hàng
@@ -74,12 +74,12 @@ export class EcgAnalysisService {
 
         const model = options.modelVersionId
             ? await this.prisma.aiModelVersion.findFirst({
-                  where: { modelVersionId: options.modelVersionId, taskType: AI_TASK_TYPE, status: { in: ['active', 'candidate'] } },
-              })
+                where: { modelVersionId: options.modelVersionId, taskType: AI_TASK_TYPE, status: { in: ['active', 'candidate'] } },
+            })
             : await this.prisma.aiModelVersion.findFirst({
-                  where: { taskType: AI_TASK_TYPE, status: 'active' },
-                  orderBy: [{ deployedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
-              });
+                where: { taskType: AI_TASK_TYPE, status: 'active' },
+                orderBy: [{ deployedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+            });
 
         if (!model) {
             if (options.modelVersionId) {

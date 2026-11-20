@@ -34,7 +34,7 @@ export class EcgAnomalyEventService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly actorRoleService: ActorRoleService,
-    ) {}
+    ) { }
 
     /** Feed cảnh báo theo lượt khám (mới nhất trước). Mặc định chỉ lấy sự kiện của analysis hiện hành (isCurrent). */
     async listByEncounter(encounterId: string, query: ListEcgEventsQueryDto) {

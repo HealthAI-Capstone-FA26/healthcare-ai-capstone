@@ -37,7 +37,7 @@ const MAX_ERROR_BODY_CHARS = 300;
  *   AI_NOT_CONFIGURED (skip) · AI_TIMEOUT · AI_UNAVAILABLE · AI_HTTP_<status> · AI_INVALID_RESPONSE
  */
 export class HttpEcgAnomalyProvider implements EcgAnomalyProvider {
-    constructor(private readonly config: HttpEcgProviderConfig) {}
+    constructor(private readonly config: HttpEcgProviderConfig) { }
 
     isConfigured(): boolean {
         return !!this.config.baseUrl;

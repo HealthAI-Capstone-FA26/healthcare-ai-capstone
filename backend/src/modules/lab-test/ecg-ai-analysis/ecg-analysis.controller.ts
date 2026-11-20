@@ -32,7 +32,7 @@ export class EcgAnalysisController {
         private readonly analysisService: EcgAnalysisService,
         private readonly eventService: EcgAnomalyEventService,
         private readonly modelService: EcgModelService,
-    ) {}
+    ) { }
 
     @Get('ecg-ai-models')
     @ApiOperation({

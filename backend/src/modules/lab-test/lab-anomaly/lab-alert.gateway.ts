@@ -50,8 +50,8 @@ export interface EcgAlertPushPayload {
 const LAB_ALERT_CORS_ORIGIN: string[] | string | boolean = process.env.LAB_ALERT_CORS_ORIGINS
     ? process.env.LAB_ALERT_CORS_ORIGINS.split(',').map((o) => o.trim())
     : process.env.NODE_ENV === 'production'
-      ? false
-      : '*';
+        ? false
+        : '*';
 
 /** Vai trò được nghe cảnh báo cận lâm sàng (bệnh nhân/lễ tân không có quyền xem ECG của lượt khám). */
 const SUBSCRIBE_ROLES: ActorRole[] = [ACTOR_ROLE.DOCTOR, ACTOR_ROLE.LAB_STAFF, ACTOR_ROLE.NURSE, ACTOR_ROLE.ADMIN];
@@ -74,7 +74,7 @@ export class LabAlertGateway implements OnGatewayConnection, OnGatewayDisconnect
     constructor(
         private readonly jwtService: JwtService,
         private readonly actorRoleService: ActorRoleService,
-    ) {}
+    ) { }
 
     /**
      * Xác thực khi bắt tay: FE gửi `auth: { token }` (hoặc header Authorization: Bearer). Token sai/hết hạn -> ngắt kết nối.

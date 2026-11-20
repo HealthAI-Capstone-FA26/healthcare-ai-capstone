@@ -139,4 +139,4 @@ installBigIntJsonSerializer();
     ],
     exports: [LabTaskService, LabResultService, EcgRecordingService, EcgAnalysisService, LabResultDetectionOrchestrator, LabAlertGateway],
 })
-export class LabTestModule {}
+export class LabTestModule { }

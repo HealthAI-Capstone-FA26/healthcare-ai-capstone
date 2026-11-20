@@ -44,7 +44,7 @@ export class EcgRecordingService {
         private readonly actorRoleService: ActorRoleService,
         private readonly eventEmitter: EventEmitter2,
         @Inject(ECG_SIGNAL_STORAGE) private readonly storage: EcgSignalStorage,
-    ) {}
+    ) { }
 
     async createFromFile(taskId: string, dto: CreateEcgRecordingDto, file: Express.Multer.File | undefined, userId: string) {
         await this.actorRoleService.assertActorRole(userId, [ACTOR_ROLE.LAB_STAFF]);

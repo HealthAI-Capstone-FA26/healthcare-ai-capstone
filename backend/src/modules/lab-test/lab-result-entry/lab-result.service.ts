@@ -68,7 +68,7 @@ export class LabResultService {
         private readonly progress: DiagnosticProgressService,
         private readonly eventEmitter: EventEmitter2,
         private readonly actorRoleService: ActorRoleService,
-    ) {}
+    ) { }
 
     /** Validate + chuẩn hoá values theo ResultParameter.dataType; tham số phải thuộc đúng dịch vụ của task. */
     private async resolveAndValidateValues(values: LabResultValueDto[], serviceId: string): Promise<ResolvedValue[]> {
@@ -170,7 +170,7 @@ export class LabResultService {
         if (missing.length > 0) {
             throw new BadRequestException(
                 `Kết quả xét nghiệm máu (Full panel) chỉ được chốt 'final' khi đủ ${activeParams.length} chỉ số. Còn thiếu ${missing.length}: ${missing.join(', ')}. ` +
-                    `Có thể lưu tạm với resultStatus = 'preliminary'.`,
+                `Có thể lưu tạm với resultStatus = 'preliminary'.`,
             );
         }
     }
@@ -246,7 +246,7 @@ export class LabResultService {
 
         this.logger.log(
             `Đã lưu kết quả ${resultId} cho nhiệm vụ ${taskId} (${service.resultKind}, ${resolvedValues.length} chỉ số)` +
-                (deferCompletion ? ' — chờ tải hình ảnh rồi hoàn tất (POST /lab-results/:id/complete)' : ''),
+            (deferCompletion ? ' — chờ tải hình ảnh rồi hoàn tất (POST /lab-results/:id/complete)' : ''),
         );
         return this.getById(resultId);
     }
@@ -451,7 +451,7 @@ export class LabResultService {
         if (!hasImage && !reason) {
             throw new BadRequestException(
                 `Chưa có hình ảnh (dicom/image/video) cho '${result.task.orderItem.service.serviceName}'. ` +
-                    'Hãy tải hình lên (POST /lab-results/:id/attachments) hoặc nêu lý do trong noImageReason.',
+                'Hãy tải hình lên (POST /lab-results/:id/attachments) hoặc nêu lý do trong noImageReason.',
             );
         }
 
