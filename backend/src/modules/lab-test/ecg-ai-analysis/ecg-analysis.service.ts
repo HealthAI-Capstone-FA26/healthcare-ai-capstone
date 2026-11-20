@@ -8,6 +8,7 @@ import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { ECG_SIGNAL_STORAGE, EcgSignalStorage } from '../ecg-recording/ecg-signal-storage.port';
 import { LabAlertGateway } from '../lab-anomaly/lab-alert.gateway';
 import { NotificationDispatcherService } from '../notification/notification-dispatcher.service';
+import { toAnalysisResponse, SCORE_SERIES_KEY } from './ecg-response.mapper';
 import { ECG_ANOMALY_PROVIDER, ECG_SEVERITIES, EcgAiError, EcgAnalyzeResult, EcgAnomalyProvider } from './ecg-anomaly-provider.port';
 import { ReanalyzeEcgDto } from './dto/reanalyze-ecg.dto';
 import { ECG_ANALYSIS_QUEUED_EVENT, EcgAnalysisQueuedEvent } from './events/ecg-analysis-queued.event';
@@ -23,7 +24,13 @@ const severityRank = (s: string) => ECG_SEVERITIES.indexOf(s as (typeof ECG_SEVE
 
 const ANALYSIS_INCLUDE = {
     modelVersion: { select: { modelName: true, version: true, status: true } },
-    events: { orderBy: { startOffsetMs: 'asc' } },
+    events: {
+        orderBy: { startOffsetMs: 'asc' },
+        include: {
+            acknowledgedByUser: { select: { email: true, profile: { select: { fullName: true } } } },
+            reviewedByUser: { select: { email: true, profile: { select: { fullName: true } } } },
+        },
+    },
 } satisfies Prisma.EcgAiAnalysisInclude;
 
 /**
@@ -104,6 +111,8 @@ export class EcgAnalysisService {
             },
         });
 
+        // Realtime: FE thấy ngay 'queued' (không phải chờ tới khi AI xong). Lỗi push không ảnh hưởng việc xếp hàng.
+        await this.pushSafely(analysis.analysisId, ecgRecordingId, 'queued', null, 0, null, null);
         this.eventEmitter.emit(ECG_ANALYSIS_QUEUED_EVENT, new EcgAnalysisQueuedEvent(analysis.analysisId));
         return analysis;
     }
@@ -116,7 +125,7 @@ export class EcgAnalysisService {
         if (!analysis) {
             throw new BadRequestException("Chưa có model AI 'active' cho phân tích bất thường ECG.");
         }
-        return analysis;
+        return toAnalysisResponse(analysis);
     }
 
     // ------------------------------------------------------------------------------------------------------------
@@ -136,6 +145,7 @@ export class EcgAnalysisService {
             include: { ecgRecording: true, modelVersion: true },
         });
         const recording = analysis.ecgRecording;
+        await this.pushSafely(analysisId, recording.ecgRecordingId, 'running', null, 0, null, null);
 
         try {
             if (!this.provider.isConfigured()) {
@@ -196,7 +206,7 @@ export class EcgAnalysisService {
                     thresholdUsed: result.thresholdUsed ?? undefined,
                     windowMs: result.windowMs ?? undefined,
                     strideMs: result.strideMs ?? undefined,
-                    summaryMetrics: (result.summaryMetrics ?? undefined) as Prisma.InputJsonValue | undefined,
+                    summaryMetrics: this.buildSummaryMetrics(result),
                     inferenceLatencyMs: result.inferenceLatencyMs ?? elapsedMs,
                     errorCode: null,
                     errorMessage: null,
@@ -229,6 +239,13 @@ export class EcgAnalysisService {
             await tx.ecgAiAnalysis.updateMany({ where: { ecgRecordingId, analysisId: { not: analysisId } }, data: { isCurrent: false } });
             await tx.ecgAiAnalysis.update({ where: { analysisId }, data: { isCurrent: true } });
         });
+    }
+
+    /** summaryMetrics + (tuỳ chọn) scoreSeries gộp chung 1 cột JSON — không cần migration. Mapper tách lại khi trả về FE. */
+    private buildSummaryMetrics(result: EcgAnalyzeResult): Prisma.InputJsonValue | undefined {
+        const hasSeries = !!result.scoreSeries?.length;
+        if (!result.summaryMetrics && !hasSeries) return undefined;
+        return { ...(result.summaryMetrics ?? {}), ...(hasSeries ? { [SCORE_SERIES_KEY]: result.scoreSeries } : {}) } as Prisma.InputJsonValue;
     }
 
     private async markFailed(analysisId: string, ecgRecordingId: string, err: unknown) {
@@ -308,6 +325,7 @@ export class EcgAnalysisService {
             const ctx = await this.resolveContext(ecgRecordingId);
             this.alertGateway.pushEcgAlertUpdate({
                 ecgRecordingId,
+                recordingId: ecgRecordingId,
                 analysisId,
                 encounterId: ctx.encounterId,
                 status,
@@ -342,12 +360,13 @@ export class EcgAnalysisService {
     async listByRecording(ecgRecordingId: string) {
         const exists = await this.prisma.ecgRecording.findUnique({ where: { ecgRecordingId }, select: { ecgRecordingId: true } });
         if (!exists) throw new NotFoundException(`Không tìm thấy bản ghi ECG ${ecgRecordingId}`);
-        return this.prisma.ecgAiAnalysis.findMany({ where: { ecgRecordingId }, orderBy: { createdAt: 'desc' }, include: ANALYSIS_INCLUDE });
+        const analyses = await this.prisma.ecgAiAnalysis.findMany({ where: { ecgRecordingId }, orderBy: { createdAt: 'desc' }, include: ANALYSIS_INCLUDE });
+        return analyses.map(toAnalysisResponse);
     }
 
     async getById(analysisId: string) {
         const analysis = await this.prisma.ecgAiAnalysis.findUnique({ where: { analysisId }, include: ANALYSIS_INCLUDE });
         if (!analysis) throw new NotFoundException(`Không tìm thấy phân tích ${analysisId}`);
-        return analysis;
+        return toAnalysisResponse(analysis);
     }
 }

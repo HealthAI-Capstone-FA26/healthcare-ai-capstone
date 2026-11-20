@@ -879,7 +879,7 @@ model ServiceCatalog {
   serviceCode      String   @unique @map("service_code") @db.VarChar(20)
   serviceName      String   @map("service_name") @db.VarChar(255)
   modality         String   @db.VarChar(20) // blood_test | ecg | xray | echo
-  panelGroup       String?  @map("panel_group") @db.VarChar(50) // cardiac_biomarker | lipid_profile | chest_xray | resting_ecg | tte ...
+  panelGroup       String?  @map("panel_group") @db.VarChar(50) // full_blood_panel (blood_test) | chest_xray | resting_ecg | tte ...
   resultKind       String   @map("result_kind") @db.VarChar(20) // parametric (blood/echo đo đạc) | waveform (ECG) | image_report (X-ray/echo)
   specimenType     String?  @map("specimen_type") @db.VarChar(50) // blood: serum | plasma | whole_blood
   requiresFasting  Boolean  @default(false) @map("requires_fasting") // lipid profile

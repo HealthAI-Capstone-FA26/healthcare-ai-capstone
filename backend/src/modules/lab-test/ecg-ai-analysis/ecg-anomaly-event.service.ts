@@ -4,6 +4,7 @@ import { ActorRoleService } from '../../identity-access/user/actor-role.service'
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { ListEcgEventsQueryDto } from './dto/list-ecg-events-query.dto';
 import { ReviewEcgEventDto } from './dto/review-ecg-event.dto';
+import { toEventResponse } from './ecg-response.mapper';
 
 const EVENT_INCLUDE = {
     analysis: {
@@ -16,6 +17,9 @@ const EVENT_INCLUDE = {
             modelVersion: { select: { modelName: true, version: true } },
         },
     },
+    // Tên người xử lý/đánh giá để FE hiển thị (không lộ thêm dữ liệu nhạy cảm: chỉ họ tên + email).
+    acknowledgedByUser: { select: { email: true, profile: { select: { fullName: true } } } },
+    reviewedByUser: { select: { email: true, profile: { select: { fullName: true } } } },
 } as const;
 
 /**
@@ -34,7 +38,7 @@ export class EcgAnomalyEventService {
 
     /** Feed cảnh báo theo lượt khám (mới nhất trước). Mặc định chỉ lấy sự kiện của analysis hiện hành (isCurrent). */
     async listByEncounter(encounterId: string, query: ListEcgEventsQueryDto) {
-        return this.prisma.ecgAnomalyEvent.findMany({
+        const events = await this.prisma.ecgAnomalyEvent.findMany({
             where: {
                 analysis: { ecgRecording: { encounterId }, isCurrent: true },
                 ...(query.alertStatus ? { alertStatus: query.alertStatus } : {}),
@@ -44,6 +48,7 @@ export class EcgAnomalyEventService {
             orderBy: [{ createdAt: 'desc' }, { startOffsetMs: 'asc' }],
             include: EVENT_INCLUDE,
         });
+        return events.map(toEventResponse);
     }
 
     async acknowledge(eventId: string, userId: string) {
@@ -83,7 +88,7 @@ export class EcgAnomalyEventService {
     async getById(eventId: string) {
         const event = await this.prisma.ecgAnomalyEvent.findUnique({ where: { eventId }, include: EVENT_INCLUDE });
         if (!event) throw new NotFoundException(`Không tìm thấy sự kiện ECG ${eventId}`);
-        return event;
+        return toEventResponse(event);
     }
 
     private async throwTransitionError(eventId: string, action: string): Promise<never> {

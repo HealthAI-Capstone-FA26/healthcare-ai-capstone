@@ -9,14 +9,23 @@ import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { CreateEcgRecordingDto } from './dto/create-ecg-recording.dto';
 import { ECG_FORMAT_EXTENSIONS, getRequiredEcgLeads } from './ecg-upload.config';
 import { ECG_SIGNAL_STORAGE, EcgSignalStorage } from './ecg-signal-storage.port';
+import { toRecordingResponse } from '../ecg-ai-analysis/ecg-response.mapper';
 import { ECG_RECORDING_COMPLETED_EVENT, EcgRecordingCompletedEvent } from './events/ecg-recording-completed.event';
 
 const SIGNAL_URL_EXPIRY_SECONDS = 10 * 60;
 
+const USER_NAME_SELECT = { select: { email: true, profile: { select: { fullName: true } } } } as const;
+/** Thông tin hiển thị header FE: tên bệnh nhân + mã lượt khám. */
+const ENCOUNTER_SELECT = { select: { encounterCode: true, patient: { select: { fullName: true } } } } as const;
+
 const RECORDING_DETAIL_INCLUDE = {
+    encounter: ENCOUNTER_SELECT,
     analyses: {
         orderBy: { createdAt: 'desc' },
-        include: { modelVersion: { select: { modelName: true, version: true, status: true } }, events: { orderBy: { startOffsetMs: 'asc' } } },
+        include: {
+            modelVersion: { select: { modelName: true, version: true, status: true } },
+            events: { orderBy: { startOffsetMs: 'asc' }, include: { acknowledgedByUser: USER_NAME_SELECT, reviewedByUser: USER_NAME_SELECT } },
+        },
     },
 } satisfies Prisma.EcgRecordingInclude;
 
@@ -63,11 +72,16 @@ export class EcgRecordingService {
         let acquisitionMeta: Prisma.InputJsonValue | undefined;
         if (dto.acquisitionMeta) {
             try {
-                acquisitionMeta = JSON.parse(dto.acquisitionMeta) as Prisma.InputJsonValue;
+                const parsed: unknown = JSON.parse(dto.acquisitionMeta);
+                if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('not an object');
+                acquisitionMeta = parsed as Prisma.InputJsonValue;
             } catch {
-                throw new BadRequestException('acquisitionMeta phải là chuỗi JSON hợp lệ.');
+                throw new BadRequestException('acquisitionMeta phải là chuỗi JSON object hợp lệ.');
             }
         }
+
+        // Schema chưa có cột tên tệp gốc -> lưu trong acquisitionMeta.originalFileName (FE hiển thị).
+        acquisitionMeta = { ...((acquisitionMeta ?? {}) as Prisma.JsonObject), originalFileName: file.originalname };
 
         const task = await this.prisma.diagnosticTask.findUnique({
             where: { taskId },
@@ -153,17 +167,37 @@ export class EcgRecordingService {
     }
 
     async listByTask(taskId: string) {
-        return this.prisma.ecgRecording.findMany({
+        const recordings = await this.prisma.ecgRecording.findMany({
             where: { taskId },
             orderBy: { createdAt: 'desc' },
-            include: { analyses: { where: { isCurrent: true }, select: { analysisId: true, status: true, overallResult: true, anomalyCount: true, maxAnomalyScore: true } } },
+            include: {
+                encounter: ENCOUNTER_SELECT,
+                // Tóm tắt (không kèm events): bản mới nhất + bản isCurrent để UI biết đang phân tích / kết quả hiện hành.
+                analyses: {
+                    orderBy: { createdAt: 'desc' },
+                    select: {
+                        analysisId: true,
+                        status: true,
+                        isCurrent: true,
+                        overallResult: true,
+                        anomalyCount: true,
+                        maxAnomalyScore: true,
+                        thresholdUsed: true,
+                        inferenceLatencyMs: true,
+                        errorCode: true,
+                        createdAt: true,
+                        modelVersion: { select: { modelName: true, version: true, status: true } },
+                    },
+                },
+            },
         });
+        return recordings.map(toRecordingResponse);
     }
 
     async getById(ecgRecordingId: string) {
         const recording = await this.prisma.ecgRecording.findUnique({ where: { ecgRecordingId }, include: RECORDING_DETAIL_INCLUDE });
         if (!recording) throw new NotFoundException(`Không tìm thấy bản ghi ECG ${ecgRecordingId}`);
-        return recording;
+        return toRecordingResponse(recording);
     }
 
     /** URL tạm (10 phút) để FE tải/hiển thị tín hiệu gốc. Bản ghi phải có tệp. */

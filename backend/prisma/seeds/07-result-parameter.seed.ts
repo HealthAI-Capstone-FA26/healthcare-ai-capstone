@@ -3,7 +3,8 @@ import { PrismaService } from 'prisma/prisma.service';
 
 /**
  * Danh mục tham số kết quả (ResultParameter) cho:
- *   - blood_test : toàn bộ tham số dataType = 'numeric'.
+ *   - blood_test : dịch vụ duy nhất 'BLOODFULL' (Full panel) — 27 tham số dataType = 'numeric' (CBC 15 · sinh hóa 3 · điện giải 2
+ *                  · mỡ máu 4 · dấu ấn tim 3). displayOrder 1–27 theo đúng thứ tự nhóm; chưa có cột parameterGroup nên UI nhóm theo displayOrder.
  *   - echo (TTE) : chỉ số siêu âm tim có cấu trúc — numeric (LVEF, LVIDD, LA_DIAM), enum (mức độ hở/hẹp van),
  *                  boolean (RWMA, tràn dịch màng ngoài tim).
  *   - xray (CXRPA): chỉ số X-quang ngực — numeric (CTR), enum (ứ huyết phổi, tràn dịch màng phổi), boolean (đông đặc/thâm nhiễm).
@@ -13,7 +14,7 @@ import { PrismaService } from 'prisma/prisma.service';
  * RuleBasedLabDetector: numeric -> so ngưỡng (20-...) · boolean -> true = bất thường (mức 'high') · enum/text -> KHÔNG tự đánh giá.
  * Vì vậy boolean ở đây đều mô tả "CÓ dấu hiệu bệnh lý".
  *
- * ⚠️ Mã LOINC của các chỉ số echo/X-quang để trống (null) — chưa xác nhận; cần bổ sung nếu liên thông HIS/FHIR.
+ * Mã LOINC của các chỉ số echo/X-quang để trống (null) — chưa xác nhận; cần bổ sung nếu liên thông HIS/FHIR.
  *
  * QUAN TRỌNG: @@unique là [serviceId, parameterCode] -> tra cứu BẮT BUỘC theo cặp (serviceCode, parameterCode),
  * không bao giờ chỉ theo parameterCode (xem 20-result-parameter-threshold.seed.ts).
@@ -25,6 +26,7 @@ import { PrismaService } from 'prisma/prisma.service';
  */
 export async function seedResultParameters(prisma: PrismaService): Promise<void> {
     const services = await prisma.serviceCatalog.findMany({ where: { modality: { in: ['blood_test', 'echo', 'xray'] } } });
+    const legacyBloodCodes = ['CBC', 'BIOC01', 'ELEC01', 'LIPID01', 'HSTNT', 'CKMB', 'NTPROBNP'];
     const serviceMap = new Map(services.map((s) => [s.serviceCode, s.serviceId]));
 
     type ParamSeed = {
@@ -48,33 +50,33 @@ export async function seedResultParameters(prisma: PrismaService): Promise<void>
     const grade4 = grade5.filter((g) => g.value !== 'trace');
 
     const parameters: ParamSeed[] = [
-        { serviceCode: 'CBC', parameterCode: 'RBC', parameterName: 'Số lượng hồng cầu (RBC)', loincCode: '789-8', unit: '10^12/L', displayOrder: 1 },
-        { serviceCode: 'CBC', parameterCode: 'HGB', parameterName: 'Hemoglobin', loincCode: '718-7', unit: 'g/dL', displayOrder: 2 },
-        { serviceCode: 'CBC', parameterCode: 'HCT', parameterName: 'Hematocrit (dung tích hồng cầu)', loincCode: '4544-3', unit: '%', displayOrder: 3 },
-        { serviceCode: 'CBC', parameterCode: 'MCV', parameterName: 'Thể tích trung bình hồng cầu (MCV)', loincCode: '787-2', unit: 'fL', displayOrder: 4 },
-        { serviceCode: 'CBC', parameterCode: 'MCH', parameterName: 'Lượng Hb trung bình hồng cầu (MCH)', loincCode: '785-6', unit: 'pg', displayOrder: 5 },
-        { serviceCode: 'CBC', parameterCode: 'MCHC', parameterName: 'Nồng độ Hb trung bình hồng cầu (MCHC)', loincCode: '786-4', unit: 'g/dL', displayOrder: 6 },
-        { serviceCode: 'CBC', parameterCode: 'RDW', parameterName: 'Độ phân bố kích thước hồng cầu (RDW)', loincCode: '788-0', unit: '%', displayOrder: 7 },
-        { serviceCode: 'CBC', parameterCode: 'WBC', parameterName: 'Bạch cầu (WBC)', loincCode: '6690-2', unit: '10^9/L', displayOrder: 8 },
-        { serviceCode: 'CBC', parameterCode: 'NEUT', parameterName: 'Bạch cầu trung tính (Neutrophil %)', loincCode: '770-8', unit: '%', displayOrder: 9 },
-        { serviceCode: 'CBC', parameterCode: 'LYMPH', parameterName: 'Bạch cầu lympho (Lymphocyte %)', loincCode: '736-9', unit: '%', displayOrder: 10 },
-        { serviceCode: 'CBC', parameterCode: 'MONO', parameterName: 'Bạch cầu mono (Monocyte %)', loincCode: '5905-5', unit: '%', displayOrder: 11 },
-        { serviceCode: 'CBC', parameterCode: 'EOS', parameterName: 'Bạch cầu ái toan (Eosinophil %)', loincCode: '713-8', unit: '%', displayOrder: 12 },
-        { serviceCode: 'CBC', parameterCode: 'BASO', parameterName: 'Bạch cầu ái kiềm (Basophil %)', loincCode: '706-2', unit: '%', displayOrder: 13 },
-        { serviceCode: 'CBC', parameterCode: 'PLT', parameterName: 'Tiểu cầu (Platelet)', loincCode: '777-3', unit: '10^9/L', displayOrder: 14 },
-        { serviceCode: 'CBC', parameterCode: 'MPV', parameterName: 'Thể tích trung bình tiểu cầu (MPV)', loincCode: '776-5', unit: 'fL', displayOrder: 15 },
-        { serviceCode: 'BIOC01', parameterCode: 'GLU', parameterName: 'Glucose (đói)', loincCode: '2345-7', unit: 'mg/dL', displayOrder: 1 },
-        { serviceCode: 'BIOC01', parameterCode: 'URE', parameterName: 'Urea (BUN)', loincCode: '3094-0', unit: 'mg/dL', displayOrder: 2 },
-        { serviceCode: 'BIOC01', parameterCode: 'CREA', parameterName: 'Creatinine', loincCode: '2160-0', unit: 'mg/dL', displayOrder: 3 },
-        { serviceCode: 'ELEC01', parameterCode: 'NA', parameterName: 'Natri (Na+)', loincCode: '2951-2', unit: 'mmol/L', displayOrder: 1 },
-        { serviceCode: 'ELEC01', parameterCode: 'K', parameterName: 'Kali (K+)', loincCode: '2823-3', unit: 'mmol/L', displayOrder: 2 },
-        { serviceCode: 'LIPID01', parameterCode: 'TC', parameterName: 'Cholesterol toàn phần (Total Cholesterol)', loincCode: '2093-3', unit: 'mg/dL', displayOrder: 1 },
-        { serviceCode: 'LIPID01', parameterCode: 'LDLC', parameterName: 'LDL-Cholesterol', loincCode: '13457-7', unit: 'mg/dL', displayOrder: 2 },
-        { serviceCode: 'LIPID01', parameterCode: 'HDLC', parameterName: 'HDL-Cholesterol', loincCode: '2085-9', unit: 'mg/dL', displayOrder: 3 },
-        { serviceCode: 'LIPID01', parameterCode: 'TG', parameterName: 'Triglyceride', loincCode: '2571-8', unit: 'mg/dL', displayOrder: 4 },
-        { serviceCode: 'HSTNT', parameterCode: 'HSTNT', parameterName: 'hs-Troponin T', loincCode: '67151-1', unit: 'ng/L', displayOrder: 1 },
-        { serviceCode: 'CKMB', parameterCode: 'CKMB', parameterName: 'CK-MB (mass)', loincCode: '20109-5', unit: 'ng/mL', displayOrder: 1 },
-        { serviceCode: 'NTPROBNP', parameterCode: 'NTPROBNP', parameterName: 'NT-proBNP', loincCode: '33762-6', unit: 'pg/mL', displayOrder: 1 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'RBC', parameterName: 'Số lượng hồng cầu (RBC)', loincCode: '789-8', unit: '10^12/L', displayOrder: 1 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'HGB', parameterName: 'Hemoglobin', loincCode: '718-7', unit: 'g/dL', displayOrder: 2 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'HCT', parameterName: 'Hematocrit (dung tích hồng cầu)', loincCode: '4544-3', unit: '%', displayOrder: 3 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'MCV', parameterName: 'Thể tích trung bình hồng cầu (MCV)', loincCode: '787-2', unit: 'fL', displayOrder: 4 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'MCH', parameterName: 'Lượng Hb trung bình hồng cầu (MCH)', loincCode: '785-6', unit: 'pg', displayOrder: 5 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'MCHC', parameterName: 'Nồng độ Hb trung bình hồng cầu (MCHC)', loincCode: '786-4', unit: 'g/dL', displayOrder: 6 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'RDW', parameterName: 'Độ phân bố kích thước hồng cầu (RDW)', loincCode: '788-0', unit: '%', displayOrder: 7 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'WBC', parameterName: 'Bạch cầu (WBC)', loincCode: '6690-2', unit: '10^9/L', displayOrder: 8 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'NEUT', parameterName: 'Bạch cầu trung tính (Neutrophil %)', loincCode: '770-8', unit: '%', displayOrder: 9 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'LYMPH', parameterName: 'Bạch cầu lympho (Lymphocyte %)', loincCode: '736-9', unit: '%', displayOrder: 10 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'MONO', parameterName: 'Bạch cầu mono (Monocyte %)', loincCode: '5905-5', unit: '%', displayOrder: 11 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'EOS', parameterName: 'Bạch cầu ái toan (Eosinophil %)', loincCode: '713-8', unit: '%', displayOrder: 12 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'BASO', parameterName: 'Bạch cầu ái kiềm (Basophil %)', loincCode: '706-2', unit: '%', displayOrder: 13 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'PLT', parameterName: 'Tiểu cầu (Platelet)', loincCode: '777-3', unit: '10^9/L', displayOrder: 14 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'MPV', parameterName: 'Thể tích trung bình tiểu cầu (MPV)', loincCode: '776-5', unit: 'fL', displayOrder: 15 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'GLU', parameterName: 'Glucose (đói)', loincCode: '2345-7', unit: 'mg/dL', displayOrder: 16 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'URE', parameterName: 'Urea (BUN)', loincCode: '3094-0', unit: 'mg/dL', displayOrder: 17 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'CREA', parameterName: 'Creatinine', loincCode: '2160-0', unit: 'mg/dL', displayOrder: 18 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'NA', parameterName: 'Natri (Na+)', loincCode: '2951-2', unit: 'mmol/L', displayOrder: 19 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'K', parameterName: 'Kali (K+)', loincCode: '2823-3', unit: 'mmol/L', displayOrder: 20 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'TC', parameterName: 'Cholesterol toàn phần (Total Cholesterol)', loincCode: '2093-3', unit: 'mg/dL', displayOrder: 21 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'LDLC', parameterName: 'LDL-Cholesterol', loincCode: '13457-7', unit: 'mg/dL', displayOrder: 22 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'HDLC', parameterName: 'HDL-Cholesterol', loincCode: '2085-9', unit: 'mg/dL', displayOrder: 23 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'TG', parameterName: 'Triglyceride', loincCode: '2571-8', unit: 'mg/dL', displayOrder: 24 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'HSTNT', parameterName: 'hs-Troponin T', loincCode: '67151-1', unit: 'ng/L', displayOrder: 25 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'CKMB', parameterName: 'CK-MB (mass)', loincCode: '20109-5', unit: 'ng/mL', displayOrder: 26 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'NTPROBNP', parameterName: 'NT-proBNP', loincCode: '33762-6', unit: 'pg/mL', displayOrder: 27 },
 
         // ── TTE — Siêu âm tim qua thành ngực ──
         { serviceCode: 'TTE', parameterCode: 'LVEF', parameterName: 'Phân suất tống máu thất trái (LVEF)', loincCode: null, unit: '%', displayOrder: 1 },
@@ -89,12 +91,14 @@ export async function seedResultParameters(prisma: PrismaService): Promise<void>
         // ── CXRPA — X-quang ngực thẳng ──
         { serviceCode: 'CXRPA', parameterCode: 'CTR', parameterName: 'Chỉ số tim–ngực (CTR)', loincCode: null, unit: '%', displayOrder: 1 },
         { serviceCode: 'CXRPA', parameterCode: 'PULM_CONGESTION', parameterName: 'Ứ huyết phổi / phù phổi', loincCode: null, unit: null, displayOrder: 2, dataType: 'enum', allowedValues: grade4 },
-        { serviceCode: 'CXRPA', parameterCode: 'PLEURAL_EFF', parameterName: 'Tràn dịch màng phổi', loincCode: null, unit: null, displayOrder: 3, dataType: 'enum', allowedValues: [
-            { value: 'none', label: 'Không' },
-            { value: 'left', label: 'Bên trái' },
-            { value: 'right', label: 'Bên phải' },
-            { value: 'bilateral', label: 'Hai bên' },
-        ] },
+        {
+            serviceCode: 'CXRPA', parameterCode: 'PLEURAL_EFF', parameterName: 'Tràn dịch màng phổi', loincCode: null, unit: null, displayOrder: 3, dataType: 'enum', allowedValues: [
+                { value: 'none', label: 'Không' },
+                { value: 'left', label: 'Bên trái' },
+                { value: 'right', label: 'Bên phải' },
+                { value: 'bilateral', label: 'Hai bên' },
+            ]
+        },
         { serviceCode: 'CXRPA', parameterCode: 'LUNG_OPACITY', parameterName: 'Đông đặc / thâm nhiễm nhu mô phổi', loincCode: null, unit: null, displayOrder: 4, dataType: 'boolean' },
     ];
 
@@ -122,6 +126,13 @@ export async function seedResultParameters(prisma: PrismaService): Promise<void>
             create: { serviceId, parameterCode: p.parameterCode, ...data },
         });
     }
+
+    // Vô hiệu hóa tham số của 7 gói máu cũ (nếu DB đã seed trước đó và 06- chỉ đặt isActive=false vì còn lịch sử).
+    // Không xóa: ResultValue.parameterId là FK. Gói cũ đã bị 06- xóa hẳn thì không còn dòng nào để cập nhật.
+    await prisma.resultParameter.updateMany({
+        where: { service: { serviceCode: { in: legacyBloodCodes } }, isActive: true },
+        data: { isActive: false },
+    });
 
     const count = await prisma.resultParameter.count();
     console.log(`Seeded result parameters (blood_test + echo + xray), total in DB: ${count}`);

@@ -65,7 +65,12 @@ export interface EcgAnalyzeResult {
     summaryMetrics: Record<string, unknown> | null;
     inferenceLatencyMs: number | null;
     anomalies: EcgDetectedAnomaly[];
+    /** TUỲ CHỌN: điểm bất thường theo cửa sổ trượt [{tMs, score 0..1}] để FE vẽ sub-chart. Tối đa MAX_SCORE_SERIES_POINTS điểm. */
+    scoreSeries?: { tMs: number; score: number }[] | null;
 }
+
+/** Giới hạn số điểm scoreSeries lưu DB/trả về FE (vượt thì lấy mẫu đều). */
+export const MAX_SCORE_SERIES_POINTS = 2000;
 
 export interface EcgAnomalyProvider {
     /** false khi chưa cấu hình dịch vụ AI -> analysis 'skipped' (không phải lỗi). */
