@@ -1,4 +1,3 @@
-version: "3.8"
 
 services:
   backend:
@@ -17,12 +16,10 @@ services:
       - minio
       - ecg-ai
 
-  # Dịch vụ AI phát hiện bất thường ECG (TSAD_PTBXL/service). Backend gọi POST http://ecg-ai:8000/v1/ecg/analyze.
-  # Cần bundle đã train: ${ECG_AI_CONTEXT}/checkpoints/ECG_wsize100_deploy.pt (nếu thiếu: /health trả 503, analysis -> 'failed',
-  # luồng nhập ECG thủ công vẫn chạy bình thường).
+  # ECG AI Service
   ecg-ai:
     build:
-      context: ${ECG_AI_CONTEXT:-../TSAD_PTBXL}
+      context: ${ECG_AI_CONTEXT:-./TSAD_PTBXL}
       dockerfile: Dockerfile.service
     container_name: healthcare_ecg_ai
     restart: unless-stopped
@@ -42,8 +39,8 @@ services:
     container_name: healthcare_rabbitmq
     restart: always
     ports:
-      - "5672:5672" # service communication port
-      - "15672:15672" # UI communication port
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmqadmin
       RABBITMQ_DEFAULT_PASS: "12345678"
@@ -60,13 +57,14 @@ services:
     volumes:
       - redis_data:/data
 
+  # S3-compatible storage (Silo)
   minio:
-    image: minio/minio
+    image: pgsty/silo:RELEASE.2026-11-12T00-00-00Z
     container_name: healthcare_minio
     restart: always
     ports:
-      - "9000:9000" # service communication port
-      - "9001:9001" # UI communication port
+      - "9000:9000"
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: "12345678"
@@ -74,8 +72,9 @@ services:
     volumes:
       - minio_data:/data
 
+  # Initialize S3 buckets
   minio-init:
-    image: minio/mc
+    image: pgsty/mc:RELEASE.2026-11-12T00-00-00Z
     container_name: healthcare_minio_init
     depends_on:
       - minio

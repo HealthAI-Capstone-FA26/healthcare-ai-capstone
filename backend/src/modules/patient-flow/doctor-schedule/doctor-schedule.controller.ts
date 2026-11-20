@@ -13,7 +13,7 @@ import { WeeklyScheduleGenCron } from '../../../common/cron/weekly-schedule-gen.
 
 @ApiTags('Doctor Schedules')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('doctor-schedules')
 export class DoctorScheduleController {
   constructor(
@@ -29,14 +29,14 @@ export class DoctorScheduleController {
   }
 
   @Get()
-  // @RequirePermissions(`${Resource.DOCTOR_SCHEDULE}:${Action.READ}:${Scope.OWN}`)
+  @RequirePermissions(`${Resource.DOCTOR_SCHEDULE}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Danh sách lịch làm việc theo bác sĩ / khoảng ngày' })
   findAll(@Query() query: SearchDoctorScheduleDto) {
     return this.doctorScheduleService.findAll(query);
   }
 
   @Get(':id')
-  // @RequirePermissions(`${Resource.DOCTOR_SCHEDULE}:${Action.READ}:${Scope.OWN}`)
+  @RequirePermissions(`${Resource.DOCTOR_SCHEDULE}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Xem chi tiết 1 lịch làm việc kèm slot' })
   findOne(@Param('id') id: string) {
     return this.doctorScheduleService.findById(id);
