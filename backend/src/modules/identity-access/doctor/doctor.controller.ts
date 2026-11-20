@@ -16,8 +16,8 @@ export class DoctorController {
   constructor(private readonly doctorService: DoctorService) {}
 
   @Post()
-  // @UseGuards(JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(`${Resource.DOCTOR}:${Action.CREATE}:${Scope.ALL}`)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(`${Resource.DOCTOR}:${Action.CREATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Tạo bác sĩ (chính thức hoặc thỉnh giảng) — chỉ admin' })
   create(@Body() dto: CreateDoctorDto) {
     return this.doctorService.create(dto);
@@ -36,8 +36,8 @@ export class DoctorController {
   }
 
   @Patch(':id')
-  // @UseGuards(JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(`${Resource.DOCTOR}:${Action.UPDATE}:${Scope.ALL}`)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @RequirePermissions(`${Resource.DOCTOR}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Cập nhật thông tin bác sĩ — chỉ admin' })
   update(@Param('id') id: string, @Body() dto: UpdateDoctorDto) {
     return this.doctorService.update(id, dto);

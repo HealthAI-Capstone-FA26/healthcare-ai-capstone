@@ -8,8 +8,6 @@ import { PrismaService } from 'prisma/prisma.service';
  * pharmacy/dispense/thanh toán thuốc), nên seed không ghi giá thuốc nữa.
  */
 export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
-    const categories = await prisma.allergenCategory.findMany();
-    const categoryMap = new Map(categories.map((c) => [c.categoryCode, c.categoryId]));
 
     const drugs = [
         {
@@ -21,7 +19,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Gây mê",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HALOTHAN",
@@ -32,7 +29,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "inhalation",
             unit: "chai",
             therapeuticClass: "Gây mê",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "KETAMINHYDROCL",
@@ -43,7 +39,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Gây mê",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "OXYGENDUOCDUNG",
@@ -54,7 +49,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "inhalation",
             unit: "bình",
             therapeuticClass: "Gây mê",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "THIOPENTALNATR",
@@ -65,7 +59,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Gây mê",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BUPIVACAINHYDR",
@@ -76,7 +69,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Gây tê tại chỗ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LIDOCAINHYDROC",
@@ -87,7 +79,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Gây tê tại chỗ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PROCAINHYDROCL",
@@ -98,7 +89,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Gây tê tại chỗ",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "LIDOCAINADRENA",
@@ -109,7 +99,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Gây tê tại chỗ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "EPHEDRINHYDROC",
@@ -120,7 +109,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Tiền mê/Vận mạch",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ATROPINSULFAT",
@@ -131,7 +119,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Tiền mê",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DIAZEPAMTIEM",
@@ -142,7 +129,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Tiền mê/An thần",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MORPHINHYDROCL",
@@ -153,7 +139,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Tiền mê/Giảm đau",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ALIMEMAZIN",
@@ -164,7 +149,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống dị ứng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLORPHENIRAMIN",
@@ -175,7 +159,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống dị ứng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DEXAMETHASON",
@@ -186,7 +169,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống dị ứng/Corticosteroid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DEXAMETHASONPH",
@@ -197,7 +179,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Chống dị ứng/Corticosteroid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ALBENDAZOL",
@@ -208,7 +189,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị giun sán",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MEBENDAZOL",
@@ -219,7 +199,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị giun sán",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NICLOSAMID",
@@ -230,7 +209,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị giun sán",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PRAZIQUANTEL",
@@ -241,7 +219,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị sán",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PYRANTELEMBONA",
@@ -252,7 +229,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị giun",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DIETHYLCARBAMA",
@@ -263,7 +239,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị giun chỉ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "IVERMECTIN",
@@ -274,7 +249,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị giun chỉ/Ghẻ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACIDFOLIC",
@@ -285,7 +259,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống thiếu máu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HYDROXOCOBALAM",
@@ -296,7 +269,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Chống thiếu máu (Vitamin B12)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SATSULFATOXALA",
@@ -307,7 +279,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống thiếu máu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SATACIDFOLIC",
@@ -318,7 +289,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống thiếu máu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HUMANNORMALIMM",
@@ -329,7 +299,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Huyết thanh/Globulin miễn dịch",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HUYETTHANHKHAN",
@@ -340,7 +309,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Huyết thanh",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINSOIQUAIB",
@@ -351,7 +319,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINTHUYDAU",
@@ -362,7 +329,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINVIEMGANA",
@@ -373,7 +339,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINHIB",
@@ -384,7 +349,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PARA500",
@@ -395,7 +359,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giảm đau - hạ sốt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "IBU400",
@@ -406,7 +369,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "NSAID",
-            allergenCategoryCode: "NSAID",
         },
         {
             drugCode: "DICLO50",
@@ -417,7 +379,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "NSAID",
-            allergenCategoryCode: "NSAID",
         },
         {
             drugCode: "ASP81",
@@ -428,7 +389,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "NSAID",
-            allergenCategoryCode: "ASPIRIN",
         },
         {
             drugCode: "MELOXICAM",
@@ -439,7 +399,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "NSAID",
-            allergenCategoryCode: "NSAID",
         },
         {
             drugCode: "TRAMADOL",
@@ -450,7 +409,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giảm đau opioid nhẹ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AMOX500",
@@ -461,7 +419,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "AUGM625",
@@ -472,7 +429,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "CEPH500",
@@ -483,7 +439,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CEFUROXIME",
@@ -494,7 +449,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh Cephalosporin (TH2)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CEFTRIAXONE",
@@ -505,7 +459,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Cephalosporin (TH3)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AZITHROMYCIN",
@@ -516,7 +469,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh Macrolid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CIPROFLOXACIN",
@@ -527,7 +479,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh Quinolon",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METRONIDAZOLE",
@@ -538,7 +489,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh/Kháng KST",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DOXYCYCLINE",
@@ -549,7 +499,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh Tetracyclin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BACTRIM480",
@@ -560,7 +509,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "OMEP20",
@@ -571,7 +519,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "PPI",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ESOMEPRAZOLE",
@@ -582,7 +529,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "PPI",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RANITIDINE",
@@ -593,7 +539,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng H2",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DOMPERIDONE",
@@ -604,7 +549,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều hòa nhu động ruột",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LOPERAMIDE",
@@ -615,7 +559,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống tiêu chảy",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ORESOL",
@@ -626,7 +569,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "gói",
             therapeuticClass: "Bù nước điện giải",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LORA10",
@@ -637,7 +579,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng Histamin H1",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CETI10",
@@ -648,7 +589,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng Histamin H1",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AMLO5",
@@ -659,7 +599,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chẹn kênh canxi",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LOSARTAN",
@@ -670,7 +609,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "ARB",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ENALAPRIL",
@@ -681,7 +619,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "ACEI",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BISOPROLOL",
@@ -692,7 +629,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chẹn beta",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ATORVASTATIN",
@@ -703,7 +639,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Statin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FUROSEMIDE",
@@ -714,7 +649,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Lợi tiểu quai",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "SPIRONOLACTONE",
@@ -725,7 +659,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Lợi tiểu giữ Kali",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DIGOXIN",
@@ -736,7 +669,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Glycosid tim",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "WARFARIN",
@@ -747,7 +679,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống đông kháng Vitamin K",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLOPIDOGREL",
@@ -758,7 +689,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống kết tập tiểu cầu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METF500",
@@ -769,7 +699,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Hạ đường huyết",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "GLICLAZIDE",
@@ -780,7 +709,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Hạ đường huyết (Sulfonylurea)",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "INSULINREGULAR",
@@ -791,7 +719,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Hormon hạ đường huyết",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LEVOTHYROXINE",
@@ -802,7 +729,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Hormon tuyến giáp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PREDNISOLONE",
@@ -813,7 +739,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Corticosteroid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METHYLPREDNISO",
@@ -824,7 +749,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "other",
             unit: "viên",
             therapeuticClass: "Corticosteroid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SALB100",
@@ -835,7 +759,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "inhalation",
             unit: "bình",
             therapeuticClass: "Giãn phế quản",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BUDESONIDE",
@@ -846,7 +769,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "other",
             unit: "đơn vị",
             therapeuticClass: "Corticosteroid dạng hít",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "THEOPHYLLINE",
@@ -857,7 +779,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giãn phế quản",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACETYLCYSTEINE",
@@ -868,7 +789,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Tiêu đờm",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DEXTROMETHORPH",
@@ -879,7 +799,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giảm ho",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DIAZEPAMUONG",
@@ -890,7 +809,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "An thần Benzodiazepin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SERTRALINE",
@@ -901,7 +819,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống trầm cảm (SSRI)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FLUOXETINE",
@@ -912,7 +829,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống trầm cảm (SSRI)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AMITRIPTYLINE",
@@ -923,7 +839,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống trầm cảm ba vòng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "GABAPENTIN",
@@ -934,7 +849,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống động kinh/Giảm đau TK",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PHENYTOIN",
@@ -945,7 +859,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống động kinh",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VALPROICACID",
@@ -956,7 +869,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống động kinh",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BETAHISTINE",
@@ -967,7 +879,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị chóng mặt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CINNARIZINE",
@@ -978,7 +889,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống chóng mặt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CALCIUMCARBONA",
@@ -989,7 +899,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Bổ sung canxi",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ALLOPURINOL",
@@ -1000,7 +909,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị gout",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "COLCHICINE",
@@ -1011,7 +919,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị gout cấp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FINASTERIDE",
@@ -1022,7 +929,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Phì đại tiền liệt tuyến",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "TAMSULOSIN",
@@ -1033,7 +939,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Phì đại tiền liệt tuyến",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MICONAZOLE",
@@ -1044,7 +949,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "other",
             unit: "viên",
             therapeuticClass: "Kháng nấm",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FLUCONAZOLE",
@@ -1055,7 +959,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng nấm toàn thân",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACYCLOVIR",
@@ -1066,7 +969,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (Herpes)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "OSELTAMIVIR",
@@ -1077,7 +979,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (Cúm)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NAPR250",
@@ -1088,7 +989,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "NSAID",
-            allergenCategoryCode: "NSAID",
         },
         {
             drugCode: "INSULINGLARGIN",
@@ -1099,7 +999,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Insulin tác dụng kéo dài",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MONTELUKAST",
@@ -1110,7 +1009,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng Leukotrien",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ATENOLOL",
@@ -1121,7 +1019,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chẹn beta (đau thắt ngực/loạn nhịp/THA)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DILTIAZEM",
@@ -1132,7 +1029,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chẹn kênh canxi (đau thắt ngực)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "GLYCERYLTRINIT",
@@ -1143,7 +1039,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống đau thắt ngực",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ISOSORBIDDINIT",
@@ -1154,7 +1049,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống đau thắt ngực",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AMIODARONHYDRO",
@@ -1165,7 +1059,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống loạn nhịp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PROPRANOLOLHYD",
@@ -1176,7 +1069,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống loạn nhịp/THA/đau nửa đầu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VERAPAMILHYDRO",
@@ -1187,7 +1079,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống loạn nhịp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "EPINEPHRINTART",
@@ -1198,7 +1089,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Chống loạn nhịp/cấp cứu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CAPTOPRIL",
@@ -1209,7 +1099,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị tăng huyết áp (ACEI)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METHYLDOPA",
@@ -1220,7 +1109,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị tăng huyết áp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NIFEDIPIN",
@@ -1231,7 +1119,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị tăng huyết áp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HYDRALAZIN",
@@ -1242,7 +1129,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị tăng huyết áp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HEPTAMINOLHYDR",
@@ -1253,7 +1139,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Điều trị hạ huyết áp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DOBUTAMIN",
@@ -1264,7 +1149,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Điều trị suy tim (vận mạch)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DOPAMINHYDROCL",
@@ -1275,7 +1159,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Điều trị suy tim (vận mạch)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ADRENALINTARTR",
@@ -1286,7 +1169,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Điều trị suy tim/cấp cứu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "STREPTOKINASE",
@@ -1297,7 +1179,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "lọ",
             therapeuticClass: "Chống huyết khối (tiêu sợi huyết)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FENOFIBRAT",
@@ -1308,7 +1189,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Hạ lipid máu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SIMVASTATIN",
@@ -1319,7 +1199,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Statin (hạ lipid máu)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACIDACETYLSALI",
@@ -1330,7 +1209,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị cơn đau nửa đầu cấp",
-            allergenCategoryCode: "ASPIRIN",
         },
         {
             drugCode: "IBUPROFENDAUNU",
@@ -1341,7 +1219,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị cơn đau nửa đầu cấp",
-            allergenCategoryCode: "NSAID",
         },
         {
             drugCode: "PARACETAMOLDAU",
@@ -1352,7 +1229,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị cơn đau nửa đầu cấp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PROPRANOLOLPHO",
@@ -1363,7 +1239,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Phòng bệnh đau nửa đầu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACIDACETYLSALI2",
@@ -1374,7 +1249,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giảm đau không opi/hạ sốt/chống viêm",
-            allergenCategoryCode: "ASPIRIN",
         },
         {
             drugCode: "DICLOFENACGIAM",
@@ -1385,7 +1259,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giảm đau không opi/chống viêm",
-            allergenCategoryCode: "NSAID",
         },
         {
             drugCode: "CONETHANOLISOP",
@@ -1396,7 +1269,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Tẩy trùng/khử trùng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "POVIDONIOD",
@@ -1407,7 +1279,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Tẩy trùng/khử trùng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FLUORESCEINNAT",
@@ -1418,7 +1289,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "chai",
             therapeuticClass: "Chẩn đoán mắt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PILOCARPIN",
@@ -1429,7 +1299,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Thuốc mắt (co đồng tử/glôcôm)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "TROPICAMID",
@@ -1440,7 +1309,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Thuốc mắt (giãn đồng tử chẩn đoán)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AMIDOTRIZOATNA",
@@ -1451,7 +1319,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Thuốc cản quang",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BARISULFAT",
@@ -1462,7 +1329,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "gói",
             therapeuticClass: "Thuốc cản quang (đường tiêu hóa)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "IOHEXOL",
@@ -1473,7 +1339,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Thuốc cản quang",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "IOPROMID",
@@ -1484,7 +1349,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Thuốc cản quang",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MEGLUMINIOTROX",
@@ -1495,7 +1359,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Thuốc cản quang (đường mật)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BECLOMETASONDI",
@@ -1506,7 +1369,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "other",
             unit: "bình",
             therapeuticClass: "Hen/COPD",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SALBUTAMOLSULF",
@@ -1517,7 +1379,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Hen/COPD",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "TERBUTALIN",
@@ -1528,7 +1389,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Hen/COPD",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BUDESONIDHOHAP",
@@ -1539,7 +1399,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "other",
             unit: "bình",
             therapeuticClass: "Hen/COPD",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "IPRATROPIUMBRO",
@@ -1550,7 +1409,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "other",
             unit: "bình",
             therapeuticClass: "Hen/COPD",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACETYLCYSTEINH",
@@ -1561,7 +1419,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Rối loạn tiết dịch/Tiêu đờm",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BROMHEXINHYDRO",
@@ -1572,7 +1429,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Tiêu đờm",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PIROXICAM",
@@ -1583,7 +1439,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "NSAID",
-            allergenCategoryCode: "NSAID",
         },
         {
             drugCode: "PETHIDINHYDROC",
@@ -1594,7 +1449,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giảm đau opioid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MORPHINSULFATU",
@@ -1605,7 +1459,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giảm đau opioid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CYCLIZIN",
@@ -1616,7 +1469,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống nôn (kháng histamin)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DOCUSATNATRI",
@@ -1627,7 +1479,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Nhuận tràng làm mềm phân",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HYOSCINBUTYLBR",
@@ -1638,7 +1489,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống co thắt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HYOSCINHYDROBR",
@@ -1649,7 +1499,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Chống nôn/chống tiết",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LACTULOSE",
@@ -1660,7 +1509,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "chai",
             therapeuticClass: "Nhuận tràng thẩm thấu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MIDAZOLAM",
@@ -1671,7 +1519,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "An thần Benzodiazepin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ONDANSETRON",
@@ -1682,7 +1529,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống nôn (đối kháng 5-HT3)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PROMETHAZINHYD",
@@ -1693,7 +1539,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng Histamin H1 (TH1)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HYDROCORTISONA",
@@ -1704,7 +1549,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Corticosteroid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DEFEROXAMINMES",
@@ -1715,7 +1559,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "lọ",
             therapeuticClass: "Giải độc (thải sắt)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DIMERCAPROL",
@@ -1726,7 +1569,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giải độc kim loại nặng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METHIONIN",
@@ -1737,7 +1579,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giải độc Paracetamol",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NALOXONHYDROCL",
@@ -1748,7 +1589,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giải độc opioid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NATRICALCIEDET",
@@ -1759,7 +1599,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giải độc chì",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NATRITHIOSULFA",
@@ -1770,7 +1609,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giải độc cyanid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PENICILAMIN",
@@ -1781,7 +1619,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Giải độc kim loại nặng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PRALIDOXIMCLOR",
@@ -1792,7 +1629,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Giải độc phospho hữu cơ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "XANHMETHYLEN",
@@ -1803,7 +1639,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giải độc methemoglobin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CALCIGLUCONAT",
@@ -1814,7 +1649,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Giải độc/Bổ sung canxi",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "KALIFERROCYANI",
@@ -1825,7 +1659,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giải độc thali",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NATRINITRIT",
@@ -1836,7 +1669,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giải độc cyanid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "THANHOAT",
@@ -1847,7 +1679,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giải độc không đặc hiệu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CARBAMAZEPIN",
@@ -1858,7 +1689,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống động kinh",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MAGNESISULFAT",
@@ -1869,7 +1699,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Chống co giật (sản khoa)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PHENOBARBITAL",
@@ -1880,7 +1709,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống động kinh (barbiturat)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ETHOSUXIMID",
@@ -1891,7 +1719,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống động kinh cơn vắng ý thức",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METRIFONAT",
@@ -1902,7 +1729,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị sán lá",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "TRICLABENDAZOL",
@@ -1913,7 +1739,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị sán lá",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "OXAMNIQUIN",
@@ -1924,7 +1749,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Trị sán máng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AMPICILIN",
@@ -1935,7 +1759,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Beta-lactam",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "BENZATHINBENZY",
@@ -1946,7 +1769,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Penicilin tác dụng kéo dài",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "BENZYLPENICILI",
@@ -1957,7 +1779,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Penicilin",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "PROCAINBENZYLP",
@@ -1968,7 +1789,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Penicilin",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "CEFAZOLIN",
@@ -1979,7 +1799,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Cephalosporin (TH1)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CEFIXIM",
@@ -1990,7 +1809,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh Cephalosporin (TH3)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CEFOTAXIM",
@@ -2001,7 +1819,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Cephalosporin (TH3)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLOXACILIN",
@@ -2012,7 +1829,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Kháng sinh Penicilin kháng penicilinase",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "PHENOXYMETHYLP",
@@ -2023,7 +1839,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh Penicilin",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "IMIPENEMCILAST",
@@ -2034,7 +1849,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Carbapenem",
-            allergenCategoryCode: "PENICILLIN",
         },
         {
             drugCode: "AMIKACIN",
@@ -2045,7 +1859,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Aminoglycosid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "GENTAMICIN",
@@ -2056,7 +1869,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Kháng sinh Aminoglycosid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SPECTINOMYCIN",
@@ -2067,7 +1879,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Aminocyclitol",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VANCOMYCIN",
@@ -2078,7 +1889,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng sinh Glycopeptid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLORAMPHENICOL",
@@ -2089,7 +1899,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Kháng sinh Phenicol",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLINDAMYCIN",
@@ -2100,7 +1909,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Kháng sinh Lincosamid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLARITHROMYCIN",
@@ -2111,7 +1919,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh Macrolid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ERYTHROMYCIN",
@@ -2122,7 +1929,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Kháng sinh Macrolid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LEVOFLOXACIN",
@@ -2133,7 +1939,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh Quinolon",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "OFLOXACIN",
@@ -2144,7 +1949,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng sinh Quinolon",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NITROFURANTOIN",
@@ -2155,7 +1959,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng khuẩn tiết niệu (Nitrofuran)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLOFAZIMIN",
@@ -2166,7 +1969,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chữa bệnh phong",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DAPSON",
@@ -2177,7 +1979,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chữa bệnh phong (Sulfon)",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "RIFAMPICIN",
@@ -2188,7 +1989,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ETHAMBUTOL",
@@ -2199,7 +1999,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ISONIAZID",
@@ -2210,7 +2009,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PYRAZINAMID",
@@ -2221,7 +2019,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RIFAMPICINISON",
@@ -2232,7 +2029,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao phối hợp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "STREPTOMYCIN",
@@ -2243,7 +2039,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống lao (Aminoglycosid)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ETHAMBUTOLISON",
@@ -2254,7 +2049,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao phối hợp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RHZE",
@@ -2265,7 +2059,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao phối hợp 4 thành phần",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RHE",
@@ -2276,7 +2069,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao phối hợp 3 thành phần",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RHZ",
@@ -2287,7 +2079,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao phối hợp 3 thành phần",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RIFABUTIN",
@@ -2298,7 +2089,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CAPREOMYCIN",
@@ -2309,7 +2099,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống lao kháng đa thuốc",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CYCLOSERIN",
@@ -2320,7 +2109,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao kháng đa thuốc",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ETHIONAMID",
@@ -2331,7 +2119,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao kháng đa thuốc",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "KANAMYCIN",
@@ -2342,7 +2129,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống lao kháng đa thuốc",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACIDPAMINOSALI",
@@ -2353,7 +2139,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống lao kháng đa thuốc",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AMPHOTERICINB",
@@ -2364,7 +2149,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Kháng nấm toàn thân",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLOTRIMAZOL",
@@ -2375,7 +2159,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "vaginal",
             unit: "viên",
             therapeuticClass: "Kháng nấm tại chỗ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "GRISEOFULVIN",
@@ -2386,7 +2169,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng nấm toàn thân",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NYSTATIN",
@@ -2397,7 +2179,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng nấm tại chỗ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FLUCYTOSIN",
@@ -2408,7 +2189,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "viên",
             therapeuticClass: "Kháng nấm toàn thân",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "KETOCONAZOL",
@@ -2419,7 +2199,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Kháng nấm tại chỗ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "TERBINAFIN",
@@ -2430,7 +2209,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Kháng nấm tại chỗ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DILOXANIDFUROA",
@@ -2441,7 +2219,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị bệnh do amip",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLOROQUIN",
@@ -2452,7 +2229,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc sốt rét/Viêm khớp dạng thấp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MEFLOQUIN",
@@ -2463,7 +2239,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc phòng sốt rét",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PROGUANIL",
@@ -2474,7 +2249,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc phòng sốt rét",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AMODIAQUIN",
@@ -2485,7 +2259,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chữa sốt rét",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ARTESUNAT",
@@ -2496,7 +2269,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chữa sốt rét",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ARTESUNATAMODI",
@@ -2507,7 +2279,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chữa sốt rét phối hợp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ARTESUNATMEFLO",
@@ -2518,7 +2289,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chữa sốt rét phối hợp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PRIMAQUIN",
@@ -2529,7 +2299,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chữa sốt rét (diệt giao bào)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "QUININDIHYDROC",
@@ -2540,7 +2309,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Thuốc chữa sốt rét",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "QUININSULFAT",
@@ -2551,7 +2319,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chữa sốt rét",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SULFADOXINPYRI",
@@ -2562,7 +2329,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chữa sốt rét phối hợp",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "ARTEMETHER",
@@ -2573,7 +2339,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Thuốc chữa sốt rét",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ARTEMETHERLUME",
@@ -2584,7 +2349,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chữa sốt rét phối hợp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PYRIMETHAMIN",
@@ -2595,7 +2359,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị Toxoplasma",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SULFADIAZIN",
@@ -2606,7 +2369,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị Toxoplasma (Sulfonamid)",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "PENTAMIDIN",
@@ -2617,7 +2379,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị Pneumocystis",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RIBAVIRIN",
@@ -2628,7 +2389,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Kháng virus",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LAMIVUDIN",
@@ -2639,7 +2399,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (NRTI)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NEVIRAPIN",
@@ -2650,7 +2409,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (NNRTI)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ZIDOVUDIN",
@@ -2661,7 +2419,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "viên",
             therapeuticClass: "Kháng virus (NRTI)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ABACAVIR",
@@ -2672,7 +2429,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (NRTI)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "TENOFOVIRDISOP",
@@ -2683,7 +2439,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (NtRTI)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ATAZANAVIR",
@@ -2694,7 +2449,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (ức chế protease)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "EFAVIRENZ",
@@ -2705,7 +2459,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (NNRTI)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LOPINAVIRRITON",
@@ -2716,7 +2469,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (ức chế protease)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RITONAVIR",
@@ -2727,7 +2479,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng virus (ức chế protease)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LAMIVUDINTENOF",
@@ -2738,7 +2489,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "ARV phối hợp liều cố định",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LAMIVUDINTENOF2",
@@ -2749,7 +2499,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "ARV phối hợp liều cố định",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LAMIVUDINZIDOV",
@@ -2760,7 +2509,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "ARV phối hợp liều cố định",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LAMIVUDINZIDOV2",
@@ -2771,7 +2519,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "ARV phối hợp liều cố định",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "AZATHIOPRIN",
@@ -2782,7 +2529,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Ức chế miễn dịch",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CICLOSPORIN",
@@ -2793,7 +2539,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Ức chế miễn dịch",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LASPARAGINASE",
@@ -2804,7 +2549,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư (enzym)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BLEOMYCIN",
@@ -2815,7 +2559,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư (kháng sinh)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CARBOPLATIN",
@@ -2826,7 +2569,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Thuốc chống ung thư (platin)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CISPLATIN",
@@ -2837,7 +2579,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư (platin)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CYCLOPHOSPHAMI",
@@ -2848,7 +2589,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Thuốc chống ung thư (alkyl hóa)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CYTARABIN",
@@ -2859,7 +2599,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư (chống chuyển hóa)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DACTINOMYCIN",
@@ -2870,7 +2609,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DOXORUBICIN",
@@ -2881,7 +2619,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư (anthracyclin)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ETOPOSID",
@@ -2892,7 +2629,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Thuốc chống ung thư",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FLUOROURACIL",
@@ -2903,7 +2639,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Thuốc chống ung thư (chống chuyển hóa)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HYDROXYCARBAMI",
@@ -2914,7 +2649,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống ung thư",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "IFOSFAMID",
@@ -2925,7 +2659,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư (alkyl hóa)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MERCAPTOPURIN",
@@ -2936,7 +2669,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống ung thư (chống chuyển hóa)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METHOTREXAT",
@@ -2947,7 +2679,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Thuốc chống ung thư/Viêm khớp dạng thấp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MITOMYCIN",
@@ -2958,7 +2689,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PROCARBAZIN",
@@ -2969,7 +2699,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống ung thư",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VINBLASTIN",
@@ -2980,7 +2709,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư (alkaloid Vinca)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VINCRISTIN",
@@ -2991,7 +2719,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư (alkaloid Vinca)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CALCIFOLINAT",
@@ -3002,7 +2729,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Giải cứu Methotrexat",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CHLORAMBUCIL",
@@ -3013,7 +2739,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc chống ung thư (alkyl hóa)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DACARBAZIN",
@@ -3024,7 +2749,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DAUNORUBICIN",
@@ -3035,7 +2759,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Thuốc chống ung thư (anthracyclin)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MESNA",
@@ -3046,7 +2769,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Bảo vệ bàng quang (giải độc)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FILGRASTIM",
@@ -3057,7 +2779,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Yếu tố kích thích dòng bạch cầu hạt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "TAMOXIFEN",
@@ -3068,7 +2789,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng hormon (chống ung thư vú)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BIPERIDEN",
@@ -3079,7 +2799,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống Parkinson (kháng cholinergic)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LEVODOPACARBID",
@@ -3090,7 +2809,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống Parkinson",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACENOCOUMAROL",
@@ -3101,7 +2819,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống đông kháng Vitamin K",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACIDAMINOCAPRO",
@@ -3112,7 +2829,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Cầm máu (chống tiêu sợi huyết)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACIDTRANEXAMIC",
@@ -3123,7 +2839,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Cầm máu (chống tiêu sợi huyết)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CARBAZOCROM",
@@ -3134,7 +2849,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Cầm máu (bền thành mạch)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HEPARINNATRI",
@@ -3145,7 +2859,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Chống đông (heparin không phân đoạn)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VITAMINK1",
@@ -3156,7 +2869,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Cầm máu/Giải độc kháng Vitamin K",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PROTAMINSULFAT",
@@ -3167,7 +2879,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giải độc Heparin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DEXTRAN40",
@@ -3178,7 +2889,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Dung dịch cao phân tử",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DEXTRAN60",
@@ -3189,7 +2899,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Dung dịch cao phân tử",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DEXTRAN70",
@@ -3200,7 +2909,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Dung dịch cao phân tử",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "GELATIN",
@@ -3211,7 +2919,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Dung dịch cao phân tử",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "YEUTOVIIIDAMDA",
@@ -3222,7 +2929,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "lọ",
             therapeuticClass: "Chế phẩm máu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PHUCHOPYEUTOIX",
@@ -3233,7 +2939,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "lọ",
             therapeuticClass: "Chế phẩm máu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ALBUMIN",
@@ -3244,7 +2949,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Chế phẩm máu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HUYETTUONGTUOI",
@@ -3255,7 +2959,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "đơn vị",
             therapeuticClass: "Chế phẩm máu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HYDROCLOROTHIA",
@@ -3266,7 +2969,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Lợi tiểu Thiazid",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "MANITOL",
@@ -3277,7 +2979,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Lợi tiểu thẩm thấu",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACIDBENZOICACI",
@@ -3288,7 +2989,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Kháng nấm ngoài da (mỡ Whitfield)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CONASA",
@@ -3299,7 +2999,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Kháng nấm ngoài da",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CONBSI",
@@ -3310,7 +3009,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Kháng nấm ngoài da",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NEOMYCINBACITR",
@@ -3321,7 +3019,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Kháng khuẩn ngoài da",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "KALIPERMANGANA",
@@ -3332,7 +3029,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Sát khuẩn ngoài da",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BACSULFADIAZIN",
@@ -3343,7 +3039,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Kháng khuẩn ngoài da (bỏng)",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "BETAMETHASONVA",
@@ -3354,7 +3049,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Corticosteroid dùng ngoài",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FLUOCINOLONACE",
@@ -3365,7 +3059,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Corticosteroid dùng ngoài",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HYDROCORTISONA2",
@@ -3376,7 +3069,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Corticosteroid dùng ngoài",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CALAMIN",
@@ -3387,7 +3079,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Chống ngứa ngoài da",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACIDSALICYLIC",
@@ -3398,7 +3089,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Tiêu sừng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BENZOYLPEROXID",
@@ -3409,7 +3099,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Trị mụn/tiêu sừng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "UREA",
@@ -3420,7 +3109,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Tiêu sừng/giữ ẩm",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BENZYLBENZOAT",
@@ -3431,7 +3119,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Trị ghẻ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DIETHYLPHTALAT",
@@ -3442,7 +3129,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Trị ghẻ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PERMETHRIN",
@@ -3453,7 +3139,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "tuýp",
             therapeuticClass: "Trị ghẻ/chấy rận",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLORHEXIDINDIG",
@@ -3464,7 +3149,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Tẩy trùng/khử trùng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CONIOD",
@@ -3475,7 +3159,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Tẩy trùng/khử trùng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NUOCOXYGIA",
@@ -3486,7 +3169,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Tẩy trùng/khử trùng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CIMETIDIN",
@@ -3497,7 +3179,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Kháng H2",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MUOIBISMUTH",
@@ -3508,7 +3189,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Bảo vệ niêm mạc dạ dày",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FAMOTIDIN",
@@ -3519,7 +3199,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Kháng H2",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MAGNESIHYDROXY",
@@ -3530,7 +3209,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Antacid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PANTOPRAZOL",
@@ -3541,7 +3219,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "PPI",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METOCLOPRAMID",
@@ -3552,7 +3229,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống nôn/Điều hòa nhu động",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ALVERINCITRAT",
@@ -3563,7 +3239,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống co thắt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PAPAVERINHYDRO",
@@ -3574,7 +3249,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống co thắt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BISACODYL",
@@ -3585,7 +3259,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Nhuận tràng kích thích",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ATAPULGIT",
@@ -3596,7 +3269,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "gói",
             therapeuticClass: "Chống tiêu chảy (hấp phụ)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BERBERINCLORID",
@@ -3607,7 +3279,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống tiêu chảy/kháng khuẩn ruột",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "KEMSULFAT",
@@ -3618,7 +3289,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Hỗ trợ điều trị tiêu chảy trẻ em",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DIOSMIN",
@@ -3629,7 +3299,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều trị bệnh trĩ/suy tĩnh mạch",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MENTUY",
@@ -3640,7 +3309,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "đơn vị",
             therapeuticClass: "Enzym tiêu hóa",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FLUDROCORTISON",
@@ -3651,7 +3319,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Mineralocorticoid",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METHYLTESTOSTE",
@@ -3662,7 +3329,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Androgen",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "TESTOSTERONUND",
@@ -3673,7 +3339,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Androgen",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ETHINYLESTRADI",
@@ -3684,7 +3349,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc tránh thai phối hợp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ETHINYLESTRADI2",
@@ -3695,7 +3359,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc tránh thai phối hợp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LEVONORGESTREL",
@@ -3706,7 +3369,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Thuốc tránh thai (progestin đơn thuần)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NORETHISTERONE",
@@ -3717,7 +3379,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Thuốc tránh thai tiêm",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ESTRADIOLCYPIO",
@@ -3728,7 +3389,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "chai",
             therapeuticClass: "Thuốc tránh thai tiêm phối hợp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MEDROXYPROGEST",
@@ -3739,7 +3399,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Progestin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ETHINYLESTRADI3",
@@ -3750,7 +3409,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Estrogen",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "QUECAYLEVONORG",
@@ -3761,7 +3419,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "implant",
             unit: "que",
             therapeuticClass: "Thuốc tránh thai cấy",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACARBOSE",
@@ -3772,7 +3429,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Hạ đường huyết (ức chế alpha-glucosidase)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "GLIBENCLAMID",
@@ -3783,7 +3439,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Hạ đường huyết (Sulfonylurea)",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "CLOMIFENCITRAT",
@@ -3794,7 +3449,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kích thích rụng trứng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "GONADOTROPIN",
@@ -3805,7 +3459,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "lọ",
             therapeuticClass: "Kích thích rụng trứng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NORETHISTERON",
@@ -3816,7 +3469,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Progestin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PROGESTERON",
@@ -3827,7 +3479,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Progestin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CARBIMAZOL",
@@ -3838,7 +3489,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng giáp trạng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METHYLTHIOURAC",
@@ -3849,7 +3499,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng giáp trạng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PROPYLTHIOURAC",
@@ -3860,7 +3509,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Kháng giáp trạng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "KALIIODID",
@@ -3871,7 +3519,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Bổ sung iod/Kháng giáp",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DUNGDICHLUGOL",
@@ -3882,7 +3529,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "chai",
             therapeuticClass: "Kháng giáp trạng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VASOPRESSIN",
@@ -3893,7 +3539,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Điều trị đái tháo nhạt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DESMOPRESSINAC",
@@ -3904,7 +3549,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Điều trị đái tháo nhạt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HUYETTHANHKHAN2",
@@ -3915,7 +3559,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "chai",
             therapeuticClass: "Huyết thanh",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HUYETTHANHKHAN3",
@@ -3926,7 +3569,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "chai",
             therapeuticClass: "Huyết thanh",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINPHONGLAO",
@@ -3937,7 +3579,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINDPT",
@@ -3948,7 +3589,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXIN5TRONG1",
@@ -3959,7 +3599,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINSOI",
@@ -3970,7 +3609,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINVIEMGANB",
@@ -3981,7 +3619,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINBAILIET",
@@ -3992,7 +3629,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINUONVAN",
@@ -4003,7 +3639,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINVIEMNAON",
@@ -4014,7 +3649,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINTHUONGHA",
@@ -4025,7 +3659,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINTA",
@@ -4036,7 +3669,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINRUBELLA",
@@ -4047,7 +3679,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINDT",
@@ -4058,7 +3689,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINDAI",
@@ -4069,7 +3699,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXIN6TRONG1",
@@ -4080,7 +3709,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINPHECAU",
@@ -4091,7 +3719,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXIN4TRONG1D",
@@ -4102,7 +3729,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINSOIRUBEL",
@@ -4113,7 +3739,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINROTAVIRU",
@@ -4124,7 +3749,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINCUMMUA",
@@ -4135,7 +3759,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINNAOMOCAU",
@@ -4146,7 +3769,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VACXINHPV",
@@ -4157,7 +3779,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Vắc xin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NEOSTIGMIN",
@@ -4168,7 +3789,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Kháng cholinesterase",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PANCURONIUMBRO",
@@ -4179,7 +3799,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giãn cơ không khử cực",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SUXAMETHONIUMC",
@@ -4190,7 +3809,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giãn cơ khử cực",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ALCURONIUMCLOR",
@@ -4201,7 +3819,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Giãn cơ không khử cực",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PYRIDOSTIGMINB",
@@ -4212,7 +3829,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Kháng cholinesterase (nhược cơ)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VECURONIUMBROM",
@@ -4223,7 +3839,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "lọ",
             therapeuticClass: "Giãn cơ không khử cực",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ARGYROL",
@@ -4234,7 +3849,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Thuốc nhỏ mắt sát khuẩn",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLORAMPHENICOL2",
@@ -4245,7 +3859,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Kháng sinh nhỏ mắt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "GENTAMICINNHOM",
@@ -4256,7 +3869,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Kháng sinh nhỏ mắt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NEOMYCINNHOMAT",
@@ -4267,7 +3879,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Kháng sinh nhỏ mắt/tai",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "OFLOXACINNHOMA",
@@ -4278,7 +3889,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Kháng sinh nhỏ mắt/tai",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SULFACETAMIDNA",
@@ -4289,7 +3899,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Kháng khuẩn nhỏ mắt",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "TETRACYCLINTRA",
@@ -4300,7 +3909,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "tuýp",
             therapeuticClass: "Kháng sinh tra mắt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PREDNISOLONNAT",
@@ -4311,7 +3919,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Chống viêm nhỏ mắt",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "TETRACAINHYDRO",
@@ -4322,7 +3929,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Gây tê tại chỗ (mắt)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACETAZOLAMID",
@@ -4333,7 +3939,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Giảm nhãn áp (ức chế carbonic anhydrase)",
-            allergenCategoryCode: "SULFA",
         },
         {
             drugCode: "TIMOLOL",
@@ -4344,7 +3949,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "ophthalmic",
             unit: "chai",
             therapeuticClass: "Giảm nhãn áp (chẹn beta)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NAPHAZOLIN",
@@ -4355,7 +3959,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "nasal",
             unit: "chai",
             therapeuticClass: "Co mạch nhỏ mũi",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "XYLOMETAZOLIN",
@@ -4366,7 +3969,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "nasal",
             unit: "chai",
             therapeuticClass: "Co mạch nhỏ mũi",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ACIDACETICTAI",
@@ -4377,7 +3979,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "topical",
             unit: "chai",
             therapeuticClass: "Điều trị viêm ống tai ngoài",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "BUDESONIDXITMU",
@@ -4388,7 +3989,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "nasal",
             unit: "chai",
             therapeuticClass: "Corticosteroid xịt mũi",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "OXYTOCIN",
@@ -4399,7 +3999,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Thuốc thúc đẻ/cầm máu sau đẻ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "ERGOMETRINMALE",
@@ -4410,7 +4009,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Cầm máu sau đẻ",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MISOPROSTOL",
@@ -4421,7 +4019,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Prostaglandin E1 (cầm máu sau đẻ)",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "MIFEPRISTONMIS",
@@ -4432,7 +4029,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chấm dứt thai kỳ nội khoa",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DUNGDICHTHAMPH",
@@ -4443,7 +4039,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "intraperitoneal",
             unit: "chai",
             therapeuticClass: "Dung dịch thẩm phân",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DUNGDICHLOCTHA",
@@ -4454,7 +4049,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "hemodialysis",
             unit: "chai",
             therapeuticClass: "Dung dịch lọc thận",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLORPROMAZIN",
@@ -4465,7 +4059,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống loạn thần điển hình",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "HALOPERIDOL",
@@ -4476,7 +4069,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống loạn thần điển hình",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LEVOMEPROMAZIN",
@@ -4487,7 +4079,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống loạn thần điển hình",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RISPERIDON",
@@ -4498,7 +4089,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống loạn thần không điển hình",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SULPIRID",
@@ -4509,7 +4099,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Chống loạn thần",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "FLUPHENAZIN",
@@ -4520,7 +4109,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "ống",
             therapeuticClass: "Chống loạn thần điển hình",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "LITHICARBONAT",
@@ -4531,7 +4119,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Điều chỉnh khí sắc",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CLOMIPRAMIN",
@@ -4542,7 +4129,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Chống trầm cảm ba vòng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "METHADON",
@@ -4553,7 +4139,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "chai",
             therapeuticClass: "Điều trị nghiện chất dạng thuốc phiện",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "KALICLORID",
@@ -4564,7 +4149,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "viên",
             therapeuticClass: "Bù điện giải",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DUNGDICHACIDAM",
@@ -4575,7 +4159,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Dinh dưỡng tĩnh mạch",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DUNGDICHGLUCOS",
@@ -4586,7 +4169,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Bù dịch/năng lượng",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "DUNGDICHRINGER",
@@ -4597,7 +4179,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Bù dịch điện giải",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CALCICLORID",
@@ -4608,7 +4189,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "chai",
             therapeuticClass: "Bù điện giải",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NATRICLORID",
@@ -4619,7 +4199,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Bù dịch điện giải",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NATRIHYDROCARB",
@@ -4630,7 +4209,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "infusion",
             unit: "chai",
             therapeuticClass: "Điều chỉnh toan kiềm",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "NUOCCATPHATIEM",
@@ -4641,7 +4219,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "đơn vị",
             therapeuticClass: "Dung môi pha tiêm",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VITAMINA",
@@ -4652,7 +4229,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Vitamin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VITAMINAD",
@@ -4663,7 +4239,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Vitamin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "THIAMINVITAMIN",
@@ -4674,7 +4249,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "viên",
             therapeuticClass: "Vitamin nhóm B",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "RIBOFLAVINVITA",
@@ -4685,7 +4259,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Vitamin nhóm B",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "PYRIDOXINVITAM",
@@ -4696,7 +4269,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Vitamin nhóm B",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VITAMINC",
@@ -4707,7 +4279,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Vitamin",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "VITAMINPP",
@@ -4718,7 +4289,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "oral",
             unit: "viên",
             therapeuticClass: "Vitamin nhóm B",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "CAFEINCITRAT",
@@ -4729,7 +4299,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "injection",
             unit: "chai",
             therapeuticClass: "Điều trị cơn ngừng thở ở trẻ sinh non",
-            allergenCategoryCode: null,
         },
         {
             drugCode: "SURFACTANT",
@@ -4740,13 +4309,10 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
             route: "inhalation",
             unit: "chai",
             therapeuticClass: "Điều trị bệnh màng trong ở trẻ sinh non",
-            allergenCategoryCode: null,
         },
     ];
 
     for (const d of drugs) {
-        const allergenCategoryId = d.allergenCategoryCode ? categoryMap.get(d.allergenCategoryCode) : null;
-
         await prisma.drugCatalog.upsert({
             where: { drugCode: d.drugCode },
             update: {
@@ -4757,7 +4323,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
                 route: d.route,
                 unit: d.unit,
                 therapeuticClass: d.therapeuticClass,
-                allergenCategoryId,
             },
             create: {
                 drugCode: d.drugCode,
@@ -4768,7 +4333,6 @@ export async function seedDrugCatalog(prisma: PrismaService): Promise<void> {
                 route: d.route,
                 unit: d.unit,
                 therapeuticClass: d.therapeuticClass,
-                allergenCategoryId,
                 isActive: true,
             },
         });

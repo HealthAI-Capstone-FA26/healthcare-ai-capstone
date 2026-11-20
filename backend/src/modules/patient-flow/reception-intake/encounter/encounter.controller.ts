@@ -9,7 +9,7 @@ import { EncounterDoctorRoutingService } from './encounter-doctor-routing.servic
 
 @ApiTags('Encounter')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('encounters')
 export class EncounterController {
   constructor(
