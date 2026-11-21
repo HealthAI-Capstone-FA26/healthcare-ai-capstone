@@ -19,32 +19,53 @@ import { PrismaService } from 'prisma/prisma.service';
  * QUAN TRỌNG: @@unique là [serviceId, parameterCode] -> tra cứu BẮT BUỘC theo cặp (serviceCode, parameterCode),
  * không bao giờ chỉ theo parameterCode (xem 20-result-parameter-threshold.seed.ts).
  *
- * ── Nguồn đối chiếu mã LOINC cho BLOODFULL (kiểm tra lần cuối 20/11/2026) ───────────────────────────
- * Tra cứu mã chuẩn tại https://loinc.org/<mã>. Các mã dưới đây đã đối chiếu như sau:
- *   - CBC (RBC, HGB, HCT, MCV, MCH, MCHC, RDW, WBC, PLT, công thức bạch cầu %):
- *       https://www.labcorp.com/tests/005009/complete-blood-count-cbc-with-differential
- *       https://loinc.org/718-7
- *       https://cdn.loinc.org/57021-8   (panel CBC có công thức bạch cầu tự động)
- *   - MPV: dùng 32623-1 (phương pháp Automated count, thuộc CBC panel 58410-2)
- *       https://www.findacode.com/loinc/32623-1--platelet-entitic-mean-volume-in-blood-by-automated-count.html
- *     KHÔNG dùng 776-5: đó là phương pháp Rees-Ecker (thủ công)
- *       https://findacode.com/loinc/776-5--pmv-bld-rees-ecker.html
- *   - Sinh hóa / điện giải (GLU, URE, CREA, NA, K):
- *       https://www.labcorp.com/tests/322000/comprehensive-metabolic-panel-cmp
- *       https://www.labcorp.com/tests/322777/renal-function-panel
- *     GLU 2345-7 là glucose huyết thanh/huyết tương nói chung; "đói" là điều kiện lấy mẫu (xem 06-), không nằm trong mã.
- *   - Mỡ máu (TC, LDLC, HDLC, TG):
- *       https://www.labcorp.com/tests/303756/lipid-panel
- *     LDLC 13457-7 là LDL TÍNH TOÁN (công thức), không tính được khi TG > 800 mg/dL. Nếu analyzer đo LDL trực tiếp thì đổi
- *     sang 18262-6:
- *       https://www.labcorp.com/tests/123836/lipid-cascade-with-reflex-to-lipoprotein-particle-assessment-by-nmr-with-graph-if-reflexed
- *   - hs-Troponin T 67151-1 (mẫu huyết thanh/huyết tương, phương pháp độ nhạy cao): https://loinc.org/67151-1
- *   - CK-MB mass 13969-1: https://www.findacode.com/loinc/13969-1--ck-mb-serpl-mcnc.html
+ * ── Nguồn chuẩn cho từng thuộc tính của BLOODFULL (kiểm tra lần cuối 21/11/2026) ───────────────────
+ * Mỗi tham số máu là một xét nghiệm có mã LOINC chính thức; trang định nghĩa gốc (tên đầy đủ, hệ mẫu, phương pháp, đơn vị mẫu)
+ * nằm trên LOINC.org (Regenstrief Institute), theo dạng https://loinc.org/<mã>:
+ *     parameterCode  LOINC    liên kết
+ *     RBC      789-8    https://loinc.org/789-8
+ *     HGB      718-7    https://loinc.org/718-7
+ *     HCT      4544-3   https://loinc.org/4544-3
+ *     MCV      787-2    https://loinc.org/787-2
+ *     MCH      785-6    https://loinc.org/785-6
+ *     MCHC     786-4    https://loinc.org/786-4
+ *     RDW      788-0    https://loinc.org/788-0
+ *     WBC      6690-2   https://loinc.org/6690-2
+ *     NEUT     770-8    https://loinc.org/770-8
+ *     LYMPH    736-9    https://loinc.org/736-9
+ *     MONO     5905-5   https://loinc.org/5905-5
+ *     EOS      713-8    https://loinc.org/713-8
+ *     BASO     706-2    https://loinc.org/706-2
+ *     PLT      777-3    https://loinc.org/777-3
+ *     MPV      32623-1  https://loinc.org/32623-1
+ *     GLU      2345-7   https://loinc.org/2345-7
+ *     URE      3094-0   https://loinc.org/3094-0
+ *     CREA     2160-0   https://loinc.org/2160-0
+ *     NA       2951-2   https://loinc.org/2951-2
+ *     K        2823-3   https://loinc.org/2823-3
+ *     TC       2093-3   https://loinc.org/2093-3
+ *     LDLC     13457-7  https://loinc.org/13457-7
+ *     HDLC     2085-9   https://loinc.org/2085-9
+ *     TG       2571-8   https://loinc.org/2571-8
+ *     HSTNT    67151-1  https://loinc.org/67151-1
+ *     CKMB     13969-1  https://loinc.org/13969-1
+ *     NTPROBNP 33762-6  https://loinc.org/33762-6
+ *
+ * Đối chiếu chéo mã với danh mục xét nghiệm của phòng xét nghiệm học thuật (cùng mã LOINC kết quả):
+ *   - 15 chỉ số CBC (RBC, HGB, HCT, MCV, MCH, MCHC, RDW, WBC, NEUT, LYMPH, MONO, EOS, BASO, PLT, MPV): panel CBC chính thức trên
+ *     LOINC.org https://cdn.loinc.org/57021-8/panel ; Mayo Clinic Laboratories https://www.mayocliniclabs.com/test-catalog/overview/9109
+ *   - GLU, URE, CREA, NA, K: Mayo Clinic Laboratories, Basic Metabolic Panel (LOINC panel 24321-2)
+ *     https://www.mayocliniclabs.com/test-catalog/overview/113630
+ *   - HSTNT 67151-1: Mayo Clinic Laboratories, Troponin T 5th generation https://www.mayocliniclabs.com/test-catalog/overview/65832
+ *   - NTPROBNP: Mayo Clinic Laboratories dùng 83107-3 cho mẫu huyết thanh (https://www.mayocliniclabs.com/test-catalog/overview/615897);
+ *     33762-6 là mã tổng quát huyết thanh/huyết tương, dùng ở đây vì BLOODFULL không ràng buộc loại mẫu cho riêng chỉ số này.
+ *   - CKMB 13969-1: University of Michigan Health, Michigan Medicine Laboratories https://mlabs.umich.edu/tests/creatine-kinase-total-and-mb-isoenzyme
  *     (mã 20109-5 từng dùng ở bản trước KHÔNG phải CK-MB; đã bỏ)
- *   - NT-proBNP 33762-6:
- *       https://www.findacode.com/loinc/33762-6--natriuretic-peptideb-prohormone-n-terminal-massvolume-in-serum-or-plasma.html
- * Lưu ý về nguồn: loinc.org (Regenstrief Institute) là nguồn chuẩn. Find-A-Code là bản sao dữ liệu LOINC; trang Labcorp là bảng
- * ánh xạ của một phòng xét nghiệm, dùng để đối chiếu mã đang được dùng trong thực tế, không thay thế loinc.org.
+ *   - MPV: dùng 32623-1 (phương pháp Automated count, thuộc CBC panel); KHÔNG dùng 776-5 (phương pháp Rees-Ecker, thủ công).
+ *   - LDLC 13457-7 là LDL TÍNH TOÁN (công thức), không tính được khi TG > 800 mg/dL; nếu analyzer đo LDL trực tiếp thì đổi sang 18262-6.
+ *   - GLU 2345-7 là glucose huyết thanh/huyết tương nói chung; 'đói' là điều kiện lấy mẫu (xem 06-), không nằm trong mã.
+ * Ngưỡng cảnh báo và nguồn trích dẫn của từng chỉ số nằm ở 20-result-parameter-threshold.seed.ts (cột sourceReference của mỗi dòng
+ * có URL trực tiếp tới tài liệu gốc).
  *
  * Đơn vị trong cột `unit` là chuỗi hiển thị. Nếu liên thông HIS/FHIR thì dùng ký hiệu UCUM (vd 10*12/L, 10*9/L), không dùng 10^12/L.
  * hs-Troponin T, CK-MB, NT-proBNP và LDL-C phụ thuộc phương pháp/hãng máy -> cần phòng Lab xác nhận lại theo analyzer thực tế.

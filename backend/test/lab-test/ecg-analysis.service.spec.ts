@@ -12,9 +12,9 @@ jest.mock('@nestjs/event-emitter', () => ({ EventEmitter2: class {}, OnEvent: ()
  * WF-03 · F-11 "ECG anomaly detection" — acceptance:
  *   "Uploaded ECG returns anomaly events in doctor workspace, AI failure never blocks outpatient process".
  *
- * Function 18 (Report5): EcgAnalysisService.enqueue(ecgRecordingId, mode, options)   -> UTCID01..07
- * Bổ sung cùng Function 18:  EcgAnalysisService.run(analysisId) (batch inference nền) -> UTCID08..15
- *                            EcgAnalysisListener (trigger nền)                        -> UTCID16..19
+ * Function 18 (Report5): EcgAnalysisService.enqueue(ecgRecordingId, mode, options)  -> UTCID01..07
+ * Cùng Function 18 (mở rộng): EcgAnalysisService.run(analysisId) (batch inference nền) -> UTCID08..15
+ *                              EcgAnalysisListener (trigger nền)                        -> UTCID16..19
  *
  * Lưu ý đối chiếu: sheet Function18 bản nháp mô tả enqueue theo message cũ ("Bản ghi ECG chưa hoàn tất thu thập dữ liệu",
  * "đã được phân tích"); source hiện tại dùng message/điều kiện khác (xem các expect bên dưới) nên test bám source.
@@ -115,7 +115,7 @@ describe('EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11)', () => 
     });
 
     // ------------------------------------------------------------------------------------------------------------
-    describe('enqueue(ecgRecordingId, mode, options)', () => {
+    describe('Function 18 - enqueue(ecgRecordingId, mode, options)', () => {
         // UTCID01: Normal - recording 'completed' + model active -> analysis 'queued', push realtime 'queued', phát event chạy nền
         it("UTCID01 [N]: should create a queued batch analysis with the active model, push 'queued' and emit the queued event", async () => {
             const h = makeHarness();
@@ -209,7 +209,7 @@ describe('EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11)', () => 
     });
 
     // ------------------------------------------------------------------------------------------------------------
-    describe('run(analysisId) - background batch inference', () => {
+    describe('Function 18 - run(analysisId) - background batch inference', () => {
         const lastUpdateData = (h: ReturnType<typeof makeHarness>) => h.tx.ecgAiAnalysis.update.mock.calls[0][0].data;
 
         // UTCID08: Normal - AI phát hiện 2 đoạn bất thường -> lưu event (theo thời gian), isCurrent, push realtime, báo bác sĩ
@@ -346,7 +346,7 @@ describe('EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11)', () => 
     });
 
     // ------------------------------------------------------------------------------------------------------------
-    describe('EcgAnalysisListener - background trigger', () => {
+    describe('Function 18 - EcgAnalysisListener - background trigger', () => {
         const makeListener = () => {
             const analysisService = { enqueue: jest.fn().mockResolvedValue({ analysisId: 'ana-001' }), run: jest.fn().mockResolvedValue(undefined) };
             return { listener: new EcgAnalysisListener(analysisService as any), analysisService };

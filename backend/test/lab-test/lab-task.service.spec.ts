@@ -7,11 +7,11 @@ jest.mock('@nestjs/event-emitter', () => ({ EventEmitter2: class {}, OnEvent: ()
 
 /**
  * WF-03 · F-09 "Test execution" — acceptance: "An unpaid task cannot be received".
- * Function 22 (sheet mới đề xuất cho Report5_Unit_Test.xlsx): LabTaskService.receive(taskId, receivingUserId, dto)
+ * Function 17 (Report5, mở rộng cho F-09 – commitment gán TC-F17): LabTaskService.receive(taskId, receivingUserId, dto) -> UTCID14..21
  *
  * Điểm chặn thanh toán: task chỉ được 'ready' -> 'in_progress' khi paymentVerified = true (hoặc hoá đơn đã paid).
  */
-describe('LabTaskService - Function 22: receive (F-09)', () => {
+describe('LabTaskService - Function 17 (F-09): receive', () => {
     const TASK_ID = 'task-001';
     const STAFF_ID = 'staff-001';
 
@@ -60,8 +60,8 @@ describe('LabTaskService - Function 22: receive (F-09)', () => {
         return { service, prisma, tx, labRoomService, paymentVerification, actorRoleService, progress };
     };
 
-    // UTCID01: Normal - task 'ready', đã thanh toán, đúng KTV -> in_progress, cập nhật Order/Encounter cùng transaction
-    it('UTCID01 [N]: should move a paid ready task to in_progress and recompute order/encounter in the same transaction', async () => {
+    // UTCID14: Normal - task 'ready', đã thanh toán, đúng KTV -> in_progress, cập nhật Order/Encounter cùng transaction
+    it('UTCID14 [N]: should move a paid ready task to in_progress and recompute order/encounter in the same transaction', async () => {
         const h = makeHarness(buildTask());
 
         const result: any = await h.service.receive(TASK_ID, STAFF_ID, { specimenCode: 'SP-0001' } as any);
@@ -83,8 +83,8 @@ describe('LabTaskService - Function 22: receive (F-09)', () => {
         expect(result.status).toBe('in_progress');
     });
 
-    // UTCID02: Abnormal - acceptance criterion F-09: task chưa thanh toán KHÔNG được tiếp nhận
-    it('UTCID02 [A]: should throw ForbiddenException when the task is unpaid (paymentVerified = false and invoice not paid)', async () => {
+    // UTCID15: Abnormal - acceptance criterion F-09: task chưa thanh toán KHÔNG được tiếp nhận
+    it('UTCID15 [A]: should throw ForbiddenException when the task is unpaid (paymentVerified = false and invoice not paid)', async () => {
         const h = makeHarness(buildTask({ paymentVerified: false, status: 'payment_pending' }));
         h.paymentVerification.isOrderItemPaid.mockResolvedValue(false);
 
@@ -97,8 +97,8 @@ describe('LabTaskService - Function 22: receive (F-09)', () => {
         expect(h.progress.recomputeForTask).not.toHaveBeenCalled();
     });
 
-    // UTCID03: Boundary - hoá đơn đã paid nhưng webhook chưa kịp báo (task còn payment_pending) -> tự nâng 'ready' rồi nhận
-    it('UTCID03 [B]: should promote a payment_pending task to ready when its invoice is already paid, then receive it', async () => {
+    // UTCID16: Boundary - hoá đơn đã paid nhưng webhook chưa kịp báo (task còn payment_pending) -> tự nâng 'ready' rồi nhận
+    it('UTCID16 [B]: should promote a payment_pending task to ready when its invoice is already paid, then receive it', async () => {
         const h = makeHarness(buildTask({ paymentVerified: false, status: 'payment_pending' }));
         h.paymentVerification.isOrderItemPaid.mockResolvedValue(true);
 
@@ -114,8 +114,8 @@ describe('LabTaskService - Function 22: receive (F-09)', () => {
         expect(h.progress.recomputeForTask).toHaveBeenCalledTimes(1);
     });
 
-    // UTCID04: Abnormal - không tìm thấy nhiệm vụ
-    it('UTCID04 [A]: should throw NotFoundException when the diagnostic task does not exist', async () => {
+    // UTCID17: Abnormal - không tìm thấy nhiệm vụ
+    it('UTCID17 [A]: should throw NotFoundException when the diagnostic task does not exist', async () => {
         const h = makeHarness(null);
 
         await expect(h.service.receive('task-missing', STAFF_ID)).rejects.toThrow(NotFoundException);
@@ -124,8 +124,8 @@ describe('LabTaskService - Function 22: receive (F-09)', () => {
         expect(h.prisma.$transaction).not.toHaveBeenCalled();
     });
 
-    // UTCID05: Abnormal - task đã được tiếp nhận (in_progress) -> chỉ 'ready' mới được nhận
-    it("UTCID05 [A]: should throw BadRequestException when the task is not in 'ready' status", async () => {
+    // UTCID18: Abnormal - task đã được tiếp nhận (in_progress) -> chỉ 'ready' mới được nhận
+    it("UTCID18 [A]: should throw BadRequestException when the task is not in 'ready' status", async () => {
         const h = makeHarness(buildTask({ status: 'in_progress' }));
 
         await expect(h.service.receive(TASK_ID, STAFF_ID)).rejects.toThrow(BadRequestException);
@@ -134,8 +134,8 @@ describe('LabTaskService - Function 22: receive (F-09)', () => {
         expect(h.prisma.$transaction).not.toHaveBeenCalled();
     });
 
-    // UTCID06: Abnormal - task đã pre-assign cho KTV khác
-    it('UTCID06 [A]: should throw ForbiddenException when the task is pre-assigned to another lab staff', async () => {
+    // UTCID19: Abnormal - task đã pre-assign cho KTV khác
+    it('UTCID19 [A]: should throw ForbiddenException when the task is pre-assigned to another lab staff', async () => {
         const h = makeHarness(buildTask({ assignedStaffUserId: 'staff-other' }));
 
         await expect(h.service.receive(TASK_ID, STAFF_ID)).rejects.toThrow(ForbiddenException);
@@ -145,8 +145,8 @@ describe('LabTaskService - Function 22: receive (F-09)', () => {
         expect(h.prisma.$transaction).not.toHaveBeenCalled();
     });
 
-    // UTCID07: Abnormal - người gọi không phải LAB_STAFF (RBAC) -> chặn trước khi đọc DB
-    it('UTCID07 [A]: should reject a caller whose actor role is not LAB_STAFF before touching the task', async () => {
+    // UTCID20: Abnormal - người gọi không phải LAB_STAFF (RBAC) -> chặn trước khi đọc DB
+    it('UTCID20 [A]: should reject a caller whose actor role is not LAB_STAFF before touching the task', async () => {
         const h = makeHarness(buildTask());
         h.actorRoleService.assertActorRole.mockRejectedValue(new ForbiddenException('Không đủ quyền'));
 
@@ -156,8 +156,8 @@ describe('LabTaskService - Function 22: receive (F-09)', () => {
         expect(h.prisma.$transaction).not.toHaveBeenCalled();
     });
 
-    // UTCID08: Boundary - 2 KTV cùng nhận 1 task: compare-and-swap thua (count = 0) -> 409, không recompute
-    it('UTCID08 [B]: should throw ConflictException when another lab staff claims the same task first (compare-and-swap loses)', async () => {
+    // UTCID21: Boundary - 2 KTV cùng nhận 1 task: compare-and-swap thua (count = 0) -> 409, không recompute
+    it('UTCID21 [B]: should throw ConflictException when another lab staff claims the same task first (compare-and-swap loses)', async () => {
         const task = buildTask();
         const h = makeHarness(task);
         h.tx.diagnosticTask.updateMany.mockResolvedValue({ count: 0 });
