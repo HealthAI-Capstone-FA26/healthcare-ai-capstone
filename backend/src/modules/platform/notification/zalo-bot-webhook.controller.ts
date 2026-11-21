@@ -25,6 +25,7 @@ export class ZaloBotWebhookController {
     if (expected && secret !== expected) {
       throw new UnauthorizedException();
     }
+    this.logger.log(`Webhook body: ${JSON.stringify(body)}`);
 
     // Payload: { ok, result: { event_name, message: { chat: { id }, from: { id }, text } } } (chấp nhận cả dạng không bọc `result`)
     const event = body?.result ?? body;
