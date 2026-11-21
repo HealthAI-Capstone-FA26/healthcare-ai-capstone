@@ -4,6 +4,8 @@ import { NotificationService } from './notification.service';
 import { NotificationWorkerService } from './notification-worker.service';
 import { NotificationContactResolver } from './notification-contact.resolver';
 import { ZaloOaSender } from './zalo-oa.sender';
+import { ZaloBotWebhookController } from './zalo-bot-webhook.controller';
+import { ZaloBotLinkService } from './zalo-bot-link.service';
 import {
   CentralSmsNotificationStrategy,
   CentralZaloOaNotificationStrategy,
@@ -17,8 +19,9 @@ import {
  */
 @Global()
 @Module({
-  controllers: [NotificationController],
+  controllers: [NotificationController, ZaloBotWebhookController],
   providers: [
+    ZaloBotLinkService,
     NotificationContactResolver,
     NotificationService,
     NotificationWorkerService,
@@ -29,6 +32,7 @@ import {
   exports: [
     NotificationService,
     NotificationContactResolver,
+    ZaloOaSender,
     CentralSmsNotificationStrategy,
     CentralZaloOaNotificationStrategy,
   ],

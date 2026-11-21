@@ -1572,3 +1572,13 @@ model StageStatistic {
   @@index([stage, serviceId, statDate])
   @@map("stage_statistics")
 }
+
+model PatientZaloLink {
+  linkId    String   @id @default(uuid()) @map("link_id") @db.Char(36)
+  patientId String   @unique @map("patient_id") @db.Char(36)
+  chatId    String   @map("chat_id") @db.VarChar(100)
+  linkedAt  DateTime @default(now()) @map("linked_at")
+
+  @@index([chatId])
+  @@map("patient_zalo_links")
+}

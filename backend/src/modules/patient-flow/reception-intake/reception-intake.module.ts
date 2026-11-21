@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { EncounterService } from './encounter/encounter.service';
+import { EncounterPdfService } from './encounter/encounter-pdf.service';
 import { EncounterDoctorRoutingService } from './encounter/encounter-doctor-routing.service';
 import { UserModule } from '../../identity-access/user/user.module';
 
@@ -48,6 +49,7 @@ import { EncounterController } from './encounter/encounter.controller';
   ],
   providers: [
     EncounterService,
+    EncounterPdfService,
     EncounterDoctorRoutingService,
     ChiefComplaintService,
     IdentityVerificationService,

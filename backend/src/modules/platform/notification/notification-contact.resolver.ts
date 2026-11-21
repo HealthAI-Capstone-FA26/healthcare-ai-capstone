@@ -78,7 +78,14 @@ export class NotificationContactResolver {
     if (!destination) {
       if (channel === 'email') destination = patient?.email ?? user?.email ?? undefined;
       if (channel === 'sms') destination = patient?.phoneNumber ?? user?.profile?.phoneNumber ?? undefined;
-      // zalo_oa: không có mặc định — Zalo user id phải do người dùng khai báo.
+      // zalo_oa: ưu tiên chat_id bệnh nhân đã tự liên kết qua Zalo Bot (nhắn SĐT cho bot).
+      if (channel === 'zalo_oa' && recipient.patientId) {
+        const link = await this.prisma.patientZaloLink.findUnique({
+          where: { patientId: recipient.patientId },
+          select: { chatId: true },
+        });
+        destination = link?.chatId;
+      }
     }
 
     if (!destination) {
