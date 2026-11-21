@@ -11,6 +11,12 @@ export function normalizeVnPhone(input: string): string | null {
   return /^0\d{9}$/.test(digits) ? digits : null;
 }
 
+/** Tìm SĐT VN trong câu, ví dụ "sdt 0949 730 930" -> 0949730930 */
+export function extractVnPhone(input: string): string | null {
+  const m = input.match(/(?:\+?84|0)(?:[\s.\-]?\d){8,9}/);
+  return m ? normalizeVnPhone(m[0]) : null;
+}
+
 /**
  * Liên kết bệnh nhân với Zalo Bot: bệnh nhân nhắn SĐT đã đăng ký cho bot -> lưu chat_id vào PatientZaloLink.
  * LƯU Ý bảo mật: chỉ xác thực bằng SĐT nên ai biết SĐT cũng liên kết được; nên bổ sung OTP nếu triển khai thật.
@@ -25,7 +31,7 @@ export class ZaloBotLinkService {
   ) {}
 
   async handleIncomingText(chatId: string, text: string): Promise<void> {
-    const phone = normalizeVnPhone(text.trim());
+    const phone = extractVnPhone(text);
     if (!phone) {
       await this.reply(
         chatId,
@@ -55,6 +61,13 @@ export class ZaloBotLinkService {
     await this.reply(
       chatId,
       `Liên kết thành công cho: ${patients.map((p) => p.fullName).join(', ')}. Bạn sẽ nhận phiếu khám qua Zalo này.`,
+    );
+  }
+
+  async handleUnsupported(chatId: string): Promise<void> {
+    await this.reply(
+      chatId,
+      'Zalo không chuyển được tin dạng danh thiếp. Vui lòng nhắn số điện thoại kèm chữ, ví dụ: sdt 0912345678',
     );
   }
 

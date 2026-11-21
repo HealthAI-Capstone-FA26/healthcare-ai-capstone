@@ -25,7 +25,6 @@ export class ZaloBotWebhookController {
     if (expected && secret !== expected) {
       throw new UnauthorizedException();
     }
-    this.logger.log(`Webhook body: ${JSON.stringify(body)}`);
 
     // Payload: { ok, result: { event_name, message: { chat: { id }, from: { id }, text } } } (chấp nhận cả dạng không bọc `result`)
     const event = body?.result ?? body;
@@ -33,12 +32,15 @@ export class ZaloBotWebhookController {
     const chatId = String(message?.chat?.id ?? message?.from?.id ?? '');
     const text = typeof message?.text === 'string' ? message.text : '';
 
-    if (chatId && text) {
-      try {
+    const eventName = event?.event_name;
+    try {
+      if (chatId && text) {
         await this.linkService.handleIncomingText(chatId, text);
-      } catch (err) {
-        this.logger.error(`Xử lý tin nhắn Zalo Bot lỗi: ${err}`);
+      } else if (chatId && eventName === 'message.unsupported.received') {
+        await this.linkService.handleUnsupported(chatId);
       }
+    } catch (err) {
+      this.logger.error(`Xử lý tin nhắn Zalo Bot lỗi: ${err}`);
     }
     return { ok: true }; // luôn 200 để Zalo không gửi lại
   }
