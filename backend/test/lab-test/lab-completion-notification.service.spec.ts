@@ -4,7 +4,7 @@ import { LabCompletionNotificationService } from '../../src/modules/lab-test/lab
 /**
  * WF-03 · F-15 "Notification, statistics, audit" — acceptance: "Test completion alerts the patient".
  * Function 21 (Report5) · phần WF-03: TC-F21-01..03 = UTCID01..03 (notifyEncounterCompleted).
- * UTCID04..07 là bổ sung (encounter/kết quả không tồn tại, bệnh nhân không có email, notifyForResult).
+ * UTCID13..16 là bổ sung (cột mở rộng thêm trong sheet Function21) (encounter/kết quả không tồn tại, bệnh nhân không có email, notifyForResult).
  *
  * Kênh: bác sĩ = in_app; bệnh nhân = in_app + email + zalo_oa (sms không dùng ở luồng này).
  */
@@ -100,8 +100,8 @@ describe('LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnost
         expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining("không phải 'awaiting_review' — bỏ qua thông báo"));
     });
 
-    // UTCID04: Boundary - bệnh nhân không có email -> vẫn gửi (email undefined), kênh email tự bỏ qua ở dispatcher
-    it('UTCID04 [B]: should still notify the patient with an undefined email when the patient has no email on file', async () => {
+    // UTCID13: Boundary - bệnh nhân không có email -> vẫn gửi (email undefined), kênh email tự bỏ qua ở dispatcher
+    it('UTCID13 [B]: should still notify the patient with an undefined email when the patient has no email on file', async () => {
         const h = makeHarness(buildEncounter({ patient: { patientId: 'pat-001', email: null } }));
 
         await h.service.notifyEncounterCompleted(ENCOUNTER_ID);
@@ -112,8 +112,8 @@ describe('LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnost
         );
     });
 
-    // UTCID05: Abnormal - encounter không tồn tại -> không ném lỗi, không gửi
-    it('UTCID05 [A]: should return silently when the encounter does not exist', async () => {
+    // UTCID14: Abnormal - encounter không tồn tại -> không ném lỗi, không gửi
+    it('UTCID14 [A]: should return silently when the encounter does not exist', async () => {
         const h = makeHarness(null);
 
         await expect(h.service.notifyEncounterCompleted('enc-missing')).resolves.toBeUndefined();
@@ -121,8 +121,8 @@ describe('LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnost
         expect(h.dispatcher.dispatch).not.toHaveBeenCalled();
     });
 
-    // UTCID06: Normal - notifyForResult: tra encounter từ kết quả rồi ủy quyền cho notifyEncounterCompleted
-    it('UTCID06 [N]: should resolve the encounter of a result and delegate to notifyEncounterCompleted', async () => {
+    // UTCID15: Normal - notifyForResult: tra encounter từ kết quả rồi ủy quyền cho notifyEncounterCompleted
+    it('UTCID15 [N]: should resolve the encounter of a result and delegate to notifyEncounterCompleted', async () => {
         const h = makeHarness();
         h.prisma.diagnosticResult.findUnique.mockResolvedValue({ task: { orderItem: { order: { encounterId: ENCOUNTER_ID } } } });
 
@@ -133,8 +133,8 @@ describe('LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnost
         expect(h.dispatcher.dispatch).toHaveBeenCalledTimes(2);
     });
 
-    // UTCID07: Abnormal - notifyForResult với kết quả không tồn tại -> không tra encounter, không gửi
-    it('UTCID07 [A]: should do nothing when the lab result does not exist', async () => {
+    // UTCID16: Abnormal - notifyForResult với kết quả không tồn tại -> không tra encounter, không gửi
+    it('UTCID16 [A]: should do nothing when the lab result does not exist', async () => {
         const h = makeHarness();
         h.prisma.diagnosticResult.findUnique.mockResolvedValue(null);
 

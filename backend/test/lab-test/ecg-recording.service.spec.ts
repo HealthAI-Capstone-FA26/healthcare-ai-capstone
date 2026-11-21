@@ -10,9 +10,9 @@ jest.mock('@nestjs/event-emitter', () => ({ EventEmitter2: class {}, OnEvent: ()
 /**
  * WF-03 · F-11 — bước "ECG Signal Upload (Lab Staff)" của DS-05/DS-06: tín hiệu lưu MinIO, bản ghi 'completed',
  * phát event để AI chạy nền (upload không chờ AI).
- * Function 18 (bổ sung): EcgRecordingService.createFromFile(taskId, dto, file, userId) -> UTCID20..28
+ * Cùng Function 18 (mở rộng): EcgRecordingService.createFromFile(taskId, dto, file, userId) -> UTCID20..28
  */
-describe('EcgRecordingService - Function 18 (supplement): createFromFile (F-11)', () => {
+describe('EcgRecordingService - Function 18 (F-11): createFromFile', () => {
     const TASK_ID = 'task-ecg';
     const STAFF_ID = 'staff-001';
     const CSV = Buffer.from('t,I,II\n0,0.10,0.20\n1,0.11,0.19\n');

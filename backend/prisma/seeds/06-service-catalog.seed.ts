@@ -39,13 +39,12 @@ export async function seedServiceCatalog(prisma: PrismaService): Promise<void> {
     // ── Xét nghiệm máu: 1 dịch vụ duy nhất (Full panel) ───────────────────────────────────────────────
     // price = 500.000đ là GIÁ MẪU (= tổng 7 gói cũ), cần thay bằng bảng giá thật.
     // turnaroundMins = 240 theo chỉ số chậm nhất (lipid) — hs-TnT trong combo ra chậm; ca đau ngực cấp cần chỉ định STAT riêng.
-    // requiresFasting = true vì gói có glucose đói (Labcorp: CMP nên nhịn 12 giờ, renal panel ưu tiên 12 giờ, tối thiểu 8 giờ):
-    //   https://www.labcorp.com/tests/322000/comprehensive-metabolic-panel-cmp
-    //   https://www.labcorp.com/tests/322777/renal-function-panel
-    // Riêng mỡ máu thì nhịn ăn KHÔNG bắt buộc thường quy (chỉ nên lặp lại lúc đói khi TG không nhịn > 440 mg/dL theo EAS/EFLM,
-    // hoặc TG >= 400 mg/dL theo hướng dẫn AHA/ACC 2018):
-    //   https://pmc.ncbi.nlm.nih.gov/articles/PMC4929379   (đồng thuận EAS/EFLM 2016)
-    //   https://pmc.ncbi.nlm.nih.gov/articles/PMC8243861   (tổng quan các hướng dẫn quốc tế)
+    // requiresFasting = true vì gói có glucose đói. ADA Standards of Care 2026 định nghĩa nhịn ăn là không nạp calo ít nhất 8 giờ:
+    //   https://doi.org/10.2337/dc26-S002
+    // NCEP ATP III (NHLBI) hướng dẫn lấy bộ mỡ máu sau nhịn 9–12 giờ (khớp preparationNote bên dưới):
+    //   https://webarchive.library.unt.edu/eot2008/20080917120359/http://www.nhlbi.nih.gov/guidelines/cholesterol/atglance.htm
+    // Riêng mỡ máu thì nhịn ăn KHÔNG bắt buộc thường quy theo đồng thuận EAS/EFLM (chỉ nên lặp lại lúc đói khi TG không nhịn > 440 mg/dL):
+    //   https://pmc.ncbi.nlm.nih.gov/articles/PMC4929379
     // Phòng Lab quyết định có chấp nhận mẫu không nhịn ăn cho BLOODFULL hay không.
     const bloodFull = {
         serviceCode: 'BLOODFULL',

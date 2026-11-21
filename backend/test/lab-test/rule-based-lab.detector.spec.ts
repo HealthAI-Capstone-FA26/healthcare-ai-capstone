@@ -20,7 +20,7 @@ describe('RuleBasedLabDetector - Function 17: detect', () => {
 
     const mockNumericParameter = {
         parameterId: 'param-trop-t',
-        parameterCode: 'TROPONIN_T_HS',
+        parameterCode: 'HSTNT',
         parameterName: 'Troponin T hs',
         dataType: 'numeric',
         unit: 'ng/L',
@@ -34,27 +34,28 @@ describe('RuleBasedLabDetector - Function 17: detect', () => {
         unit: null,
     };
 
-    // Ngưỡng Troponin T hs: [0, 14] normal | (14, 50] high | (50, +inf) critical
+    // Ngưỡng hs-Troponin T (HSTNT, ng/L) cho nam 18–120 tuổi theo seed 20-result-parameter-threshold (step 1, các dải liền kề, 2 đầu inclusive):
+    // normal (-inf, 15] | high [16, 51] | critical [52, +inf). (Nữ: normal <= 10 | high [11, 51] | critical >= 52.)
     const standardTroponinRows = [
         {
             thresholdId: 'thresh-normal',
             parameterId: 'param-trop-t',
             riskLevel: 'normal',
-            rangeMin: 0,
-            rangeMax: 14,
+            rangeMin: null,
+            rangeMax: 15,
         },
         {
             thresholdId: 'thresh-high',
             parameterId: 'param-trop-t',
             riskLevel: 'high',
-            rangeMin: 14.01,
-            rangeMax: 50,
+            rangeMin: 16,
+            rangeMax: 51,
         },
         {
             thresholdId: 'thresh-critical',
             parameterId: 'param-trop-t',
             riskLevel: 'critical',
-            rangeMin: 50.01,
+            rangeMin: 52,
             rangeMax: null,
         },
     ];
@@ -96,8 +97,8 @@ describe('RuleBasedLabDetector - Function 17: detect', () => {
         detector = module.get<RuleBasedLabDetector>(RuleBasedLabDetector);
     });
 
-    // UTCID01: Normal - Chỉ số Troponin T = 8.5 ng/L nằm trong ngưỡng bình thường [0, 14]
-    it('UTCID01 [N]: should classify result as normal when valueNumeric is within [0, 14] ng/L', async () => {
+    // UTCID01: Normal - Chỉ số Troponin T = 8.5 ng/L nằm trong ngưỡng bình thường (nam: <= 15 ng/L)
+    it('UTCID01 [N]: should classify result as normal when valueNumeric is within the normal range (<= 15 ng/L, male)', async () => {
         mockResolver.findApplicableRows.mockResolvedValue(standardTroponinRows as any);
 
         const labResult = createMockLabResult([
@@ -120,14 +121,14 @@ describe('RuleBasedLabDetector - Function 17: detect', () => {
             isAbnormal: false,
             riskLevel: null,
             thresholdId: 'thresh-normal',
-            expectedMin: 0,
-            expectedMax: 14,
+            expectedMin: null,
+            expectedMax: 15,
         });
         expect(results[0].reason).toContain('trong khoảng an toàn');
     });
 
-    // UTCID02: Normal/Critical - Chỉ số Troponin T = 65.0 ng/L vượt ngưỡng nguy cấp > 50 ng/L
-    it('UTCID02 [N]: should classify result as critical when valueNumeric exceeds critical threshold (> 50 ng/L)', async () => {
+    // UTCID02: Normal/Critical - Chỉ số Troponin T = 65.0 ng/L vượt ngưỡng nguy cấp >= 52 ng/L (ESC 2023 rule-in 0h)
+    it('UTCID02 [N]: should classify result as critical when valueNumeric reaches the critical threshold (>= 52 ng/L)', async () => {
         mockResolver.findApplicableRows.mockResolvedValue(standardTroponinRows as any);
 
         const labResult = createMockLabResult([
@@ -154,15 +155,15 @@ describe('RuleBasedLabDetector - Function 17: detect', () => {
         expect(results[0].reason).toContain('mức độ nguy cơ: critical');
     });
 
-    // UTCID03: Boundary - Giá trị 14.0 ng/L chạm chính xác mốc trên của ngưỡng bình thường
-    it('UTCID03 [B]: should classify result as normal at exact upper boundary of normal range (14.0 ng/L)', async () => {
+    // UTCID03: Boundary - Giá trị 15 ng/L chạm chính xác mốc trên của ngưỡng bình thường (nam)
+    it('UTCID03 [B]: should classify result as normal at exact upper boundary of normal range (15 ng/L)', async () => {
         mockResolver.findApplicableRows.mockResolvedValue(standardTroponinRows as any);
 
         const labResult = createMockLabResult([
             {
                 resultValueId: 'val-003',
                 parameterId: 'param-trop-t',
-                valueNumeric: 14.0,
+                valueNumeric: 15,
                 valueBoolean: null,
                 valueText: null,
                 parameter: mockNumericParameter,
@@ -177,15 +178,15 @@ describe('RuleBasedLabDetector - Function 17: detect', () => {
         expect(results[0].thresholdId).toBe('thresh-normal');
     });
 
-    // UTCID04: Boundary - Giá trị 14.01 ng/L vừa chớm vượt ngưỡng bình thường -> chuyển sang mức "high"
-    it('UTCID04 [B]: should classify result as high at boundary value entering high risk level (14.01 ng/L)', async () => {
+    // UTCID04: Boundary - Giá trị 16 ng/L là giá trị nguyên nhỏ nhất vượt ngưỡng bình thường -> chuyển sang mức "high"
+    it('UTCID04 [B]: should classify result as high at boundary value entering high risk level (16 ng/L)', async () => {
         mockResolver.findApplicableRows.mockResolvedValue(standardTroponinRows as any);
 
         const labResult = createMockLabResult([
             {
                 resultValueId: 'val-004',
                 parameterId: 'param-trop-t',
-                valueNumeric: 14.01,
+                valueNumeric: 16,
                 valueBoolean: null,
                 valueText: null,
                 parameter: mockNumericParameter,

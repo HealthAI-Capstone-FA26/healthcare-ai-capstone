@@ -15,14 +15,17 @@ jest.mock('@nestjs/event-emitter', () => ({ EventEmitter2: class {}, OnEvent: ()
  * -> LabResultDetectionListener. UTCID01..06 (RuleBasedLabDetector.detect) nằm ở rule-based-lab.detector.spec.ts.
  * Chỉ giả lập biên: Prisma (in-memory), ResultThresholdResolver, gateway realtime, dispatcher thông báo.
  *
- * Ngưỡng HGB nam (g/dL) giả lập theo DS-05: critical [0, 6.99] · medium [7, 12.99] · normal [13, 17.5].
+ * Ngưỡng HGB nam 18–120 tuổi (g/dL) theo seed 20-result-parameter-threshold (step 0.1, 2 đầu inclusive):
+ * critical (-inf, 6.5] · low [6.6, 13.1] · normal [13.2, 16.6] · high [16.7, 20.0] · critical [20.1, +inf).
  */
 describe('Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification', () => {
     const HGB_PARAM = { parameterId: 'param-hgb', parameterCode: 'HGB', parameterName: 'Hemoglobin', dataType: 'numeric', unit: 'g/dL' };
     const HGB_ROWS = [
-        { thresholdId: 'th-hgb-critical', parameterId: 'param-hgb', riskLevel: 'critical', rangeMin: 0, rangeMax: 6.99 },
-        { thresholdId: 'th-hgb-medium', parameterId: 'param-hgb', riskLevel: 'medium', rangeMin: 7, rangeMax: 12.99 },
-        { thresholdId: 'th-hgb-normal', parameterId: 'param-hgb', riskLevel: 'normal', rangeMin: 13, rangeMax: 17.5 },
+        { thresholdId: 'th-hgb-critical-low', parameterId: 'param-hgb', riskLevel: 'critical', rangeMin: null, rangeMax: 6.5 },
+        { thresholdId: 'th-hgb-low', parameterId: 'param-hgb', riskLevel: 'low', rangeMin: 6.6, rangeMax: 13.1 },
+        { thresholdId: 'th-hgb-normal', parameterId: 'param-hgb', riskLevel: 'normal', rangeMin: 13.2, rangeMax: 16.6 },
+        { thresholdId: 'th-hgb-high', parameterId: 'param-hgb', riskLevel: 'high', rangeMin: 16.7, rangeMax: 20.0 },
+        { thresholdId: 'th-hgb-critical-high', parameterId: 'param-hgb', riskLevel: 'critical', rangeMin: 20.1, rangeMax: null },
     ];
 
     const makeHarness = (opts: { hgb: number; existingAlerts?: any[]; doctorUserId?: string | null }) => {
@@ -107,7 +110,7 @@ describe('Rule-based blood alert pipeline - Function 17 (supplement): detect -> 
             encounterId: 'enc-001',
             status: 'active',
             riskLevel: 'critical',
-            thresholdId: 'th-hgb-critical',
+            thresholdId: 'th-hgb-critical-low',
         });
         expect(h.gateway.pushAlertUpdate).toHaveBeenCalledWith(
             expect.objectContaining({ labResultId: 'res-001', encounterId: 'enc-001', totalValues: 1, abnormalCount: 1 }),
@@ -138,14 +141,14 @@ describe('Rule-based blood alert pipeline - Function 17 (supplement): detect -> 
         expect(h.completion.notifyForResult).not.toHaveBeenCalled(); // notifyCompletion = false
     });
 
-    // UTCID09: Abnormal (non-critical) - HGB 11.0 g/dL (medium) -> có alert + realtime nhưng KHÔNG gửi thông báo nguy kịch
-    it('UTCID09 [A]: should raise a medium alert and push it in real time but not send a critical notification', async () => {
+    // UTCID09: Abnormal (non-critical) - HGB 11.0 g/dL (low: 6.6–13.1) -> có alert + realtime nhưng KHÔNG gửi thông báo nguy kịch
+    it('UTCID09 [A]: should raise a low alert and push it in real time but not send a critical notification', async () => {
         const h = makeHarness({ hgb: 11.0 });
 
         await h.listener.handleLabResultSubmitted(new LabResultSubmittedEvent('res-001', false));
 
         expect(h.alertStore).toHaveLength(1);
-        expect(h.alertStore[0]).toMatchObject({ status: 'active', riskLevel: 'medium' });
+        expect(h.alertStore[0]).toMatchObject({ status: 'active', riskLevel: 'low' });
         expect(h.gateway.pushAlertUpdate).toHaveBeenCalledWith(expect.objectContaining({ abnormalCount: 1 }));
         expect(h.dispatcher.dispatch).not.toHaveBeenCalled(); // chỉ mức 'critical' mới notify bác sĩ
     });
