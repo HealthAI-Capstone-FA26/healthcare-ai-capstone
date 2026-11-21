@@ -308,6 +308,16 @@ export class EncounterService {
       );
     }
 
+    // Bắt buộc phải có đơn thuốc đã ký trước khi kết thúc lượt khám.
+    const signedRx = await this.prisma.prescription.count({
+      where: { encounterId, status: 'signed' },
+    });
+    if (signedRx === 0) {
+      throw new BadRequestException(
+        'Không thể kết thúc lượt khám: bắt buộc phải có đơn thuốc đã ký (prescription)',
+      );
+    }
+
     const now = new Date();
 
     return this.prisma.$transaction(async (tx) => {
