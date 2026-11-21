@@ -366,6 +366,23 @@ export class AppointmentService {
       );
     }
 
+    // Bắt buộc phải có đơn thuốc đã ký trước khi hoàn tất khám.
+    const encounterForRx = await this.prisma.encounter.findUnique({
+      where: { appointmentId },
+      select: { encounterId: true },
+    });
+    if (!encounterForRx) {
+      throw new BadRequestException('Không thể hoàn tất khám: lịch hẹn chưa có lượt khám (encounter)');
+    }
+    const signedRx = await this.prisma.prescription.count({
+      where: { encounterId: encounterForRx.encounterId, status: 'signed' },
+    });
+    if (signedRx === 0) {
+      throw new BadRequestException(
+        'Không thể hoàn tất khám: lượt khám bắt buộc phải có đơn thuốc đã ký (prescription)',
+      );
+    }
+
     const now = new Date();
 
     return this.prisma.$transaction(async (tx) => {
