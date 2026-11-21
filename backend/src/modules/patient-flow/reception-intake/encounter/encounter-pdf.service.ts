@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 import { BUCKET_NAME, minioClient } from '../../../../common/configs/upload.config';
+import { RedisService } from '../../../../redis/redis.service';
 import { EncounterService } from './encounter.service';
 import { ZaloOaSender } from '../../../platform/notification/zalo-oa.sender';
 import { NotificationContactResolver } from '../../../platform/notification/notification-contact.resolver';
@@ -55,6 +56,7 @@ export class EncounterPdfService {
     private readonly encounterService: EncounterService,
     private readonly zaloSender: ZaloOaSender,
     private readonly contactResolver: NotificationContactResolver,
+    private readonly redis: RedisService,
   ) { }
 
   /**
@@ -131,7 +133,10 @@ export class EncounterPdfService {
     const objectName = `encounter-pdfs/${randomUUID()}.pdf`;
     await minioClient.putObject(BUCKET_NAME, objectName, buffer, buffer.length, { 'Content-Type': 'application/pdf' });
     const ttl = Number(process.env.ZALO_PDF_LINK_TTL_SECONDS ?? 3600);
-    const url = await minioClient.presignedGetObject(BUCKET_NAME, objectName, ttl);
+    const token = randomUUID();
+    await this.redis.setJson(`zalo:pdf:${token}`, { objectName }, ttl);
+    const base = (process.env.PUBLIC_BASE_URL ?? '').replace(/\/$/, '');
+    const url = `${base}/api/v1/zalo-bot/pdf/${token}`;
     await this.zaloSender.sendText(
       destination,
       `Phiếu khám của bạn (${filename}):\n${url}\nLink có hiệu lực khoảng ${Math.round(ttl / 60)} phút.`,
