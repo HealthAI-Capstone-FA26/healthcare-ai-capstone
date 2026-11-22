@@ -26,8 +26,10 @@ describe('LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnost
             diagnosticResult: { findUnique: jest.fn() },
         };
         const dispatcher = { dispatch: jest.fn().mockResolvedValue(undefined) };
-        const service = new LabCompletionNotificationService(prisma as any, dispatcher as any);
-        return { service, prisma, dispatcher };
+        // Gửi tài liệu kết quả qua Zalo là best-effort, mock để test không đụng S3/Zalo
+        const zaloDelivery = { sendResultsForEncounter: jest.fn().mockResolvedValue(undefined) };
+        const service = new LabCompletionNotificationService(prisma as any, dispatcher as any, zaloDelivery as any);
+        return { service, prisma, dispatcher, zaloDelivery };
     };
 
     let logSpy: jest.SpyInstance;
