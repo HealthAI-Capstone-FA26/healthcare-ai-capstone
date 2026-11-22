@@ -125,4 +125,48 @@ export class MailService {
     await this.send(to, subject, `<p>${escaped}</p>`, text);
     this.logger.log(`Đã gửi email thông báo tới ${to}`);
   }
+
+  /**
+   * Gửi email hướng dẫn bệnh nhân chưa có tài khoản tự đăng ký và liên kết hồ sơ cũ.
+   * Không chứa thông tin cá nhân hay y tế nhạy cảm của bệnh nhân để đảm bảo bảo mật.
+   */
+  async sendPatientPortalGuideMail(to: string): Promise<void> {
+    const baseUrl = (this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:5173').replace(/\/$/, '');
+    const registerUrl = `${baseUrl}/register`;
+    const loginUrl = `${baseUrl}/login`;
+
+    await this.send(
+      to,
+      'Hướng dẫn đăng ký tài khoản & liên kết hồ sơ bệnh nhân',
+      `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px;">
+          <p>Xin chào Quý khách,</p>
+          <p>Cảm ơn Quý khách đã đến thăm khám tại phòng khám. Để thuận tiện cho việc đặt lịch khám trực tuyến và theo dõi lịch sử khám bệnh, đơn thuốc về sau, Quý khách vui lòng thực hiện theo 2 bước dưới đây:</p>
+
+          <h3 style="color: #0b3c8f; margin-bottom: 6px;">Bước 1: Đăng ký tài khoản bệnh nhân</h3>
+          <p style="margin-top: 0;">
+            Truy cập đường dẫn đăng ký:<br/>
+            <a href="${registerUrl}" style="display: inline-block; margin: 8px 0; padding: 10px 18px; background: #0b3c8f; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">
+              Đăng ký tài khoản ngay
+            </a><br/>
+            <span style="font-size: 13px; color: #475569;">Hoặc mở trình duyệt và truy cập: ${registerUrl}</span>
+          </p>
+          <p>Điền Họ tên, Email, Số điện thoại, Mật khẩu và nhập mã OTP được gửi về email để kích hoạt tài khoản.</p>
+
+          <h3 style="color: #0b3c8f; margin-bottom: 6px;">Bước 2: Liên kết với hồ sơ bệnh nhân đã có</h3>
+          <ol style="padding-left: 20px; margin-top: 0;">
+            <li>Đăng nhập vào hệ thống tại: <a href="${loginUrl}">${loginUrl}</a></li>
+            <li>Vào mục <strong>Hồ sơ bệnh nhân</strong> và chọn <strong>Tra cứu &amp; Liên kết hồ sơ</strong>.</li>
+            <li>Nhập <strong>Số CCCD / Số BHYT / Số điện thoại</strong> đã sử dụng khi đăng ký khám tại quầy để liên kết hồ sơ vào tài khoản của Quý khách.</li>
+          </ol>
+
+          <p style="font-size: 13px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 20px;">
+            Lưu ý: Vì lý do bảo mật thông tin y tế, email này không đính kèm thông tin hồ sơ cá nhân của Quý khách. Nếu Quý khách đã có tài khoản trước đó, vui lòng bỏ qua email này.
+          </p>
+        </div>
+      `,
+    );
+
+    this.logger.log(`Đã gửi email hướng dẫn đăng ký & liên kết hồ sơ tới ${to}`);
+  }
 }
