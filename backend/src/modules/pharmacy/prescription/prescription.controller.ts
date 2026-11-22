@@ -36,6 +36,13 @@ export class PrescriptionController {
         return this.prescriptionService.updateItems(id, dto, user);
     }
 
+    @Post(':id/sign')
+    @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.UPDATE}:${Scope.OWN}`)
+    @ApiOperation({ summary: 'Bác sĩ ký xác nhận đơn thuốc (chuyển trạng thái draft -> signed)' })
+    sign(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+        return this.prescriptionService.sign(id, user);
+    }
+
     @Post(':id/cancel')
     @RequirePermissions(`${Resource.PRESCRIPTION}:${Action.UPDATE}:${Scope.OWN}`)
     @ApiOperation({ summary: 'Huỷ đơn thuốc' })
