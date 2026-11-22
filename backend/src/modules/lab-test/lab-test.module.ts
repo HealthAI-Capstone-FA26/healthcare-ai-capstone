@@ -45,6 +45,8 @@ import { ECG_ANOMALY_PROVIDER } from './ecg-ai-analysis/ecg-anomaly-provider.por
 import { HttpEcgAnomalyProvider, readEcgAiConfigFromEnv } from './ecg-ai-analysis/http-ecg-anomaly.provider';
 
 import { LabCompletionNotificationService } from './lab-completion/lab-completion-notification.service';
+import { LabResultZaloDeliveryService } from './lab-completion/lab-result-zalo-delivery.service';
+import { LabZaloTestController } from './lab-completion/lab-zalo-test.controller';
 
 import { DefaultEmailSenderAdapter, EMAIL_SENDER_PORT } from './notification/ports/email-sender.port';
 import { InAppNotificationStrategy } from './notification/strategies/in-app-notification.strategy';
@@ -102,6 +104,7 @@ installBigIntJsonSerializer();
         LabReferenceRangeController,
         EcgRecordingController,
         EcgAnalysisController,
+        LabZaloTestController,
     ],
     providers: [
         PrismaService,
@@ -120,6 +123,7 @@ installBigIntJsonSerializer();
         LabResultDetectionListener,
         LabReferenceRangeService,
         LabCompletionNotificationService,
+        LabResultZaloDeliveryService,
         { provide: ECG_SIGNAL_STORAGE, useClass: MinioEcgSignalStorage },
         { provide: ECG_ANOMALY_PROVIDER, useFactory: () => new HttpEcgAnomalyProvider(readEcgAiConfigFromEnv()) },
         EcgRecordingService,

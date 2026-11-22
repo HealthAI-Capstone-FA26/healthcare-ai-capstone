@@ -232,6 +232,35 @@ export class ZaloOaSender {
     this.logger.log(`Đã gửi file Zalo OA tới ${zaloUserId}`);
   }
 
+  /**
+   * Gửi ảnh qua Zalo Bot: POST {base}/bot{TOKEN}/sendPhoto { chat_id, photo (URL công khai), caption }.
+   * Chế độ OA: không có API tương đương ở đây -> gửi LINK ảnh bằng tin văn bản.
+   */
+  async sendPhoto(chatId: string, photoUrl: string, caption?: string): Promise<void> {
+    if (!this.botToken) {
+      return this.sendText(chatId, `${caption ?? 'Hình ảnh'}:\n${photoUrl}`);
+    }
+    const base = this.config.get<string>('ZALO_BOT_API_URL') ?? 'https://bot-api.zaloplatforms.com';
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    try {
+      const res = await fetch(`${base}/bot${this.botToken}/sendPhoto`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption: (caption ?? '').slice(0, 200) }),
+        signal: controller.signal,
+      });
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; description?: string; error_code?: number };
+      // Zalo có thể trả HTTP 200 kèm ok=false -> luôn kiểm tra body.ok
+      if (!res.ok || body.ok !== true) {
+        throw new Error(`Zalo Bot sendPhoto lỗi ${res.status}/${body.error_code ?? '?'}: ${body.description ?? 'unknown'}`);
+      }
+      this.logger.log(`Đã gửi ảnh Zalo Bot tới ${chatId}`); // không log token / URL ảnh
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async sendText(zaloUserId: string, text: string): Promise<void> {
     if (this.botToken) {
       return this.sendBotText(zaloUserId, text);
