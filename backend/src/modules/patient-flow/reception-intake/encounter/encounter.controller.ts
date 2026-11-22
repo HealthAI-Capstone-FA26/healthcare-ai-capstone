@@ -59,11 +59,8 @@ export class EncounterController {
     summary:
       'Hoàn tất thủ tục tiếp đón: kiểm tra đủ chief complaint + xác minh danh tính + consent bắt buộc, chuyển Encounter sang registered và xếp vào hàng đợi triage cho module vitals',
   })
-  async completeRegistration(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    const result = await this.encounterService.completeRegistration(id, user);
-    // Gửi PDF thông tin lượt khám qua Zalo OA (best-effort, không làm hỏng việc hoàn tất đăng ký).
-    const pdfDelivery = await this.encounterPdfService.sendViaZalo(id, result.encounter.patientId);
-    return { ...result, pdfDelivery };
+  completeRegistration(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+    return this.encounterService.completeRegistration(id, user);
   }
 
   @Post('from-paid-appointment/:appointmentId')
@@ -97,10 +94,13 @@ export class EncounterController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary:
-      'Kết thúc lượt khám sau khi tư vấn / kê đơn: chuyển Encounter sang finished, Appointment sang completed và DoctorQueueEntry sang done',
+      'Kết thúc lượt khám sau khi tư vấn / kê đơn: chuyển Encounter sang finished, Appointment sang completed, DoctorQueueEntry sang done và gửi PDF lượt khám qua Zalo',
   })
   @ApiParam({ name: 'id', format: 'uuid' })
-  finish(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.encounterService.finishEncounter(id, user);
+  async finish(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+    const result = await this.encounterService.finishEncounter(id, user);
+    // Gửi PDF thông tin lượt khám qua Zalo (best-effort, không làm hỏng việc kết thúc lượt khám).
+    const pdfDelivery = await this.encounterPdfService.sendViaZalo(id, result.encounter.patientId);
+    return { ...result, pdfDelivery };
   }
 }
