@@ -60,6 +60,9 @@ describe('WF-04 state transitions & E2E scenarios', () => {
                 doctor: {
                     findUnique: jest.fn().mockResolvedValue({ doctorId: doctor.doctorId }),
                 },
+                prescription: {
+                    count: jest.fn().mockResolvedValue(1),
+                },
                 $transaction: jest.fn((cb: any) => cb(tx)),
             };
             const service = new EncounterService(prisma as any, {} as any, {} as any);
@@ -284,6 +287,7 @@ describe('WF-04 state transitions & E2E scenarios', () => {
                         .fn()
                         .mockResolvedValueOnce(null)
                         .mockResolvedValueOnce({ prescriptionId: 'rx-ds07', status: 'draft' }),
+                    count: jest.fn().mockResolvedValue(1),
                 },
                 appointment: { findUnique: jest.fn().mockResolvedValue(null) },
                 treatmentConsultation: { findUnique: jest.fn().mockResolvedValue(null) },
