@@ -1,0 +1,48 @@
+{
+  "file": "lab-test/lab-result-zalo-delivery.service.spec.ts",
+  "ranAt": "2026-11-23T07:58:58.513Z",
+  "durationMs": 974848,
+  "total": 4,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "LabResultZaloDeliveryService",
+      "name": "gửi 2 link PDF (máu, ECG) và 1 ảnh X-quang tới chat_id đã liên kết; bỏ qua DICOM",
+      "fullName": "LabResultZaloDeliveryService gửi 2 link PDF (máu, ECG) và 1 ảnh X-quang tới chat_id đã liên kết; bỏ qua DICOM",
+      "status": "PASS",
+      "durationMs": 4517,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "LabResultZaloDeliveryService",
+      "name": "zaloUserId (test) bỏ qua bước tra liên kết bệnh nhân",
+      "fullName": "LabResultZaloDeliveryService zaloUserId (test) bỏ qua bước tra liên kết bệnh nhân",
+      "status": "PASS",
+      "durationMs": 668,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "LabResultZaloDeliveryService",
+      "name": "bệnh nhân chưa liên kết Zalo -> không gửi gì, báo lý do trong skipped",
+      "fullName": "LabResultZaloDeliveryService bệnh nhân chưa liên kết Zalo -> không gửi gì, báo lý do trong skipped",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "LabResultZaloDeliveryService",
+      "name": "1 tài liệu lỗi không chặn các tài liệu còn lại và không throw",
+      "fullName": "LabResultZaloDeliveryService 1 tài liệu lỗi không chặn các tài liệu còn lại và không throw",
+      "status": "PASS",
+      "durationMs": 601,
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+﻿"STT","File","Suite","Test case","Kết quả","Thời gian (ms)","Lỗi / Ghi chú"
+"1","patient/patient.integration.spec.ts","PatientController integration","creates a patient and passes the authenticated user to the service","PASS","270",""
+"2","patient/patient.integration.spec.ts","PatientController integration","rejects invalid patient data before calling the service","PASS","15",""
+"3","patient/patient.integration.spec.ts","PatientController integration","searches patients using the query string","PASS","10",""
+"4","patient/patient.integration.spec.ts","PatientController integration","updates a patient through the HTTP endpoint","PASS","10",""

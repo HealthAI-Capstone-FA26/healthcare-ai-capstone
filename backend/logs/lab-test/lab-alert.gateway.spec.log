@@ -1,0 +1,11 @@
+FILE     : lab-test/lab-alert.gateway.spec.ts
+RAN AT   : 2026-11-23T07:58:58.694Z
+RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (684687 ms)
+================================================================================
+#1 [PASS] LabAlertGateway (/lab-alerts) từ chối kết nối khi thiếu token (347 ms)
+#2 [PASS] LabAlertGateway (/lab-alerts) từ chối khi token không hợp lệ (29 ms)
+#3 [PASS] LabAlertGateway (/lab-alerts) chấp nhận token hợp lệ (auth.token hoặc header) và lưu userId (28 ms)
+#4 [PASS] LabAlertGateway (/lab-alerts) subscribe: join room khi đúng vai trò (10 ms)
+#5 [PASS] LabAlertGateway (/lab-alerts) subscribe: từ chối vai trò không được phép / chưa xác thực / encounterId rỗng (117 ms)
+#6 [PASS] LabAlertGateway (/lab-alerts) LAB_ALERT_REQUIRE_AUTH=false: bỏ qua xác thực (dev) (9 ms)
+#7 [PASS] LabAlertGateway (/lab-alerts) pushEcgAlertUpdate emit vào đúng room (5 ms)

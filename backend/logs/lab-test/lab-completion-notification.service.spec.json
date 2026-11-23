@@ -1,0 +1,75 @@
+{
+  "file": "lab-test/lab-completion-notification.service.spec.ts",
+  "ranAt": "2026-11-23T07:58:58.491Z",
+  "durationMs": 969288,
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification",
+      "name": "UTCID01 [N]: should dispatch diagnostics_completed to the doctor (in_app) and the patient (in_app, email, zalo_oa)",
+      "fullName": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID01 [N]: should dispatch diagnostics_completed to the doctor (in_app) and the patient (in_app, email, zalo_oa)",
+      "status": "PASS",
+      "durationMs": 111,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification",
+      "name": "UTCID02 [B]: should notify only the patient and log a warning when the encounter has no assigned doctor",
+      "fullName": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID02 [B]: should notify only the patient and log a warning when the encounter has no assigned doctor",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification",
+      "name": "UTCID03 [A]: should return early and dispatch nothing when the encounter is not in 'awaiting_review'",
+      "fullName": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID03 [A]: should return early and dispatch nothing when the encounter is not in 'awaiting_review'",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification",
+      "name": "UTCID13 [B]: should still notify the patient with an undefined email when the patient has no email on file",
+      "fullName": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID13 [B]: should still notify the patient with an undefined email when the patient has no email on file",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification",
+      "name": "UTCID14 [A]: should return silently when the encounter does not exist",
+      "fullName": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID14 [A]: should return silently when the encounter does not exist",
+      "status": "PASS",
+      "durationMs": 244,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification",
+      "name": "UTCID15 [N]: should resolve the encounter of a result and delegate to notifyEncounterCompleted",
+      "fullName": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID15 [N]: should resolve the encounter of a result and delegate to notifyEncounterCompleted",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification",
+      "name": "UTCID16 [A]: should do nothing when the lab result does not exist",
+      "fullName": "LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID16 [A]: should do nothing when the lab result does not exist",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    }
+  ]
+}

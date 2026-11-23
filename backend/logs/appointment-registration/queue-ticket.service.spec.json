@@ -1,0 +1,264 @@
+{
+  "file": "appointment-registration/queue-ticket.service.spec.ts",
+  "ranAt": "2026-11-23T07:01:48.604Z",
+  "durationMs": 6356,
+  "total": 28,
+  "passed": 28,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "QueueTicketService (F-04 Reception and queue) > issueWalkInTicket",
+      "name": "UTCID01 [N]: first ticket of the day -> B001 waiting, no appointment, advisory lock taken, ISSUED event emitted",
+      "fullName": "QueueTicketService (F-04 Reception and queue) issueWalkInTicket UTCID01 [N]: first ticket of the day -> B001 waiting, no appointment, advisory lock taken, ISSUED event emitted",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "QueueTicketService (F-04 Reception and queue) > issueWalkInTicket",
+      "name": "UTCID02 [N]: next number = current max + 1 for the same prefix/day",
+      "fullName": "QueueTicketService (F-04 Reception and queue) issueWalkInTicket UTCID02 [N]: next number = current max + 1 for the same prefix/day",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "QueueTicketService (F-04 Reception and queue) > issueWalkInTicket",
+      "name": "UTCID03 [B]: unique-constraint clash (P2002) is retried once with a fresh number",
+      "fullName": "QueueTicketService (F-04 Reception and queue) issueWalkInTicket UTCID03 [B]: unique-constraint clash (P2002) is retried once with a fresh number",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "QueueTicketService (F-04 Reception and queue) > issueWalkInTicket",
+      "name": "UTCID04 [A]: second consecutive P2002 is rethrown (no endless retry)",
+      "fullName": "QueueTicketService (F-04 Reception and queue) issueWalkInTicket UTCID04 [A]: second consecutive P2002 is rethrown (no endless retry)",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "QueueTicketService (F-04 Reception and queue) > issueWalkInTicket",
+      "name": "UTCID05 [A]: non-unique DB error is rethrown immediately",
+      "fullName": "QueueTicketService (F-04 Reception and queue) issueWalkInTicket UTCID05 [A]: non-unique DB error is rethrown immediately",
+      "status": "PASS",
+      "durationMs": 16,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "QueueTicketService (F-04 Reception and queue) > issueWalkInTicket",
+      "name": "UTCID06 [A]: realtime-event failure never breaks ticket issuing",
+      "fullName": "QueueTicketService (F-04 Reception and queue) issueWalkInTicket UTCID06 [A]: realtime-event failure never breaks ticket issuing",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "QueueTicketService (F-04 Reception and queue) > issueTicketForAppointment",
+      "name": "UTCID01 [N]: online check-in ticket uses prefix A, is linked to the appointment and numbered independently from B",
+      "fullName": "QueueTicketService (F-04 Reception and queue) issueTicketForAppointment UTCID01 [N]: online check-in ticket uses prefix A, is linked to the appointment and numbered independently from B",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 8,
+      "suite": "QueueTicketService (F-04 Reception and queue) > call",
+      "name": "UTCID01 [N]: waiting -> called with counter number, CALLED event emitted",
+      "fullName": "QueueTicketService (F-04 Reception and queue) call UTCID01 [N]: waiting -> called with counter number, CALLED event emitted",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 9,
+      "suite": "QueueTicketService (F-04 Reception and queue) > call",
+      "name": "UTCID02 [A]: only waiting tickets can be called",
+      "fullName": "QueueTicketService (F-04 Reception and queue) call UTCID02 [A]: only waiting tickets can be called",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 10,
+      "suite": "QueueTicketService (F-04 Reception and queue) > call",
+      "name": "UTCID03 [A]: unknown ticket -> NotFoundException",
+      "fullName": "QueueTicketService (F-04 Reception and queue) call UTCID03 [A]: unknown ticket -> NotFoundException",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 11,
+      "suite": "QueueTicketService (F-04 Reception and queue) > call",
+      "name": "UTCID04 [N]: notification failure does not break calling a ticket of an online patient",
+      "fullName": "QueueTicketService (F-04 Reception and queue) call UTCID04 [N]: notification failure does not break calling a ticket of an online patient",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 12,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done",
+      "name": "UTCID01 [A]: only a called ticket can be completed",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done UTCID01 [A]: only a called ticket can be completed",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 13,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done",
+      "name": "UTCID02 [A]: walk-in ticket without patient info -> BadRequestException",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done UTCID02 [A]: walk-in ticket without patient info -> BadRequestException",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 14,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done",
+      "name": "UTCID03 [A]: walk-in with BOTH patientId and patient is ambiguous -> BadRequestException",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done UTCID03 [A]: walk-in with BOTH patientId and patient is ambiguous -> BadRequestException",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 15,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done",
+      "name": "UTCID04 [A]: online appointment with unresolved patient (patientId null) must be synced first",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done UTCID04 [A]: online appointment with unresolved patient (patientId null) must be synced first",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 16,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done",
+      "name": "UTCID05 [A]: doctor not on an active shift right now -> BadRequestException (DS-02 step 5 precondition)",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done UTCID05 [A]: doctor not on an active shift right now -> BadRequestException (DS-02 step 5 precondition)",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 17,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done",
+      "name": "UTCID06 [A]: unknown doctor -> NotFoundException",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done UTCID06 [A]: unknown doctor -> NotFoundException",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 18,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done > with the doctor on shift",
+      "name": "UTCID07 [N]: walk-in -> draft patient + walk_in appointment, ticket done, ReceptionCheckin, appointment confirmed, invoice pending",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done with the doctor on shift UTCID07 [N]: walk-in -> draft patient + walk_in appointment, ticket done, ReceptionCheckin, appointment confirmed, invoice pending",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 19,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done > with the doctor on shift",
+      "name": "UTCID08 [N]: online ticket keeps the pre-selected doctor and reuses its appointment (no new appointment)",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done with the doctor on shift UTCID08 [N]: online ticket keeps the pre-selected doctor and reuses its appointment (no new appointment)",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 20,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done > with the doctor on shift",
+      "name": "UTCID09 [A]: two receptionists pressing done at once -> loser gets BadRequestException (P2025 mapped)",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done with the doctor on shift UTCID09 [A]: two receptionists pressing done at once -> loser gets BadRequestException (P2025 mapped)",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 21,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done > with the doctor on shift",
+      "name": "UTCID10 [N]: invoice generation failure is swallowed, falls back to the latest existing invoice",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done with the doctor on shift UTCID10 [N]: invoice generation failure is swallowed, falls back to the latest existing invoice",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 22,
+      "suite": "QueueTicketService (F-04 Reception and queue) > done > with the doctor on shift",
+      "name": "UTCID11 [B]: shift ends exactly at \"now\" is still on shift; one minute later is not",
+      "fullName": "QueueTicketService (F-04 Reception and queue) done with the doctor on shift UTCID11 [B]: shift ends exactly at \"now\" is still on shift; one minute later is not",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 23,
+      "suite": "compareQueueTickets (F-04: online ticket is called before walk-in)",
+      "name": "UTCID01 [N]: A (online) is listed before B (walk-in) even if B was issued first",
+      "fullName": "compareQueueTickets (F-04: online ticket is called before walk-in) UTCID01 [N]: A (online) is listed before B (walk-in) even if B was issued first",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 24,
+      "suite": "compareQueueTickets (F-04: online ticket is called before walk-in)",
+      "name": "UTCID02 [N]: same prefix and priority -> FIFO by ticket number",
+      "fullName": "compareQueueTickets (F-04: online ticket is called before walk-in) UTCID02 [N]: same prefix and priority -> FIFO by ticket number",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 25,
+      "suite": "compareQueueTickets (F-04: online ticket is called before walk-in)",
+      "name": "UTCID03 [N]: urgent jumps ahead only inside its own prefix",
+      "fullName": "compareQueueTickets (F-04: online ticket is called before walk-in) UTCID03 [N]: urgent jumps ahead only inside its own prefix",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 26,
+      "suite": "compareQueueTickets (F-04: online ticket is called before walk-in)",
+      "name": "UTCID04 [N]: emergency beats everything, even a normal ticket of the other prefix",
+      "fullName": "compareQueueTickets (F-04: online ticket is called before walk-in) UTCID04 [N]: emergency beats everything, even a normal ticket of the other prefix",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 27,
+      "suite": "compareQueueTickets (F-04: online ticket is called before walk-in)",
+      "name": "UTCID05 [B]: two emergencies are served FIFO regardless of prefix",
+      "fullName": "compareQueueTickets (F-04: online ticket is called before walk-in) UTCID05 [B]: two emergencies are served FIFO regardless of prefix",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 28,
+      "suite": "compareQueueTickets (F-04: online ticket is called before walk-in)",
+      "name": "UTCID06 [B]: walk-in ticket without appointment is treated as normal priority",
+      "fullName": "compareQueueTickets (F-04: online ticket is called before walk-in) UTCID06 [B]: walk-in ticket without appointment is treated as normal priority",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "file": "pre-doctor-examination/doctor-encounter-access.service.spec.ts",
+  "ranAt": "2026-11-23T07:02:28.783Z",
+  "durationMs": 2692,
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "DoctorEncounterAccessService - prepareWrite (Function 12)",
+      "name": "UTCID01 [N]: should return doctor and encounter when assigned doctor accesses an in_progress encounter",
+      "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID01 [N]: should return doctor and encounter when assigned doctor accesses an in_progress encounter",
+      "status": "PASS",
+      "durationMs": 10,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "DoctorEncounterAccessService - prepareWrite (Function 12)",
+      "name": "UTCID02 [N]: should allow access when encounter has no assigned doctor yet (doctorId = null)",
+      "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID02 [N]: should allow access when encounter has no assigned doctor yet (doctorId = null)",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "DoctorEncounterAccessService - prepareWrite (Function 12)",
+      "name": "UTCID03 [A]: should throw ForbiddenException when currentUserId does not have DOCTOR role",
+      "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID03 [A]: should throw ForbiddenException when currentUserId does not have DOCTOR role",
+      "status": "PASS",
+      "durationMs": 36,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "DoctorEncounterAccessService - prepareWrite (Function 12)",
+      "name": "UTCID04 [A]: should throw NotFoundException when encounter does not exist",
+      "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID04 [A]: should throw NotFoundException when encounter does not exist",
+      "status": "PASS",
+      "durationMs": 14,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "DoctorEncounterAccessService - prepareWrite (Function 12)",
+      "name": "UTCID05 [A]: should throw ForbiddenException when encounter belongs to another doctor",
+      "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID05 [A]: should throw ForbiddenException when encounter belongs to another doctor",
+      "status": "PASS",
+      "durationMs": 7,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "DoctorEncounterAccessService - prepareWrite (Function 12)",
+      "name": "UTCID06 [B]: should throw BadRequestException when encounter is already finished (outside allowedStatuses)",
+      "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID06 [B]: should throw BadRequestException when encounter is already finished (outside allowedStatuses)",
+      "status": "PASS",
+      "durationMs": 14,
+      "error": ""
+    }
+  ]
+}

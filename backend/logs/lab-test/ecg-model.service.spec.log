@@ -1,0 +1,6 @@
+FILE     : lab-test/ecg-model.service.spec.ts
+RAN AT   : 2026-11-23T08:10:25.488Z
+RESULT   : 2 passed, 0 failed, 0 skipped / 2 total (2169 ms)
+================================================================================
+#1 [PASS] EcgModelService.listSelectable chỉ LAB_STAFF/DOCTOR/ADMIN (3 ms)
+#2 [PASS] EcgModelService.listSelectable lọc active/candidate theo taskType, đánh dấu isDefault, ép Decimal -> number (3 ms)

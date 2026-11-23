@@ -1,0 +1,11 @@
+FILE     : vitals/vital-reference-range.service.spec.ts
+RAN AT   : 2026-11-23T07:02:33.770Z
+RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (1825 ms)
+================================================================================
+#1 [PASS] VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID01 [N]: adult -> HR range from threshold table, BMI 18.5-24.9, HEIGHT skipped (no threshold configured) (2 ms)
+#2 [PASS] VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID02 [N]: gender-specific threshold wins over the generic one (1 ms)
+#3 [PASS] VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID03 [N]: child under 2 years has no BMI range (BMI-for-age not applicable) (0 ms)
+#4 [PASS] VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID04 [N]: age is evaluated at measuredAt (query uses ageMin/ageMax filters and effectiveFrom <= measuredAt) (0 ms)
+#5 [PASS] VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID05 [A]: unknown patient -> NotFoundException (3 ms)
+#6 [PASS] VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID06 [A]: patient without date of birth -> BadRequestException (1 ms)
+#7 [PASS] VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID07 [B]: calculateAge turns 21 exactly on the birthday, not a day before (1 ms)

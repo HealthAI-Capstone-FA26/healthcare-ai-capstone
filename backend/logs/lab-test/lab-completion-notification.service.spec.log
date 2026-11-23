@@ -1,0 +1,11 @@
+FILE     : lab-test/lab-completion-notification.service.spec.ts
+RAN AT   : 2026-11-23T07:58:58.491Z
+RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (969288 ms)
+================================================================================
+#1 [PASS] LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID01 [N]: should dispatch diagnostics_completed to the doctor (in_app) and the patient (in_app, email, zalo_oa) (111 ms)
+#2 [PASS] LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID02 [B]: should notify only the patient and log a warning when the encounter has no assigned doctor (1 ms)
+#3 [PASS] LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID03 [A]: should return early and dispatch nothing when the encounter is not in 'awaiting_review' (3 ms)
+#4 [PASS] LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID13 [B]: should still notify the patient with an undefined email when the patient has no email on file (1 ms)
+#5 [PASS] LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID14 [A]: should return silently when the encounter does not exist (244 ms)
+#6 [PASS] LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID15 [N]: should resolve the encounter of a result and delegate to notifyEncounterCompleted (1 ms)
+#7 [PASS] LabCompletionNotificationService - Function 21 (F-15, WF-03): diagnostics completion notification UTCID16 [A]: should do nothing when the lab result does not exist (0 ms)
