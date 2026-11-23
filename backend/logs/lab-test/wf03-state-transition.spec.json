@@ -1,0 +1,300 @@
+{
+  "file": "lab-test/wf03-state-transition.spec.ts",
+  "ranAt": "2026-11-23T07:58:58.427Z",
+  "durationMs": 770005,
+  "total": 32,
+  "passed": 32,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "WF-03 state transitions > ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready",
+      "name": "ST-01.1: should move a task to 'completed' and stamp completedAt",
+      "fullName": "WF-03 state transitions ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready ST-01.1: should move a task to 'completed' and stamp completedAt",
+      "status": "PASS",
+      "durationMs": 14500,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "WF-03 state transitions > ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready",
+      "name": "ST-01.2: should move an in_progress task to 'on_hold', recompute progress and emit the exception event",
+      "fullName": "WF-03 state transitions ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready ST-01.2: should move an in_progress task to 'on_hold', recompute progress and emit the exception event",
+      "status": "PASS",
+      "durationMs": 135,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "WF-03 state transitions > ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready",
+      "name": "ST-01.3: should reject on_hold for a task that is already 'completed' (no event, no recompute)",
+      "fullName": "WF-03 state transitions ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready ST-01.3: should reject on_hold for a task that is already 'completed' (no event, no recompute)",
+      "status": "PASS",
+      "durationMs": 8890,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "WF-03 state transitions > ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready",
+      "name": "ST-01.4: should return an on_hold task to 'ready' on a doctor's retry decision, clearing assignee and timestamps",
+      "fullName": "WF-03 state transitions ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready ST-01.4: should return an on_hold task to 'ready' on a doctor's retry decision, clearing assignee and timestamps",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "WF-03 state transitions > ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready",
+      "name": "ST-01.5: should reject a resolve decision when the task is not 'on_hold'",
+      "fullName": "WF-03 state transitions ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready ST-01.5: should reject a resolve decision when the task is not 'on_hold'",
+      "status": "PASS",
+      "durationMs": 63,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "WF-03 state transitions > ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready",
+      "name": "ST-01.6: should throw ConflictException when another decision resolved the on_hold task first",
+      "fullName": "WF-03 state transitions ST-01 DiagnosticTask: in_progress -> completed, in_progress -> on_hold -> ready ST-01.6: should throw ConflictException when another decision resolved the on_hold task first",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "WF-03 state transitions > ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService)",
+      "name": "ST-02.1: should keep order = ordered and encounter = awaiting_diagnostics while every task is still ready",
+      "fullName": "WF-03 state transitions ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService) ST-02.1: should keep order = ordered and encounter = awaiting_diagnostics while every task is still ready",
+      "status": "PASS",
+      "durationMs": 482,
+      "error": ""
+    },
+    {
+      "no": 8,
+      "suite": "WF-03 state transitions > ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService)",
+      "name": "ST-02.2: should move order -> in_progress and encounter -> diagnostics_in_progress when the first task is received",
+      "fullName": "WF-03 state transitions ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService) ST-02.2: should move order -> in_progress and encounter -> diagnostics_in_progress when the first task is received",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 9,
+      "suite": "WF-03 state transitions > ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService)",
+      "name": "ST-02.3: should move order -> completed and encounter -> awaiting_review (notify flag on) when all tasks complete",
+      "fullName": "WF-03 state transitions ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService) ST-02.3: should move order -> completed and encounter -> awaiting_review (notify flag on) when all tasks complete",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 10,
+      "suite": "WF-03 state transitions > ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService)",
+      "name": "ST-02.4: should treat a cancelled task as not blocking completion (completed + cancelled -> awaiting_review)",
+      "fullName": "WF-03 state transitions ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService) ST-02.4: should treat a cancelled task as not blocking completion (completed + cancelled -> awaiting_review)",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 11,
+      "suite": "WF-03 state transitions > ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService)",
+      "name": "ST-02.5: should cancel the order and return the encounter to in_progress when every task is cancelled",
+      "fullName": "WF-03 state transitions ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService) ST-02.5: should cancel the order and return the encounter to in_progress when every task is cancelled",
+      "status": "PASS",
+      "durationMs": 531,
+      "error": ""
+    },
+    {
+      "no": 12,
+      "suite": "WF-03 state transitions > ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService)",
+      "name": "ST-02.6: should never touch an encounter outside the lab-managed statuses (e.g. 'finished')",
+      "fullName": "WF-03 state transitions ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService) ST-02.6: should never touch an encounter outside the lab-managed statuses (e.g. 'finished')",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 13,
+      "suite": "WF-03 state transitions > ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService)",
+      "name": "ST-02.7: should send an awaiting_review encounter back to awaiting_diagnostics when an extra task is still ready",
+      "fullName": "WF-03 state transitions ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService) ST-02.7: should send an awaiting_review encounter back to awaiting_diagnostics when an extra task is still ready",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 14,
+      "suite": "WF-03 state transitions > ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService)",
+      "name": "ST-02.8: should return null and write nothing when the task does not exist",
+      "fullName": "WF-03 state transitions ST-02 DiagnosticOrder / Encounter derived from task statuses (DiagnosticProgressService) ST-02.8: should return null and write nothing when the task does not exist",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 15,
+      "suite": "WF-03 state transitions > ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected",
+      "name": "ST-03.1: should move a 'preliminary' result to 'final' and re-emit the submitted event (no new completion notice)",
+      "fullName": "WF-03 state transitions ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected ST-03.1: should move a 'preliminary' result to 'final' and re-emit the submitted event (no new completion notice)",
+      "status": "PASS",
+      "durationMs": 122,
+      "error": ""
+    },
+    {
+      "no": 16,
+      "suite": "WF-03 state transitions > ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected",
+      "name": "ST-03.2: should move a 'final' result to 'corrected' when its content is edited",
+      "fullName": "WF-03 state transitions ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected ST-03.2: should move a 'final' result to 'corrected' when its content is edited",
+      "status": "PASS",
+      "durationMs": 125,
+      "error": ""
+    },
+    {
+      "no": 17,
+      "suite": "WF-03 state transitions > ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected",
+      "name": "ST-03.3: should keep a 'preliminary' result 'preliminary' when only its content is edited",
+      "fullName": "WF-03 state transitions ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected ST-03.3: should keep a 'preliminary' result 'preliminary' when only its content is edited",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 18,
+      "suite": "WF-03 state transitions > ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected",
+      "name": "ST-03.4: should refuse to finalize a blood-test result while the Full panel is incomplete",
+      "fullName": "WF-03 state transitions ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected ST-03.4: should refuse to finalize a blood-test result while the Full panel is incomplete",
+      "status": "PASS",
+      "durationMs": 497,
+      "error": ""
+    },
+    {
+      "no": 19,
+      "suite": "WF-03 state transitions > ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected",
+      "name": "ST-03.5: should record reviewer and time and move the result to 'final' when a doctor reviews with finalize",
+      "fullName": "WF-03 state transitions ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected ST-03.5: should record reviewer and time and move the result to 'final' when a doctor reviews with finalize",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 20,
+      "suite": "WF-03 state transitions > ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected",
+      "name": "ST-03.6: should reject reviewing a 'cancelled' result",
+      "fullName": "WF-03 state transitions ST-03 DiagnosticResult.resultStatus: preliminary -> final / corrected ST-03.6: should reject reviewing a 'cancelled' result",
+      "status": "PASS",
+      "durationMs": 181,
+      "error": ""
+    },
+    {
+      "no": 21,
+      "suite": "WF-03 state transitions > ST-04 ResultValueAlert.status: active -> confirmed -> resolved",
+      "name": "ST-04.1: should move an 'active' alert to 'confirmed' and record who confirmed it",
+      "fullName": "WF-03 state transitions ST-04 ResultValueAlert.status: active -> confirmed -> resolved ST-04.1: should move an 'active' alert to 'confirmed' and record who confirmed it",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 22,
+      "suite": "WF-03 state transitions > ST-04 ResultValueAlert.status: active -> confirmed -> resolved",
+      "name": "ST-04.2: should throw ConflictException when confirming an alert that is already 'confirmed'",
+      "fullName": "WF-03 state transitions ST-04 ResultValueAlert.status: active -> confirmed -> resolved ST-04.2: should throw ConflictException when confirming an alert that is already 'confirmed'",
+      "status": "PASS",
+      "durationMs": 985,
+      "error": ""
+    },
+    {
+      "no": 23,
+      "suite": "WF-03 state transitions > ST-04 ResultValueAlert.status: active -> confirmed -> resolved",
+      "name": "ST-04.3: should resolve an alert from 'active' or 'confirmed'",
+      "fullName": "WF-03 state transitions ST-04 ResultValueAlert.status: active -> confirmed -> resolved ST-04.3: should resolve an alert from 'active' or 'confirmed'",
+      "status": "PASS",
+      "durationMs": 1654,
+      "error": ""
+    },
+    {
+      "no": 24,
+      "suite": "WF-03 state transitions > ST-04 ResultValueAlert.status: active -> confirmed -> resolved",
+      "name": "ST-04.4: should reject resolving an alert that is already 'resolved' (terminal state)",
+      "fullName": "WF-03 state transitions ST-04 ResultValueAlert.status: active -> confirmed -> resolved ST-04.4: should reject resolving an alert that is already 'resolved' (terminal state)",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 25,
+      "suite": "WF-03 state transitions > ST-04 ResultValueAlert.status: active -> confirmed -> resolved",
+      "name": "ST-04.5: should throw NotFoundException when the alert does not exist",
+      "fullName": "WF-03 state transitions ST-04 ResultValueAlert.status: active -> confirmed -> resolved ST-04.5: should throw NotFoundException when the alert does not exist",
+      "status": "PASS",
+      "durationMs": 247,
+      "error": ""
+    },
+    {
+      "no": 26,
+      "suite": "WF-03 state transitions > ST-04 ResultValueAlert.status: active -> confirmed -> resolved",
+      "name": "ST-04.6: should block a caller without DOCTOR/LAB_STAFF role before changing any state",
+      "fullName": "WF-03 state transitions ST-04 ResultValueAlert.status: active -> confirmed -> resolved ST-04.6: should block a caller without DOCTOR/LAB_STAFF role before changing any state",
+      "status": "PASS",
+      "durationMs": 2519,
+      "error": ""
+    },
+    {
+      "no": 27,
+      "suite": "WF-03 state transitions > ST-05 EcgRecording: completed -> cancelled",
+      "name": "ST-05.1: should cancel a mistaken recording while the task is in_progress and drop isCurrent of its analyses",
+      "fullName": "WF-03 state transitions ST-05 EcgRecording: completed -> cancelled ST-05.1: should cancel a mistaken recording while the task is in_progress and drop isCurrent of its analyses",
+      "status": "PASS",
+      "durationMs": 123,
+      "error": ""
+    },
+    {
+      "no": 28,
+      "suite": "WF-03 state transitions > ST-05 EcgRecording: completed -> cancelled",
+      "name": "ST-05.2: should refuse to cancel once the task is 'completed'",
+      "fullName": "WF-03 state transitions ST-05 EcgRecording: completed -> cancelled ST-05.2: should refuse to cancel once the task is 'completed'",
+      "status": "PASS",
+      "durationMs": 705,
+      "error": ""
+    },
+    {
+      "no": 29,
+      "suite": "WF-03 state transitions > ST-05 EcgRecording: completed -> cancelled",
+      "name": "ST-05.3: should refuse to cancel a recording that is already cancelled",
+      "fullName": "WF-03 state transitions ST-05 EcgRecording: completed -> cancelled ST-05.3: should refuse to cancel a recording that is already cancelled",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 30,
+      "suite": "WF-03 state transitions > ST-06 EcgAnomalyEvent.alertStatus: active -> acknowledged -> resolved",
+      "name": "ST-06.1: should move an 'active' ECG anomaly alert to 'acknowledged' and record the doctor",
+      "fullName": "WF-03 state transitions ST-06 EcgAnomalyEvent.alertStatus: active -> acknowledged -> resolved ST-06.1: should move an 'active' ECG anomaly alert to 'acknowledged' and record the doctor",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 31,
+      "suite": "WF-03 state transitions > ST-06 EcgAnomalyEvent.alertStatus: active -> acknowledged -> resolved",
+      "name": "ST-06.2: should throw ConflictException when acknowledging an alert that is no longer 'active'",
+      "fullName": "WF-03 state transitions ST-06 EcgAnomalyEvent.alertStatus: active -> acknowledged -> resolved ST-06.2: should throw ConflictException when acknowledging an alert that is no longer 'active'",
+      "status": "PASS",
+      "durationMs": 1132,
+      "error": ""
+    },
+    {
+      "no": 32,
+      "suite": "WF-03 state transitions > ST-06 EcgAnomalyEvent.alertStatus: active -> acknowledged -> resolved",
+      "name": "ST-06.3: should resolve an alert from 'active' or 'acknowledged'",
+      "fullName": "WF-03 state transitions ST-06 EcgAnomalyEvent.alertStatus: active -> acknowledged -> resolved ST-06.3: should resolve an alert from 'active' or 'acknowledged'",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    }
+  ]
+}

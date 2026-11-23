@@ -1,0 +1,75 @@
+{
+  "file": "vitals/vital-reference-range.service.spec.ts",
+  "ranAt": "2026-11-23T07:02:33.770Z",
+  "durationMs": 1825,
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box)",
+      "name": "UTCID01 [N]: adult -> HR range from threshold table, BMI 18.5-24.9, HEIGHT skipped (no threshold configured)",
+      "fullName": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID01 [N]: adult -> HR range from threshold table, BMI 18.5-24.9, HEIGHT skipped (no threshold configured)",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box)",
+      "name": "UTCID02 [N]: gender-specific threshold wins over the generic one",
+      "fullName": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID02 [N]: gender-specific threshold wins over the generic one",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box)",
+      "name": "UTCID03 [N]: child under 2 years has no BMI range (BMI-for-age not applicable)",
+      "fullName": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID03 [N]: child under 2 years has no BMI range (BMI-for-age not applicable)",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box)",
+      "name": "UTCID04 [N]: age is evaluated at measuredAt (query uses ageMin/ageMax filters and effectiveFrom <= measuredAt)",
+      "fullName": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID04 [N]: age is evaluated at measuredAt (query uses ageMin/ageMax filters and effectiveFrom <= measuredAt)",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box)",
+      "name": "UTCID05 [A]: unknown patient -> NotFoundException",
+      "fullName": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID05 [A]: unknown patient -> NotFoundException",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box)",
+      "name": "UTCID06 [A]: patient without date of birth -> BadRequestException",
+      "fullName": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID06 [A]: patient without date of birth -> BadRequestException",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box)",
+      "name": "UTCID07 [B]: calculateAge turns 21 exactly on the birthday, not a day before",
+      "fullName": "VitalReferenceRangeService.getReferenceRanges (normal range shown next to the input box) UTCID07 [B]: calculateAge turns 21 exactly on the birthday, not a day before",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    }
+  ]
+}

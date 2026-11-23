@@ -1,0 +1,109 @@
+name: E2E - WF-03 Lab testing and ECG anomaly detection
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hospital_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # E2E_DATABASE_URL là biến bắt buộc của test (chống chạy nhầm lên DB dev/prod);
+      # DATABASE_URL cho Prisma CLI (db push / db seed).
+      E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hospital_e2e
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hospital_e2e
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-jwt-secret
+      REFRESH_TOKEN_SECRET: ci-refresh-secret
+      RESET_PASSWORD_SECRET: ci-reset-secret
+      MAIL_FROM_EMAIL: noreply@ci.test
+      BREVO_API_KEY: ci-dummy
+      # WF-03 tải tín hiệu ECG và ảnh X-quang lên object storage THẬT (MinIO dựng ở bước bên dưới).
+      MINIO_ENDPOINT: 127.0.0.1
+      MINIO_PORT: '9000'
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: '12345678'
+      MINIO_BUCKET: app-uploads
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # prisma/migrations chỉ chứa các migration tăng dần (không có baseline) nên dựng schema bằng db push.
+      - name: Create schema
+        run: npx prisma db push
+
+      - name: Seed reference data (roles, consent policies, ICD-10, service catalog, result thresholds, ECG AI model...)
+        run: npx prisma db seed
+
+      - name: Start MinIO and create bucket
+        run: |
+          docker run -d --name minio --network host \
+            -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=12345678 \
+            minio/minio server /data
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:9000/minio/health/live && break; sleep 2; done
+          docker run --rm --network host --entrypoint sh minio/mc -c \
+            "mc alias set l http://127.0.0.1:9000 minioadmin 12345678 && mc mb --ignore-existing l/app-uploads"
+
+      # Dùng cấu hình e2e riêng (testRegex test/e2e/*.e2e-spec.ts, maxWorkers 1) để chắc chắn chạy đúng spec e2e.
+      - name: Run WF-03 full-flow e2e (DS-05 main + DS-06 exception)
+        run: npx jest --config test/jest-e2e.json --runInBand --ci test/e2e/wf03-lab-testing
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-wf03-logs
+          path: backend/logs/
+          if-no-files-found: ignore

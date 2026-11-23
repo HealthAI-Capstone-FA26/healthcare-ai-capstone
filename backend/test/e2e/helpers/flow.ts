@@ -15,7 +15,7 @@ export interface FlowContext {
 export const MANDATORY_POLICY_TYPES = ['data_processing', 'treatment_consent'];
 
 export const flow = {
-  /** Bước 1: bệnh nhân bốc số tại bệnh viện (không cần đăng nhập). */
+  /** Bước 1: bệnh nhân bốc số tại bệnh viện (PUBLIC API — không cần đăng nhập, không gửi token). */
   async takeTicket(ctx: FlowContext) {
     return expectSuccess(await client(ctx.app).post('/queue-tickets/at-hospital'), 'take ticket');
   },

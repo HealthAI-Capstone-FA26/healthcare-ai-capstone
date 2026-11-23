@@ -1,0 +1,21 @@
+{
+  "file": "ci/ci-ratio.spec.ts",
+  "ranAt": "2026-11-23T09:35:15.133Z",
+  "durationMs": 6052,
+  "total": 1,
+  "passed": 0,
+  "failed": 1,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "CI unit-test ratio (Commitment)",
+      "name": "CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại",
+      "fullName": "CI unit-test ratio (Commitment) CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại",
+      "status": "FAIL",
+      "durationMs": 210,
+      "error": "Error: expect(received).toBeLessThanOrEqual(expected)\n\nExpected: <= 5\nReceived:    25\n    at Object.<anonymous> (D:\\Learning\\Capstone\\capstone_ecg_updated\\healthcare-ai-capstone\\backend\\test\\ci\\ci-ratio.spec.ts:11:42)\n    at new Promise (<anonymous>)"
+    }
+  ]
+}

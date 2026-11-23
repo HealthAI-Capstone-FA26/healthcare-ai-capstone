@@ -1,0 +1,48 @@
+{
+  "file": "patient/patient.integration.spec.ts",
+  "ranAt": "2026-11-23T07:02:36.095Z",
+  "durationMs": 11677,
+  "total": 4,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "PatientController integration",
+      "name": "creates a patient and passes the authenticated user to the service",
+      "fullName": "PatientController integration creates a patient and passes the authenticated user to the service",
+      "status": "PASS",
+      "durationMs": 270,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "PatientController integration",
+      "name": "rejects invalid patient data before calling the service",
+      "fullName": "PatientController integration rejects invalid patient data before calling the service",
+      "status": "PASS",
+      "durationMs": 15,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "PatientController integration",
+      "name": "searches patients using the query string",
+      "fullName": "PatientController integration searches patients using the query string",
+      "status": "PASS",
+      "durationMs": 10,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "PatientController integration",
+      "name": "updates a patient through the HTTP endpoint",
+      "fullName": "PatientController integration updates a patient through the HTTP endpoint",
+      "status": "PASS",
+      "durationMs": 10,
+      "error": ""
+    }
+  ]
+}

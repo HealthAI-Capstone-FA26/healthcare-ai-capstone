@@ -1,0 +1,18 @@
+FILE     : lab-test/lab-result-image.spec.ts
+RAN AT   : 2026-11-23T07:58:58.487Z
+RESULT   : 14 passed, 0 failed, 0 skipped / 14 total (999898 ms)
+================================================================================
+#1 [PASS] assertFileSignature — kiểm tra nội dung thật của tệp chấp nhận JPEG/PNG/DICOM/PDF/MP4 hợp lệ (200 ms)
+#2 [PASS] assertFileSignature — kiểm tra nội dung thật của tệp từ chối MIME giả: file .exe khai báo image/jpeg (496 ms)
+#3 [PASS] assertFileSignature — kiểm tra nội dung thật của tệp từ chối JPEG khai báo là PNG, DICOM thiếu DICM, octet-stream cho fileType image (238 ms)
+#4 [PASS] assertFileSignature — kiểm tra nội dung thật của tệp từ chối script shebang, ELF và tệp rỗng (156 ms)
+#5 [PASS] assertFileSignature — kiểm tra nội dung thật của tệp isExternalUrl (453 ms)
+#6 [PASS] bucket policy — ảnh y khoa không còn công khai chỉ cho đọc công khai các prefix được liệt kê, không dùng wildcard toàn bucket (919 ms)
+#7 [PASS] LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) submit image_report: lưu kết quả nhưng KHÔNG hoàn tất task, không phát event (1740 ms)
+#8 [PASS] LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) submit dịch vụ parametric vẫn hoàn tất ngay như cũ (550 ms)
+#9 [PASS] LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) complete: chưa có hình và không có lý do -> từ chối (1550 ms)
+#10 [PASS] LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) complete: đã có ảnh -> hoàn tất, tính lại encounter, phát event "có kết quả" (682 ms)
+#11 [PASS] LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) complete: không có hình nhưng nêu lý do -> hoàn tất và ghi lý do vào findings (376 ms)
+#12 [PASS] LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) complete: gọi lần 2 -> 409; dịch vụ không phải image_report -> 400; sai vai trò -> 403 (2096 ms)
+#13 [PASS] LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) listAttachments: trả presigned URL cho object key, giữ nguyên URL ngoài; PATIENT bị chặn (435 ms)
+#14 [PASS] LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) getAttachmentAccessUrl: 404 khi không có tệp (3 ms)

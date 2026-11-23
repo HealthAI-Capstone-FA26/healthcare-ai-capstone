@@ -1,0 +1,66 @@
+{
+  "file": "lab-test/ecg-dataset.catalog.spec.ts",
+  "ranAt": "2026-11-23T07:58:58.698Z",
+  "durationMs": 948218,
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "normalizeDatasetName",
+      "name": "chuẩn hoá chữ hoa/thường, chỉ nhận ECG_A..ECG_F",
+      "fullName": "normalizeDatasetName chuẩn hoá chữ hoa/thường, chỉ nhận ECG_A..ECG_F",
+      "status": "PASS",
+      "durationMs": 393,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "EcgDatasetCatalog",
+      "name": "list: đánh dấu dataset nào đã cài; sampleRate mặc định 100Hz, null nếu chưa cài",
+      "fullName": "EcgDatasetCatalog list: đánh dấu dataset nào đã cài; sampleRate mặc định 100Hz, null nếu chưa cài",
+      "status": "PASS",
+      "durationMs": 1745,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "EcgDatasetCatalog",
+      "name": "load: ưu tiên ECG_A/ECG_test.npy, trả buffer + format + fileName + version",
+      "fullName": "EcgDatasetCatalog load: ưu tiên ECG_A/ECG_test.npy, trả buffer + format + fileName + version",
+      "status": "PASS",
+      "durationMs": 1395,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "EcgDatasetCatalog",
+      "name": "load: bố cục phẳng ECG_B.csv",
+      "fullName": "EcgDatasetCatalog load: bố cục phẳng ECG_B.csv",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "EcgDatasetCatalog",
+      "name": "sampleRate: env mặc định, meta.json ghi đè từng dataset, giá trị sai bị bỏ qua",
+      "fullName": "EcgDatasetCatalog sampleRate: env mặc định, meta.json ghi đè từng dataset, giá trị sai bị bỏ qua",
+      "status": "PASS",
+      "durationMs": 1576,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "EcgDatasetCatalog",
+      "name": "load: chưa cài -> DATASET_NOT_AVAILABLE, thông điệp không lộ đường dẫn",
+      "fullName": "EcgDatasetCatalog load: chưa cài -> DATASET_NOT_AVAILABLE, thông điệp không lộ đường dẫn",
+      "status": "PASS",
+      "durationMs": 1016,
+      "error": ""
+    }
+  ]
+}

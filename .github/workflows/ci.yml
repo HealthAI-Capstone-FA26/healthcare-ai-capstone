@@ -40,11 +40,12 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Run tests
-        run: npm test -- --runInBand --passWithNoTests
+      # Cam kết: số unit test chạy trong CI = 1/2 tổng unit test (danh sách spec: backend/test/ci/unit-ci-manifest.json).
+      - name: Enforce CI unit tests = 1/2 total unit tests
+        run: node scripts/check-ci-ratio.js
 
-      - name: Run patient module tests
-        run: npm test -- --runInBand test/patient --passWithNoTests
+      - name: Run unit tests (CI subset)
+        run: npx jest --config jest.ci.config.js --runInBand --ci
 
       - name: Build
         run: npm run build

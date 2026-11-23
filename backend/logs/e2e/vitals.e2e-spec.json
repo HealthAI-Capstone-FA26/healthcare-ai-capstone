@@ -1,0 +1,11 @@
+{
+  "file": "e2e/vitals.e2e-spec.ts",
+  "ranAt": "1970-01-01T00:00:00.000Z",
+  "durationMs": 0,
+  "total": 0,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "Error: Thiếu DATABASE_URL. Ví dụ: DATABASE_URL=postgresql://postgres:postgres@localhost:5432/hospital_e2e npm run test:e2e\n    at Object.<anonymous> (D:\\Learning\\Capstone\\capstone_ecg_updated\\healthcare-ai-capstone\\backend\\test\\e2e\\setup-env.ts:7:11)\n    at ModuleExecutor.exec (D:\\Learning\\Capstone\\capstone_ecg_updated\\healthcare-ai-capstone\\backend\\node_modules\\jest-runtime\\build\\index.js:3055:26)\n    at CjsLoader.loadModule (D:\\Learning\\Capstone\\capstone_ecg_updated\\healthcare-ai-capstone\\backend\\node_modules\\jest-runtime\\build\\index.js:440:36)\n    at CjsLoader.requireModule (D:\\Learning\\Capstone\\capstone_ecg_updated\\healthcare-ai-capstone\\backend\\node_modules\\jest-runtime\\build\\index.js:335:12)\n    at Runtime.requireModule (D:\\Learning\\Capstone\\capstone_ecg_updated\\healthcare-ai-capstone\\backend\\node_modules\\jest-runtime\\build\\index.js:4981:27)\n    at runTestInternal (D:\\Learning\\Capstone\\capstone_ecg_updated\\healthcare-ai-capstone\\backend\\node_modules\\jest-runner\\build\\index.js:214:33)\n    at async runTest (D:\\Learning\\Capstone\\capstone_ecg_updated\\healthcare-ai-capstone\\backend\\node_modules\\jest-runner\\build\\index.js:315:7)",
+  "cases": []
+}

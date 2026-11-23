@@ -1,14 +1,22 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AppModule } from '../../../src/app.module';
 
 export const API_PREFIX = '/api/v1';
 
-/** Boot nguyên AppModule thật (DB + Redis thật), cấu hình giống src/main.ts. */
-export async function createE2EApp(): Promise<INestApplication> {
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+/**
+ * Boot nguyên AppModule thật (DB + Redis thật), cấu hình giống src/main.ts.
+ * `configure` (tuỳ chọn) cho phép thay đúng các "cổng" ngoại vi không có trong CI (vd. dịch vụ AI ECG bằng Python)
+ * bằng test double, các spec cũ không truyền thì hành vi không đổi.
+ */
+export async function createE2EApp(
+  configure?: (builder: TestingModuleBuilder) => TestingModuleBuilder,
+): Promise<INestApplication> {
+  let builder = Test.createTestingModule({ imports: [AppModule] });
+  if (configure) builder = configure(builder);
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication();
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
@@ -31,6 +39,8 @@ export function client(app: INestApplication, token?: string) {
     get: (url: string) => withAuth(request(server).get(API_PREFIX + url)),
     post: (url: string, body: object = {}) => withAuth(request(server).post(API_PREFIX + url)).send(body),
     patch: (url: string, body: object = {}) => withAuth(request(server).patch(API_PREFIX + url)).send(body),
+    /** multipart/form-data: dùng cho upload tệp (ECG, ảnh X-quang). Trả về Test để tự .field()/.attach(). */
+    multipart: (url: string) => withAuth(request(server).post(API_PREFIX + url)),
   };
 }
 

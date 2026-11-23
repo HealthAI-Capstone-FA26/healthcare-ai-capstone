@@ -1,11 +1,22 @@
 // Chạy TRƯỚC khi app được import (jest `setupFiles`).
 //
-// AN TOÀN: e2e ghi dữ liệu thật vào DB (tạo user/patient/encounter...). Vì vậy KHÔNG dùng
-// DATABASE_URL trong .env (có thể trỏ vào Neon/dev). Bắt buộc phải truyền E2E_DATABASE_URL riêng.
-const e2eDatabaseUrl = process.env.E2E_DATABASE_URL;
+// Nạp .env nằm ở thư mục gốc dự án (cùng cấp với folder `test`). Dùng đường dẫn tuyệt đối theo
+// vị trí file này (test/e2e -> ../../.env) nên chạy jest từ thư mục nào cũng tìm đúng.
+// dotenv KHÔNG ghi đè biến đã có sẵn trong shell/CI.
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+
+// Lưu lại DATABASE_URL do người chạy truyền vào shell TRƯỚC khi nạp .env.
+const shellDatabaseUrl = process.env.DATABASE_URL;
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
+// AN TOÀN: e2e ghi dữ liệu thật vào DB (tạo user/patient/encounter...). Vì vậy KHÔNG BAO GIỜ dùng
+// DATABASE_URL trong .env (có thể trỏ vào Neon/dev). DB e2e lấy từ: DATABASE_URL truyền ở shell/CI,
+// hoặc DATABASE_URL (đặt trong .env hoặc shell).
+const e2eDatabaseUrl = shellDatabaseUrl || process.env.DATABASE_URL;
 if (!e2eDatabaseUrl) {
   throw new Error(
-    'Thiếu E2E_DATABASE_URL. Ví dụ: E2E_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/hospital_e2e npm run test:e2e',
+    'Thiếu DB cho e2e. Đặt DATABASE_URL trong .env hoặc chạy: DATABASE_URL=postgresql://postgres:postgres@localhost:5432/hospital_e2e npm run test:e2e',
   );
 }
 

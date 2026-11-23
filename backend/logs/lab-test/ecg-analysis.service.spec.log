@@ -1,0 +1,23 @@
+FILE     : lab-test/ecg-analysis.service.spec.ts
+RAN AT   : 2026-11-23T07:58:58.471Z
+RESULT   : 19 passed, 0 failed, 0 skipped / 19 total (688335 ms)
+================================================================================
+#1 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - enqueue(ecgRecordingId, mode, options) UTCID01 [N]: should create a queued batch analysis with the active model, push 'queued' and emit the queued event (49 ms)
+#2 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - enqueue(ecgRecordingId, mode, options) UTCID02 [N]: should use the requested candidate model and threshold override for a reanalysis (3 ms)
+#3 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - enqueue(ecgRecordingId, mode, options) UTCID03 [A]: should throw NotFoundException when the ECG recording does not exist (207 ms)
+#4 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - enqueue(ecgRecordingId, mode, options) UTCID04 [A]: should throw BadRequestException when the recording is not 'completed' yet (2 ms)
+#5 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - enqueue(ecgRecordingId, mode, options) UTCID05 [B]: should return null without error or event when no 'active' AI model exists (manual flow is not blocked) (2 ms)
+#6 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - enqueue(ecgRecordingId, mode, options) UTCID06 [A]: should throw ConflictException when the recording already has a queued/running analysis (2 ms)
+#7 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - enqueue(ecgRecordingId, mode, options) UTCID07 [A]: should throw BadRequestException when the requested modelVersionId is not an active/candidate model (2 ms)
+#8 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - run(analysisId) - background batch inference UTCID08 [N]: should persist anomaly events, take isCurrent, push realtime and notify the doctor on high severity (24 ms)
+#9 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - run(analysisId) - background batch inference UTCID09 [N]: should complete with no anomaly events and no doctor notification when the ECG is normal (1 ms)
+#10 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - run(analysisId) - background batch inference UTCID10 [A]: should mark the analysis 'skipped' (AI_NOT_CONFIGURED) without reading the signal or throwing (2 ms)
+#11 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - run(analysisId) - background batch inference UTCID11 [A]: should mark the analysis 'failed' with no events or alerts and never throw when the AI service times out (2 ms)
+#12 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - run(analysisId) - background batch inference UTCID12 [A]: should mark the analysis 'failed' (SIGNAL_READ_FAILED) and skip the AI call when the signal file cannot be read (2 ms)
+#13 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - run(analysisId) - background batch inference UTCID13 [B]: should return immediately without running the AI when the analysis was already claimed by another worker (1 ms)
+#14 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - run(analysisId) - background batch inference UTCID14 [B]: should store the event but not notify the doctor when the highest severity is below 'high' (1 ms)
+#15 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - run(analysisId) - background batch inference UTCID15 [A]: should keep the analysis completed when the doctor notification fails (2 ms)
+#16 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - EcgAnalysisListener - background trigger UTCID16 [N]: should enqueue a 'batch' analysis when a recording completes with autoAnalyze = true (0 ms)
+#17 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - EcgAnalysisListener - background trigger UTCID17 [B]: should not enqueue anything when autoAnalyze = false (1 ms)
+#18 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - EcgAnalysisListener - background trigger UTCID18 [A]: should swallow an enqueue failure so the upload flow is never affected (0 ms)
+#19 [PASS] EcgAnalysisService / EcgAnalysisListener - Function 18 (F-11) Function 18 - EcgAnalysisListener - background trigger UTCID19 [A]: should run the queued analysis and swallow any unexpected error thrown by run() (0 ms)

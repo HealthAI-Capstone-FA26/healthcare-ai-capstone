@@ -12,14 +12,13 @@ import { CallQueueTicketDto } from './dto/call-queue-ticket.dto';
 import { ServeQueueTicketDto } from './dto/serve-queue-ticket.dto';
 
 @ApiTags('Queue Ticket')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('queue-tickets')
 export class QueueTicketController {
   constructor(private readonly queueTicketService: QueueTicketService) { }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Danh sách hàng đợi theo khoa/ngày/trạng thái, đã sắp theo thứ tự ưu tiên' })
   findMany(@Query() query: FindQueueTicketsQueryDto) {
     return this.queueTicketService.findMany(query);
@@ -35,7 +34,8 @@ export class QueueTicketController {
   }
 
   @Patch(':id/call')
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Gọi số (chỉ reception staff)' })
   call(@Param('id') id: string, @Body() dto: CallQueueTicketDto) {
@@ -43,7 +43,8 @@ export class QueueTicketController {
   }
 
   @Patch(':id/done')
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({
     summary:

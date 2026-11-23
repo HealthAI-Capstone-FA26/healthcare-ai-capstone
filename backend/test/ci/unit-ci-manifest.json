@@ -1,0 +1,25 @@
+{
+  "_comment": "Danh sách spec unit chạy trong CI. Tổng số test của các file này PHẢI bằng đúng 1/2 tổng unit test của repo (xem scripts/check-ci-ratio.js).",
+  "files": [
+    "test/appointment-registration/guest-appointment.service.spec.ts",
+    "test/appointment-registration/queue-ticket.service.spec.ts",
+    "test/ci/ci-ratio.spec.ts",
+    "test/lab-test/ecg-analysis.service.spec.ts",
+    "test/lab-test/ecg-anomaly-labeler.spec.ts",
+    "test/lab-test/ecg-dataset.catalog.spec.ts",
+    "test/lab-test/ecg-model.service.spec.ts",
+    "test/lab-test/ecg-playback.spec.ts",
+    "test/lab-test/ecg-recording.service.spec.ts",
+    "test/lab-test/ecg-response.mapper.spec.ts",
+    "test/lab-test/lab-result-detection.pipeline.spec.ts",
+    "test/lab-test/lab-task.service.spec.ts",
+    "test/lab-test/rule-based-lab.detector.spec.ts",
+    "test/lab-test/wf03-state-transition.spec.ts",
+    "test/patient/patient.integration.spec.ts",
+    "test/pre-doctor-examination/clinical-examination.service.spec.ts",
+    "test/pre-doctor-examination/doctor-encounter-access.service.spec.ts",
+    "test/reception-intake/encounter.service.spec.ts",
+    "test/vitals/vital-input.service.spec.ts",
+    "test/vitals/vital-reference-range.service.spec.ts"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "file": "lab-test/lab-result-detection.pipeline.spec.ts",
+  "ranAt": "2026-11-23T07:58:58.363Z",
+  "durationMs": 987044,
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification",
+      "name": "UTCID07 [N]: should create an active critical alert, push it in real time and notify the doctor when HGB is critical",
+      "fullName": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID07 [N]: should create an active critical alert, push it in real time and notify the doctor when HGB is critical",
+      "status": "PASS",
+      "durationMs": 1323,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification",
+      "name": "UTCID08 [N]: should raise no alert and send no notification when HGB is within the normal range",
+      "fullName": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID08 [N]: should raise no alert and send no notification when HGB is within the normal range",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification",
+      "name": "UTCID09 [A]: should raise a low alert and push it in real time but not send a critical notification",
+      "fullName": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID09 [A]: should raise a low alert and push it in real time but not send a critical notification",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification",
+      "name": "UTCID10 [B]: should be idempotent when detection re-runs and an open alert with the same risk level already exists",
+      "fullName": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID10 [B]: should be idempotent when detection re-runs and an open alert with the same risk level already exists",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification",
+      "name": "UTCID11 [N]: should resolve the open alert when a corrected result is back within the normal range",
+      "fullName": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID11 [N]: should resolve the open alert when a corrected result is back within the normal range",
+      "status": "PASS",
+      "durationMs": 71,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification",
+      "name": "UTCID12 [B]: should still create and push the alert but notify nobody when the order has no assigned doctor",
+      "fullName": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID12 [B]: should still create and push the alert but notify nobody when the order has no assigned doctor",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification",
+      "name": "UTCID13 [A]: should swallow a detection failure without pushing, and still send the completion notification",
+      "fullName": "Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID13 [A]: should swallow a detection failure without pushing, and still send the completion notification",
+      "status": "PASS",
+      "durationMs": 579,
+      "error": ""
+    }
+  ]
+}
