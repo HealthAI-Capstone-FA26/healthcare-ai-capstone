@@ -15,8 +15,20 @@ export const ecgUploadConfig = {
 export const ECG_FORMAT_EXTENSIONS: Record<string, string[]> = {
     csv: ['.csv'],
     json: ['.json'],
+    npy: ['.npy'],
     edf: ['.edf'],
     wfdb: ['.zip'],
     dicom_ecg: ['.dcm', '.dicom'],
     scp_ecg: ['.scp'],
 };
+
+/**
+ * Số lead bắt buộc của bản ghi tải lên (model AI được finetune trên 2 kênh). Env ECG_REQUIRED_LEADS; 0 = không ép.
+ * Đọc lúc gọi (không cache ở import) để test đổi được bằng process.env.
+ */
+export function getRequiredEcgLeads(env: NodeJS.ProcessEnv = process.env): number {
+    const raw = env.ECG_REQUIRED_LEADS;
+    if (raw === undefined || raw.trim() === '') return 2;
+    const n = Number(raw);
+    return Number.isInteger(n) && n >= 0 ? n : 2;
+}

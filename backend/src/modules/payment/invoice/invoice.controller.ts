@@ -48,7 +48,7 @@ export class InvoiceController {
   }
 
   @Post(':id/cancel')
-  // @RequirePermissions(`${Resource.INVOICE}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.INVOICE}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: "Huỷ hoá đơn (chỉ khi status='pending', chưa có payment success) — RECEPTIONIST/ADMIN" })
   cancel(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CancelInvoiceDto) {
     return this.invoiceService.cancel(id, dto);

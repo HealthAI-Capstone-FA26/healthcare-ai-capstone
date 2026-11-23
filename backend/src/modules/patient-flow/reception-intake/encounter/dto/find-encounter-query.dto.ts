@@ -16,4 +16,19 @@ export class FindEncountersQueryDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiPropertyOptional({ description: 'Lọc theo ngày cụ thể (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsString()
+  date?: string;
+
+  @ApiPropertyOptional({ description: 'Lọc từ ngày (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsString()
+  from?: string;
+
+  @ApiPropertyOptional({ description: 'Lọc đến ngày (YYYY-MM-DD)' })
+  @IsOptional()
+  @IsString()
+  to?: string;
 }

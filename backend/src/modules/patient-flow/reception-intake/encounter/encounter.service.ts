@@ -1,9 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Appointment, Prisma, ReceptionCheckin } from '@prisma/client';
 import { PrismaService } from '../../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../../common/utils/code-generator.util';
-import { EncounterStatus } from '../../../../common/utils/encounter-status.util';
+import { EncounterStatus, isValidEncounterTransition } from '../../../../common/utils/encounter-status.util';
 import { AppointmentStatus } from '../../../../common/utils/appointment-status.util';
+import { DoctorQueueStatus } from '../../../../common/constants/doctor-queue.constants';
+import { PatientStatus } from '../../../../common/constants/patient-status.constants';
 import { MANDATORY_CONSENT_POLICY_TYPES } from '../../../../common/constants/triage-queue.constants';
 import { RequestUser } from '../../../identity-access/auth/strategies/jwt.strategy';
 import { ConsentService } from '../consent/consent.service';
@@ -255,6 +257,13 @@ export class EncounterService {
           throw error;
         });
 
+      // Hoàn tất đăng ký -> hồ sơ bệnh nhân (draft) trở thành chính thức (main), cùng transaction
+      // với việc đưa vào triage queue. Chỉ đổi khi đang 'draft' (online đã main thì bỏ qua).
+      await tx.patient.updateMany({
+        where: { patientId: updatedEncounter.patientId, status: PatientStatus.DRAFT },
+        data: { status: PatientStatus.MAIN },
+      });
+
       const triageQueueEntry = await this.triageQueueService.enqueue(
         tx,
         updatedEncounter,
@@ -262,6 +271,96 @@ export class EncounterService {
       );
 
       return { encounter: updatedEncounter, triageQueueEntry };
+    });
+  }
+
+  /**
+   * Kết thúc lượt khám (sau khi bác sĩ đã tư vấn / kê đơn xong ở SE05-SE06):
+   * - Encounter.status: in_progress | awaiting_review -> finished (ghi finishedAt)
+   * - Appointment.status: -> completed
+   * - DoctorQueueEntry.status: waiting | called | in_progress -> done (ghi examEndedAt)
+   */
+  async finishEncounter(encounterId: string, currentUser?: RequestUser) {
+    const encounter = await this.prisma.encounter.findUnique({
+      where: { encounterId },
+      include: {
+        appointment: true,
+        doctorQueueEntry: true,
+      },
+    });
+    if (!encounter) {
+      throw new NotFoundException('Không tìm thấy lượt khám');
+    }
+
+    if (currentUser?.userId) {
+      const doctor = await this.prisma.doctor.findUnique({
+        where: { userId: currentUser.userId },
+        select: { doctorId: true },
+      });
+      if (doctor && encounter.doctorId && encounter.doctorId !== doctor.doctorId) {
+        throw new ForbiddenException('Bạn chỉ có thể kết thúc lượt khám do chính mình phụ trách');
+      }
+    }
+
+    if (!isValidEncounterTransition(encounter.status, EncounterStatus.FINISHED)) {
+      throw new BadRequestException(
+        `Không thể kết thúc lượt khám khi đang ở trạng thái '${encounter.status}' (chỉ hợp lệ khi đang '${EncounterStatus.IN_PROGRESS}' hoặc '${EncounterStatus.AWAITING_REVIEW}')`,
+      );
+    }
+
+    // Bắt buộc phải có đơn thuốc đã ký trước khi kết thúc lượt khám.
+    const signedRx = await this.prisma.prescription.count({
+      where: { encounterId, status: 'signed' },
+    });
+    if (signedRx === 0) {
+      throw new BadRequestException(
+        'Không thể kết thúc lượt khám: bắt buộc phải có đơn thuốc đã ký (prescription)',
+      );
+    }
+
+    const now = new Date();
+
+    return this.prisma.$transaction(async (tx) => {
+      const updatedEncounter = await tx.encounter
+        .update({
+          where: {
+            encounterId,
+            status: { in: [EncounterStatus.IN_PROGRESS, EncounterStatus.AWAITING_REVIEW] },
+          },
+          data: {
+            status: EncounterStatus.FINISHED,
+            finishedAt: now,
+          },
+        })
+        .catch((error) => {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+            throw new BadRequestException(
+              'Lượt khám vừa được cập nhật bởi thao tác khác (không còn ở trạng thái cho phép kết thúc)',
+            );
+          }
+          throw error;
+        });
+
+      const updatedAppointment = await tx.appointment.update({
+        where: { appointmentId: encounter.appointmentId },
+        data: { status: AppointmentStatus.COMPLETED },
+      });
+
+      const updatedDoctorQueueEntry = encounter.doctorQueueEntry
+        ? await tx.doctorQueueEntry.update({
+            where: { encounterId },
+            data: {
+              status: DoctorQueueStatus.DONE,
+              examEndedAt: now,
+            },
+          })
+        : null;
+
+      return {
+        encounter: updatedEncounter,
+        appointment: updatedAppointment,
+        doctorQueueEntry: updatedDoctorQueueEntry,
+      };
     });
   }
 
@@ -287,13 +386,40 @@ export class EncounterService {
     return encounter;
   }
 
-  // GET /encounters?patientId=&doctorId=&status= — tra cứu lịch sử lượt khám của 1 bệnh nhân, hoặc lọc
-  // theo trạng thái / bác sĩ cho màn hình vận hành của lễ tân / bác sĩ.
+  // GET /encounters?patientId=&doctorId=&status=&date=&from=&to= — tra cứu lịch sử lượt khám của 1 bệnh nhân, hoặc lọc
+  // theo trạng thái / bác sĩ / ngày cho màn hình vận hành của lễ tân / bác sĩ.
   async findMany(query: FindEncountersQueryDto) {
+    let arrivedAtFilter: Prisma.DateTimeFilter | undefined;
+
+    if (query.date) {
+      const start = new Date(`${query.date}T00:00:00.000Z`);
+      const end = new Date(`${query.date}T23:59:59.999Z`);
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        arrivedAtFilter = {
+          gte: start,
+          lte: end,
+        };
+      }
+    } else if (query.from || query.to) {
+      const filter: Prisma.DateTimeFilter = {};
+      if (query.from) {
+        const start = new Date(`${query.from}T00:00:00.000Z`);
+        if (!isNaN(start.getTime())) filter.gte = start;
+      }
+      if (query.to) {
+        const end = new Date(`${query.to}T23:59:59.999Z`);
+        if (!isNaN(end.getTime())) filter.lte = end;
+      }
+      if (Object.keys(filter).length > 0) {
+        arrivedAtFilter = filter;
+      }
+    }
+
     const where: Prisma.EncounterWhereInput = {
       ...(query.patientId && { patientId: query.patientId }),
       ...(query.doctorId && { doctorId: query.doctorId }),
       ...(query.status && { status: query.status }),
+      ...(arrivedAtFilter && { arrivedAt: arrivedAtFilter }),
     };
 
     return this.prisma.encounter.findMany({

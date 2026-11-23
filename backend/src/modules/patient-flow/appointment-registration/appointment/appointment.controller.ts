@@ -36,7 +36,7 @@ export class AppointmentController {
 
   @Post('sync-patient')
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({
     summary:
       'Lễ tân đối chiếu CCCD/CMND tại quầy cho case "matched" (appointment có suggestedPatientId, patientId=null)',
@@ -81,7 +81,7 @@ export class AppointmentController {
   // Nhóm transition thuộc bác sĩ khi khám: appointment:update:own (chỉ trên lịch hẹn của chính mình)
   @Patch(':id/start')
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.OWN}`)
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Bác sĩ bắt đầu khám (checked_in -> in_progress)' })
   start(@Param('id') id: string) {
     return this.appointmentService.start(id);
@@ -97,7 +97,7 @@ export class AppointmentController {
 
   @Patch(':id/cancel')
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  // @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
   @ApiOperation({ summary: 'Huỷ lịch hẹn (chỉ cho phép từ pending/confirmed)' })
   cancel(
     @Param('id') id: string,

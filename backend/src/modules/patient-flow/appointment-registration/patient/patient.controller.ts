@@ -31,7 +31,7 @@ export class PatientController {
   }
 
   @Get()
-  // @RequirePermissions(`${Resource.PATIENT}:${Action.READ}:${Scope.GROUP}`)
+  @RequirePermissions(`${Resource.PATIENT}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Tìm kiếm bệnh nhân theo tên/CCCD/mã bệnh nhân (lễ tân/admin)' })
   search(@Query() query: SearchPatientDto) {
     return this.patientService.search(query);
@@ -59,7 +59,7 @@ export class PatientController {
   }
 
   @Get(':id')
-  // @RequirePermissions(`${Resource.PATIENT}:${Action.READ}:${Scope.OWN}`)
+  @RequirePermissions(`${Resource.PATIENT}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Xem chi tiết hồ sơ bệnh nhân' })
   findOne(@Param('id') id: string) {
     return this.patientService.findById(id);
@@ -75,14 +75,14 @@ export class PatientController {
   }
 
   @Patch(':id')
-  // @RequirePermissions(`${Resource.PATIENT}:${Action.UPDATE}:${Scope.GROUP}`)
+  @RequirePermissions(`${Resource.PATIENT}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Cập nhật hồ sơ bệnh nhân (lễ tân/admin)' })
   update(@Param('id') id: string, @Body() dto: UpdatePatientDto, @CurrentUser() user: RequestUser) {
     return this.patientService.update(id, dto, user);
   }
 
   @Patch(':id/confirm-main')
-  // @RequirePermissions(`${Resource.PATIENT}:${Action.UPDATE}:${Scope.GROUP}`)
+  @RequirePermissions(`${Resource.PATIENT}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({
     summary:
       'Lễ tân xác nhận danh tính bệnh nhân (thường là hồ sơ guest status=draft tạo từ đặt lịch OTP) -> chuyển status=main, không còn bị cronjob dọn dẹp',

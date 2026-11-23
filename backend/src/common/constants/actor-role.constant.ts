@@ -55,12 +55,12 @@ export function roleCodesOfActorRole(actorRole: string): string[] {
     return Array.from(new Set(codes));
 }
 
-/** roleCode "chính" (viết thường theo schema v2) của 1 ActorRole để tìm/gán Role. */
+/** roleCode "chính" của 1 ActorRole để tìm/gán Role trong hệ thống (gán trực tiếp từ hằng số ACTOR_ROLE). */
 export const PRIMARY_ROLE_CODE: Record<ActorRole, string> = {
-    PATIENT: 'patient',
-    RECEPTIONIST: 'receptionist',
-    NURSE: 'nurse',
-    DOCTOR: 'cardiologist',
-    LAB_STAFF: 'diagnostic_tech',
-    ADMIN: 'admin',
+    PATIENT: ACTOR_ROLE.PATIENT,
+    RECEPTIONIST: ACTOR_ROLE.RECEPTIONIST,
+    NURSE: ACTOR_ROLE.NURSE,
+    DOCTOR: ACTOR_ROLE.DOCTOR,
+    LAB_STAFF: ACTOR_ROLE.LAB_STAFF,
+    ADMIN: ACTOR_ROLE.ADMIN,
 };

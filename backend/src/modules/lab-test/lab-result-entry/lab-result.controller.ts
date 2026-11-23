@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
     ApiBadRequestResponse,
@@ -199,5 +199,18 @@ export class LabResultController {
     @ApiForbiddenResponse({ description: 'Người gọi không phải LAB_STAFF hoặc DOCTOR.' })
     async attachmentAccessUrl(@Param('attachmentId') attachmentId: string, @CurrentUser('userId') actingUserId: string) {
         return this.labResultService.getAttachmentAccessUrl(attachmentId, actingUserId);
+    }
+
+    @Delete('lab-attachments/:attachmentId')
+    @ApiOperation({
+        summary: 'Xoá 1 tệp đính kèm của kết quả xét nghiệm',
+        description: 'Chỉ LAB_STAFF. Cho phép xoá tệp tải nhầm để thay thế bằng tệp mới.',
+    })
+    @ApiParam({ name: 'attachmentId', format: 'uuid' })
+    @ApiOkResponse({ description: 'Đã xoá tệp đính kèm.' })
+    @ApiNotFoundResponse({ description: 'Không tìm thấy tệp đính kèm.' })
+    @ApiForbiddenResponse({ description: 'Người gọi không phải LAB_STAFF.' })
+    async deleteAttachment(@Param('attachmentId') attachmentId: string, @CurrentUser('userId') actingUserId: string) {
+        return this.labResultService.deleteAttachment(attachmentId, actingUserId);
     }
 }

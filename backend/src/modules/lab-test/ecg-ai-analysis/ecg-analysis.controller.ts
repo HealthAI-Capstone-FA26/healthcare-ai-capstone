@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { EcgAnalysisService } from './ecg-analysis.service';
 import { EcgAnomalyEventService } from './ecg-anomaly-event.service';
+import { EcgModelService } from './ecg-model.service';
 import { ReanalyzeEcgDto } from './dto/reanalyze-ecg.dto';
 import { ReviewEcgEventDto } from './dto/review-ecg-event.dto';
 import { ListEcgEventsQueryDto } from './dto/list-ecg-events-query.dto';
@@ -30,7 +31,19 @@ export class EcgAnalysisController {
     constructor(
         private readonly analysisService: EcgAnalysisService,
         private readonly eventService: EcgAnomalyEventService,
-    ) {}
+        private readonly modelService: EcgModelService,
+    ) { }
+
+    @Get('ecg-ai-models')
+    @ApiOperation({
+        summary: 'Danh sách model AI ECG có thể chọn khi chạy lại phân tích',
+        description: "LAB_STAFF/DOCTOR/ADMIN. Trả model 'active' + 'candidate' (ecg_anomaly_detection); `isDefault` = model sẽ dùng nếu bỏ trống modelVersionId.",
+    })
+    @ApiOkResponse({ description: 'Danh sách model (mới triển khai trước).' })
+    @ApiForbiddenResponse({ description: 'Không phải LAB_STAFF/DOCTOR/ADMIN.' })
+    async models(@CurrentUser('userId') userId: string) {
+        return this.modelService.listSelectable(userId);
+    }
 
     @Get('ecg-recordings/:id/analyses')
     @ApiOperation({ summary: 'Mọi lần phân tích AI của 1 bản ghi ECG (mới nhất trước), kèm sự kiện bất thường' })

@@ -10,7 +10,7 @@ export class FindServicesQueryDto {
     @IsIn(SERVICE_MODALITIES)
     modality?: ServiceModality;
 
-    @ApiPropertyOptional({ description: 'Nhóm dịch vụ, VD: cardiac_biomarker | lipid_profile | resting_ecg | tte | chest_xray' })
+    @ApiPropertyOptional({ description: 'Nhóm dịch vụ, VD: full_blood_panel | resting_ecg | tte | chest_xray' })
     @IsOptional()
     @IsString()
     @MaxLength(50)

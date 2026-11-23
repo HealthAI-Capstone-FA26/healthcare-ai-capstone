@@ -9,7 +9,7 @@ import { EncounterDoctorRoutingService } from './encounter-doctor-routing.servic
 
 @ApiTags('Encounter')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('encounters')
 export class EncounterController {
   constructor(
@@ -65,5 +65,16 @@ export class EncounterController {
     @CurrentUser('userId') currentUserId: string,
   ): Promise<any> {
     return this.encounterDoctorRoutingService.routeToDoctor(id, currentUserId);
+  }
+
+  @Post(':id/finish')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary:
+      'Kết thúc lượt khám sau khi tư vấn / kê đơn: chuyển Encounter sang finished, Appointment sang completed và DoctorQueueEntry sang done',
+  })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  finish(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+    return this.encounterService.finishEncounter(id, user);
   }
 }

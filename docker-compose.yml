@@ -1,4 +1,3 @@
-version: "3.8"
 
 services:
   backend:
@@ -12,47 +11,36 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
-      - postgres-hospital
       - rabbitmq
       - redis
       - minio
+      - ecg-ai
 
-  postgres:
-    image: pgvector/pgvector:pg15
-    container_name: healthcare_postgres
-    restart: always
+  # ECG AI Service
+  ecg-ai:
+    build:
+      context: ${ECG_AI_CONTEXT:-./TSAD_PTBXL}
+      dockerfile: Dockerfile.service
+    container_name: healthcare_ecg_ai
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgresadmin
-      POSTGRES_PASSWORD: "12345678"
-      POSTGRES_DB: healthcare_db
-    ports:
-      - "5432:5432"
+      ECG_BUNDLE_PATH: /app/checkpoints/ECG_wsize100_deploy.pt
+      ECG_AI_API_KEY: ${ECG_AI_API_KEY:-}
+      ECG_AI_DEVICE: cpu
+      ECG_AI_SEVERITY: high
+      ECG_AI_MERGE_GAP_STEPS: "0"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  postgres-hospital:
-    image: pgvector/pgvector:pg15 # <--- ĐỔI THÀNH IMAGE NÀY
-    container_name: healthcare_hospital_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: hospitaladmin
-      POSTGRES_PASSWORD: "12345678"
-      POSTGRES_DB: hospital_db
+      - ./TSAD_PTBXL/checkpoints:/app/checkpoints:ro
     ports:
-      - "5433:5432"
-    volumes:
-      - hospital_postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/postgres-hospital/init-hospital.sql:/docker-entrypoint-initdb.d/init.sql
+      - "8000:8000"
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: healthcare_rabbitmq
     restart: always
     ports:
-      - "5672:5672" # service communication port
-      - "15672:15672" # UI communication port
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmqadmin
       RABBITMQ_DEFAULT_PASS: "12345678"
@@ -69,13 +57,14 @@ services:
     volumes:
       - redis_data:/data
 
+  # S3-compatible storage (Silo)
   minio:
-    image: minio/minio
+    image: pgsty/silo:RELEASE.2026-11-12T00-00-00Z
     container_name: healthcare_minio
     restart: always
     ports:
-      - "9000:9000" # service communication port
-      - "9001:9001" # UI communication port
+      - "9000:9000"
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: "12345678"
@@ -83,8 +72,9 @@ services:
     volumes:
       - minio_data:/data
 
+  # Initialize S3 buckets
   minio-init:
-    image: minio/mc
+    image: pgsty/mc:RELEASE.2026-11-12T00-00-00Z
     container_name: healthcare_minio_init
     depends_on:
       - minio
@@ -93,7 +83,5 @@ services:
     entrypoint: /bin/sh /create-buckets.sh
 
 volumes:
-  postgres_data:
-  hospital_postgres_data:
   minio_data:
   redis_data:

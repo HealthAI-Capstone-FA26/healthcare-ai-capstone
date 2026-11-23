@@ -2,6 +2,7 @@ import {
     ECG_OVERALL_RESULTS,
     ECG_SEVERITIES,
     EcgAiError,
+    MAX_SCORE_SERIES_POINTS,
     EcgAnalyzeInput,
     EcgAnalyzeMetadata,
     EcgAnalyzeResult,
@@ -36,7 +37,7 @@ const MAX_ERROR_BODY_CHARS = 300;
  *   AI_NOT_CONFIGURED (skip) · AI_TIMEOUT · AI_UNAVAILABLE · AI_HTTP_<status> · AI_INVALID_RESPONSE
  */
 export class HttpEcgAnomalyProvider implements EcgAnomalyProvider {
-    constructor(private readonly config: HttpEcgProviderConfig) {}
+    constructor(private readonly config: HttpEcgProviderConfig) { }
 
     isConfigured(): boolean {
         return !!this.config.baseUrl;
@@ -127,6 +128,16 @@ function nullableObject(obj: Record<string, unknown>, key: string): Record<strin
     return v as Record<string, unknown>;
 }
 
+/** scoreSeries tuỳ chọn: bỏ qua phần tử sai định dạng; lấy mẫu đều nếu quá nhiều điểm. Không bao giờ làm hỏng cả kết quả. */
+function parseScoreSeries(raw: Record<string, unknown>): { tMs: number; score: number }[] | null {
+    const v = raw.scoreSeries;
+    if (!Array.isArray(v)) return null;
+    const points = v.flatMap((p) => (isObj(p) && num(p.tMs) && p.tMs >= 0 && num(p.score) && p.score >= 0 && p.score <= 1 ? [{ tMs: Math.round(p.tMs), score: p.score }] : []));
+    if (points.length <= MAX_SCORE_SERIES_POINTS) return points.length ? points : null;
+    const step = points.length / MAX_SCORE_SERIES_POINTS;
+    return Array.from({ length: MAX_SCORE_SERIES_POINTS }, (_, i) => points[Math.floor(i * step)]);
+}
+
 export function parseAnalyzeResult(raw: unknown): EcgAnalyzeResult {
     if (!isObj(raw)) return invalid('gốc phải là object');
 
@@ -176,5 +187,6 @@ export function parseAnalyzeResult(raw: unknown): EcgAnalyzeResult {
         summaryMetrics: nullableObject(raw, 'summaryMetrics'),
         inferenceLatencyMs: nullableInt(raw, 'inferenceLatencyMs', 0, 3_600_000),
         anomalies,
+        scoreSeries: parseScoreSeries(raw),
     };
 }
