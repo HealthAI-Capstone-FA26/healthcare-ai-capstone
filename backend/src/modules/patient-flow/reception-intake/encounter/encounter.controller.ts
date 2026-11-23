@@ -99,8 +99,11 @@ export class EncounterController {
   @ApiParam({ name: 'id', format: 'uuid' })
   async finish(@Param('id') id: string, @CurrentUser() user: RequestUser) {
     const result = await this.encounterService.finishEncounter(id, user);
-    // Gửi PDF thông tin lượt khám qua Zalo (best-effort, không làm hỏng việc kết thúc lượt khám).
-    const pdfDelivery = await this.encounterPdfService.sendViaZalo(id, result.encounter.patientId);
-    return { ...result, pdfDelivery };
+    // Gửi PDF thông tin lượt khám qua Zalo và email hướng dẫn đăng ký tài khoản nếu chưa liên kết (best-effort).
+    const [pdfDelivery, portalGuideEmail] = await Promise.all([
+      this.encounterPdfService.sendViaZalo(id, result.encounter.patientId),
+      this.encounterService.sendPortalGuideEmailIfUnlinked(result.encounter.patientId),
+    ]);
+    return { ...result, pdfDelivery, portalGuideEmail };
   }
 }

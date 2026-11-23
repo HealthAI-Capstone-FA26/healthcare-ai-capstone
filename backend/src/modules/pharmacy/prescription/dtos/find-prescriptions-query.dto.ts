@@ -12,6 +12,11 @@ export class FindPrescriptionsQueryDto {
     @IsUUID()
     doctorId?: string;
 
+    @ApiPropertyOptional({ description: 'ID bệnh nhân', format: 'uuid' })
+    @IsOptional()
+    @IsUUID()
+    patientId?: string;
+
     @ApiPropertyOptional({ description: 'Trạng thái đơn thuốc: draft | signed | cancelled' })
     @IsOptional()
     @IsString()

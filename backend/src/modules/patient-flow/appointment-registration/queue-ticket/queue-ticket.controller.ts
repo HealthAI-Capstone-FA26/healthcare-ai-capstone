@@ -18,13 +18,13 @@ export class QueueTicketController {
 
   @Get()
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Danh sách hàng đợi theo khoa/ngày/trạng thái, đã sắp theo thứ tự ưu tiên' })
   findMany(@Query() query: FindQueueTicketsQueryDto) {
     return this.queueTicketService.findMany(query);
   }
 
-  // [MỚI] Bước 1 luồng at-hospital: bốc số trước, chưa cần thông tin bệnh nhân / appointment.
+  // [MỚI] Bước 1 luồng at-hospital: bốc số trước tại Kiosk public, chưa cần thông tin bệnh nhân / appointment.
   @Post('at-hospital')
   @ApiOperation({
     summary: 'Bốc số at-hospital (prefix B): chỉ đưa vào hàng đợi, chưa tạo patient/appointment/encounter',
