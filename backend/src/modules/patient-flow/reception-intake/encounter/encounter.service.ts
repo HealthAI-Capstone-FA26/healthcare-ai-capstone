@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { Appointment, Prisma, ReceptionCheckin } from '@prisma/client';
 import { PrismaService } from '../../../../../prisma/prisma.service';
 import { generateUniqueCode } from '../../../../common/utils/code-generator.util';
@@ -8,6 +8,7 @@ import { DoctorQueueStatus } from '../../../../common/constants/doctor-queue.con
 import { PatientStatus } from '../../../../common/constants/patient-status.constants';
 import { MANDATORY_CONSENT_POLICY_TYPES } from '../../../../common/constants/triage-queue.constants';
 import { RequestUser } from '../../../identity-access/auth/strategies/jwt.strategy';
+import { MailService } from '../../../platform/mail/mail.service';
 import { ConsentService } from '../consent/consent.service';
 import { TriageQueueService } from '../triage-queue/triage-queue.service';
 import { FindEncountersQueryDto } from './dto/find-encounter-query.dto';
@@ -16,10 +17,13 @@ const ENCOUNTER_CODE_PREFIX = 'LK'; // "Lượt Khám" — theo cùng quy ước
 
 @Injectable()
 export class EncounterService {
+  private readonly logger = new Logger(EncounterService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly consentService: ConsentService,
     private readonly triageQueueService: TriageQueueService,
+    @Optional() private readonly mailService?: MailService,
   ) { }
 
   private generateEncounterCode(): Promise<string> {
@@ -362,6 +366,38 @@ export class EncounterService {
         doctorQueueEntry: updatedDoctorQueueEntry,
       };
     });
+  }
+
+  /**
+   * Gửi email hướng dẫn đăng ký tài khoản & liên kết hồ sơ cho bệnh nhân chưa có tài khoản web
+   * (best-effort: không bao giờ throw để không ảnh hưởng luồng kết thúc lượt khám).
+   */
+  async sendPortalGuideEmailIfUnlinked(patientId: string): Promise<{ sent: boolean; reason?: string }> {
+    try {
+      if (!this.mailService) {
+        return { sent: false, reason: 'MAIL_SERVICE_UNAVAILABLE' };
+      }
+      const patient = await this.prisma.patient.findUnique({
+        where: { patientId },
+        select: { email: true, userId: true },
+      });
+      if (!patient) {
+        return { sent: false, reason: 'PATIENT_NOT_FOUND' };
+      }
+      if (patient.userId) {
+        return { sent: false, reason: 'ALREADY_LINKED' };
+      }
+      const email = patient.email?.trim();
+      if (!email) {
+        return { sent: false, reason: 'NO_EMAIL' };
+      }
+
+      await this.mailService.sendPatientPortalGuideMail(email);
+      return { sent: true };
+    } catch (err) {
+      this.logger.warn(`Gửi email hướng dẫn cổng bệnh nhân thất bại (patientId=${patientId}): ${err}`);
+      return { sent: false, reason: err instanceof Error ? err.message : 'UNKNOWN_ERROR' };
+    }
   }
 
   async findById(encounterId: string) {

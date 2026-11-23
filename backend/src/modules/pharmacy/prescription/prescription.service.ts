@@ -191,6 +191,39 @@ export class PrescriptionService {
         return this.findById(prescriptionId);
     }
 
+    // POST /prescriptions/:id/sign — bác sĩ kê đơn ký xác nhận (draft -> signed)
+    async sign(prescriptionId: string, currentUser: RequestUser) {
+        const doctor = await this.resolveCurrentDoctor(currentUser);
+        const prescription = await this.prisma.prescription.findUnique({
+            where: { prescriptionId },
+            include: { _count: { select: { items: true } } },
+        });
+
+        if (!prescription) {
+            throw new NotFoundException('Không tìm thấy đơn thuốc');
+        }
+        if (prescription.doctorId !== doctor.doctorId) {
+            throw new ForbiddenException('Bạn chỉ có thể ký đơn thuốc do chính mình kê');
+        }
+        if (prescription.status !== 'draft') {
+            throw new BadRequestException(
+                `Đơn thuốc đang ở trạng thái "${prescription.status}", chỉ có thể ký khi còn ở trạng thái nháp (draft)`,
+            );
+        }
+        if (prescription._count.items === 0) {
+            throw new BadRequestException('Đơn thuốc chưa có thuốc nào, không thể ký');
+        }
+
+        return this.prisma.prescription.update({
+            where: { prescriptionId },
+            data: {
+                status: 'signed',
+                signedAt: new Date(),
+            },
+            include: PRESCRIPTION_INCLUDE,
+        });
+    }
+
     // POST /prescriptions/:id/cancel
     async cancel(prescriptionId: string, currentUser: RequestUser) {
         const doctor = await this.resolveCurrentDoctor(currentUser);

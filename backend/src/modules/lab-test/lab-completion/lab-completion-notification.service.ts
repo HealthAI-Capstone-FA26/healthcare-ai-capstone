@@ -3,6 +3,7 @@ import { PrismaService } from '../../../../prisma/prisma.service';
 import { EncounterStatus } from '../../../common/utils/encounter-status.util';
 import { NotificationDispatcherService } from '../notification/notification-dispatcher.service';
 import { NotificationChannel } from '../notification/notification-channel.interface';
+import { LabResultZaloDeliveryService } from './lab-result-zalo-delivery.service';
 
 /** Kênh gửi cho bác sĩ / bệnh nhân khi hoàn tất (D4: sms & zalo_oa chỉ ghi 'queued' cho worker SE07). */
 const DOCTOR_CHANNELS: NotificationChannel[] = ['in_app'];
@@ -23,6 +24,7 @@ export class LabCompletionNotificationService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly dispatcher: NotificationDispatcherService,
+        private readonly zaloDelivery: LabResultZaloDeliveryService,
     ) {}
 
     async notifyForResult(resultId: string): Promise<void> {
@@ -75,6 +77,9 @@ export class LabCompletionNotificationService {
             { ...base, recipient: { patientId: encounter.patient.patientId, email: encounter.patient.email ?? undefined } },
             PATIENT_CHANNELS,
         );
+
+        // Gửi kèm tài liệu kết quả (PDF máu, PDF ECG, ảnh X-quang/siêu âm) qua Zalo — best-effort, không throw
+        await this.zaloDelivery.sendResultsForEncounter(encounterId);
 
         this.logger.log(`Đã gửi thông báo hoàn tất cận lâm sàng cho encounter ${encounterId} (${totalTests} chỉ định).`);
     }

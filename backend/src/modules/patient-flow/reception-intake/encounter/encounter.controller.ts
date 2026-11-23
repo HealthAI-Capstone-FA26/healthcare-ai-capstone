@@ -1,9 +1,11 @@
-import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, StreamableFile, UseGuards } from '@nestjs/common';
+import { SendEncounterPdfZaloDto } from './dto/send-encounter-pdf-zalo.dto';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator';
 import { RequestUser } from '../../../identity-access/auth/strategies/jwt.strategy';
 import { EncounterService } from './encounter.service';
+import { EncounterPdfService } from './encounter-pdf.service';
 import { FindEncountersQueryDto } from './dto/find-encounter-query.dto';
 import { EncounterDoctorRoutingService } from './encounter-doctor-routing.service';
 
@@ -14,6 +16,7 @@ import { EncounterDoctorRoutingService } from './encounter-doctor-routing.servic
 export class EncounterController {
   constructor(
     private readonly encounterService: EncounterService,
+    private readonly encounterPdfService: EncounterPdfService,
     private readonly encounterDoctorRoutingService: EncounterDoctorRoutingService,
   ) { }
 
@@ -29,6 +32,26 @@ export class EncounterController {
   })
   findById(@Param('id') id: string) {
     return this.encounterService.findById(id);
+  }
+
+  @Get(':id/export-pdf')
+  @ApiOperation({ summary: 'Xuất PDF thông tin lượt khám (bệnh nhân, bác sĩ, lý do khám, sinh hiệu)' })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  async exportPdf(@Param('id') id: string): Promise<StreamableFile> {
+    const { buffer, filename } = await this.encounterPdfService.generate(id);
+    return new StreamableFile(buffer, {
+      type: 'application/pdf',
+      disposition: `attachment; filename="${filename}"`,
+    });
+  }
+
+  @Post(':id/send-pdf-zalo')
+  @ApiOperation({
+    summary: '[TEST] Xuất PDF lượt khám và gửi qua Zalo OA (không cần complete-registration); trả lỗi chi tiết nếu thất bại',
+  })
+  @ApiParam({ name: 'id', format: 'uuid' })
+  sendPdfZalo(@Param('id') id: string, @Body() dto: SendEncounterPdfZaloDto) {
+    return this.encounterPdfService.sendToZaloForTest(id, dto?.zaloUserId);
   }
 
   @Post(':id/complete-registration')
@@ -71,10 +94,16 @@ export class EncounterController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary:
-      'Kết thúc lượt khám sau khi tư vấn / kê đơn: chuyển Encounter sang finished, Appointment sang completed và DoctorQueueEntry sang done',
+      'Kết thúc lượt khám sau khi tư vấn / kê đơn: chuyển Encounter sang finished, Appointment sang completed, DoctorQueueEntry sang done và gửi PDF lượt khám qua Zalo',
   })
   @ApiParam({ name: 'id', format: 'uuid' })
-  finish(@Param('id') id: string, @CurrentUser() user: RequestUser) {
-    return this.encounterService.finishEncounter(id, user);
+  async finish(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+    const result = await this.encounterService.finishEncounter(id, user);
+    // Gửi PDF thông tin lượt khám qua Zalo và email hướng dẫn đăng ký tài khoản nếu chưa liên kết (best-effort).
+    const [pdfDelivery, portalGuideEmail] = await Promise.all([
+      this.encounterPdfService.sendViaZalo(id, result.encounter.patientId),
+      this.encounterService.sendPortalGuideEmailIfUnlinked(result.encounter.patientId),
+    ]);
+    return { ...result, pdfDelivery, portalGuideEmail };
   }
 }
