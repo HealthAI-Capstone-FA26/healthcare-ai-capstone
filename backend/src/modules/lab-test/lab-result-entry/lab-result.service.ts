@@ -498,6 +498,20 @@ export class LabResultService {
         return this.withAccessUrl(row);
     }
 
+    /** Xoá 1 tệp đính kèm (để KTV thay thế tệp tải nhầm). Chỉ LAB_STAFF. */
+    async deleteAttachment(attachmentId: string, actingUserId: string) {
+        await this.actorRoleService.assertActorRole(actingUserId, [ACTOR_ROLE.LAB_STAFF]);
+
+        const row = await this.prisma.diagnosticResultAttachment.findUnique({ where: { attachmentId } });
+        if (!row) {
+            throw new NotFoundException(`Không tìm thấy tệp đính kèm ${attachmentId}`);
+        }
+
+        await this.prisma.diagnosticResultAttachment.delete({ where: { attachmentId } });
+        this.logger.log(`User ${actingUserId} đã xoá tệp đính kèm ${attachmentId} (kết quả ${row.resultId})`);
+        return { deleted: true, attachmentId, resultId: row.resultId };
+    }
+
     private async withAccessUrl<T extends { fileUrl: string }>(row: T) {
         const external = isExternalUrl(row.fileUrl);
         return {
