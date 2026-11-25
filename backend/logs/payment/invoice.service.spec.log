@@ -1,15 +1,15 @@
 FILE     : payment/invoice.service.spec.ts
-RAN AT   : 2026-11-25T13:52:26.104Z
-RESULT   : 11 passed, 0 failed, 0 skipped / 11 total (9751 ms)
+RAN AT   : 2026-11-25T15:57:11.999Z
+RESULT   : 11 passed, 0 failed, 0 skipped / 11 total (1308 ms)
 ================================================================================
-#1 [PASS] InvoiceService (F-08 Invoice Management) generate ném BadRequestException nếu thiếu cả encounterId và appointmentId (16 ms)
-#2 [PASS] InvoiceService (F-08 Invoice Management) generate ném BadRequestException nếu truyền đồng thời cả encounterId và appointmentId (3 ms)
-#3 [PASS] InvoiceService (F-08 Invoice Management) generate ném NotFoundException khi không tìm thấy encounter (3 ms)
+#1 [PASS] InvoiceService (F-08 Invoice Management) generate ném BadRequestException nếu thiếu cả encounterId và appointmentId (14 ms)
+#2 [PASS] InvoiceService (F-08 Invoice Management) generate ném BadRequestException nếu truyền đồng thời cả encounterId và appointmentId (2 ms)
+#3 [PASS] InvoiceService (F-08 Invoice Management) generate ném NotFoundException khi không tìm thấy encounter (1 ms)
 #4 [PASS] InvoiceService (F-08 Invoice Management) generate ném BadRequestException khi không có mục chi phí mới để lập hoá đơn (2 ms)
-#5 [PASS] InvoiceService (F-08 Invoice Management) generate lập hoá đơn gồm phí khám + dịch vụ CLS, tính tổng sau giảm giá và gửi thông báo (4 ms)
-#6 [PASS] InvoiceService (F-08 Invoice Management) findById ném NotFoundException khi không tìm thấy hoá đơn (3 ms)
-#7 [PASS] InvoiceService (F-08 Invoice Management) cancel ném BadRequestException nếu hoá đơn không ở trạng thái pending (3 ms)
+#5 [PASS] InvoiceService (F-08 Invoice Management) generate lập hoá đơn gồm phí khám + dịch vụ CLS, tính tổng sau giảm giá và gửi thông báo (3 ms)
+#6 [PASS] InvoiceService (F-08 Invoice Management) findById ném NotFoundException khi không tìm thấy hoá đơn (1 ms)
+#7 [PASS] InvoiceService (F-08 Invoice Management) cancel ném BadRequestException nếu hoá đơn không ở trạng thái pending (1 ms)
 #8 [PASS] InvoiceService (F-08 Invoice Management) cancel ném BadRequestException nếu hoá đơn đã có giao dịch success (2 ms)
-#9 [PASS] InvoiceService (F-08 Invoice Management) cancel huỷ hoá đơn pending và giải phóng các dòng CLS để có thể lập lại hoá đơn (2 ms)
+#9 [PASS] InvoiceService (F-08 Invoice Management) cancel huỷ hoá đơn pending và giải phóng các dòng CLS để có thể lập lại hoá đơn (14 ms)
 #10 [PASS] InvoiceService (F-08 Invoice Management) markPaidIfSettled không chuyển paid nếu tổng tiền đã thu chưa đủ (2 ms)
-#11 [PASS] InvoiceService (F-08 Invoice Management) markPaidIfSettled chuyển paid atomically, verify LabTask cho CLS, sinh PDF và phát event invoice.paid (11 ms)
+#11 [PASS] InvoiceService (F-08 Invoice Management) markPaidIfSettled chuyển paid atomically, verify LabTask cho CLS, sinh PDF và phát event invoice.paid (3 ms)

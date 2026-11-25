@@ -1,9 +1,9 @@
 {
   "file": "payment/payment.service.spec.ts",
-  "ranAt": "2026-11-25T13:52:10.619Z",
-  "durationMs": 19895,
-  "total": 14,
-  "passed": 14,
+  "ranAt": "2026-11-25T15:56:48.662Z",
+  "durationMs": 22191,
+  "total": 15,
+  "passed": 15,
   "failed": 0,
   "skipped": 0,
   "suiteError": "",
@@ -14,7 +14,7 @@
       "name": "tạo giao dịch tiền mặt pending khi hoá đơn pending và khớp số tiền còn thiếu",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) createCashPayment tạo giao dịch tiền mặt pending khi hoá đơn pending và khớp số tiền còn thiếu",
       "status": "PASS",
-      "durationMs": 8,
+      "durationMs": 10,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "ném BadRequestException khi hoá đơn không ở trạng thái pending",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) createCashPayment ném BadRequestException khi hoá đơn không ở trạng thái pending",
       "status": "PASS",
-      "durationMs": 12,
+      "durationMs": 44,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "ném BadRequestException khi số tiền không khớp phần còn thiếu",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) createCashPayment ném BadRequestException khi số tiền không khớp phần còn thiếu",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "ném ForbiddenException nếu giao dịch không phải tiền mặt (cash)",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) confirmCashPayment ném ForbiddenException nếu giao dịch không phải tiền mặt (cash)",
       "status": "PASS",
-      "durationMs": 10,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "RECEPTIONIST tạo link PayOS thành công và lưu PaymentGatewayTransaction",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) createBankTransferPayment RECEPTIONIST tạo link PayOS thành công và lưu PaymentGatewayTransaction",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -92,6 +92,15 @@
     {
       "no": 10,
       "suite": "PaymentService (F-08 Cash & PayOS Payment) > createBankTransferPayment",
+      "name": "ném BadRequestException khi hoá đơn đã thanh toán đủ (remaining <= 0)",
+      "fullName": "PaymentService (F-08 Cash & PayOS Payment) createBankTransferPayment ném BadRequestException khi hoá đơn đã thanh toán đủ (remaining <= 0)",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 11,
+      "suite": "PaymentService (F-08 Cash & PayOS Payment) > createBankTransferPayment",
       "name": "đánh dấu Payment failed nếu gọi PayOS tạo link thất bại",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) createBankTransferPayment đánh dấu Payment failed nếu gọi PayOS tạo link thất bại",
       "status": "PASS",
@@ -99,7 +108,7 @@
       "error": ""
     },
     {
-      "no": 11,
+      "no": 12,
       "suite": "PaymentService (F-08 Cash & PayOS Payment) > handlePayOsWebhook",
       "name": "ném BadRequestException khi chữ ký PayOS không hợp lệ",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) handlePayOsWebhook ném BadRequestException khi chữ ký PayOS không hợp lệ",
@@ -108,7 +117,7 @@
       "error": ""
     },
     {
-      "no": 12,
+      "no": 13,
       "suite": "PaymentService (F-08 Cash & PayOS Payment) > handlePayOsWebhook",
       "name": "trả { received: true } khi chữ ký hợp lệ nhưng không khớp transaction nào",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) handlePayOsWebhook trả { received: true } khi chữ ký hợp lệ nhưng không khớp transaction nào",
@@ -117,21 +126,21 @@
       "error": ""
     },
     {
-      "no": 13,
+      "no": 14,
       "suite": "PaymentService (F-08 Cash & PayOS Payment) > handlePayOsWebhook",
       "name": "cập nhật payment success và gọi markPaidIfSettled khi webhook thành công (code 00)",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) handlePayOsWebhook cập nhật payment success và gọi markPaidIfSettled khi webhook thành công (code 00)",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 1,
       "error": ""
     },
     {
-      "no": 14,
+      "no": 15,
       "suite": "PaymentService (F-08 Cash & PayOS Payment) > handlePayOsWebhook",
       "name": "cập nhật payment failed và không gọi markPaidIfSettled khi webhook báo thất bại",
       "fullName": "PaymentService (F-08 Cash & PayOS Payment) handlePayOsWebhook cập nhật payment failed và không gọi markPaidIfSettled khi webhook báo thất bại",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 8,
       "error": ""
     }
   ]
