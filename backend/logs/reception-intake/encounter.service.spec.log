@@ -1,0 +1,21 @@
+FILE     : reception-intake/encounter.service.spec.ts
+RAN AT   : 2026-11-25T04:11:47.386Z
+RESULT   : 17 passed, 0 failed, 0 skipped / 17 total (2703 ms)
+================================================================================
+#1 [PASS] EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID01 [N]: paid fee -> appointment checked_in, Encounter arrived, invoice linked to the encounter (10 ms)
+#2 [PASS] EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID02 [N]: patient with a previously finished encounter is flagged "returning" (6 ms)
+#3 [PASS] EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID03 [N]: idempotent - appointment that already has an encounter returns it without a transaction (2 ms)
+#4 [PASS] EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID04 [A]: FEE NOT PAID -> BadRequestException, no encounter, appointment untouched (DS-02 step 3) (14 ms)
+#5 [PASS] EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID05 [A]: only a PAID invoice that contains an examination-fee item counts (2 ms)
+#6 [PASS] EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID06 [A]: unknown appointment -> NotFoundException (1 ms)
+#7 [PASS] EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID07 [A]: appointment without a resolved patient -> BadRequestException (2 ms)
+#8 [PASS] EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID08 [A]: appointment not in confirmed status -> BadRequestException (3 ms)
+#9 [PASS] EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID09 [A]: no ReceptionCheckin yet (ticket not served at the counter) -> BadRequestException (3 ms)
+#10 [PASS] EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID01 [N]: everything complete -> encounter registered, patient draft->main, patient enters triage queue (waiting) (18 ms)
+#11 [PASS] EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID02 [N]: patient already identity-verified in a previous visit does not need a new verification (2 ms)
+#12 [PASS] EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID03 [A]: missing items are ALL reported at once (chief complaint, ID check, 2 consents) and nothing changes (DS-02 step 4) (7 ms)
+#13 [PASS] EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID04 [A]: unpaid consultation fee is reported as missing (4 ms)
+#14 [PASS] EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID05 [A]: second call on an already registered encounter is rejected, no duplicate triage entry (2 ms)
+#15 [PASS] EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID06 [A]: unknown encounter -> NotFoundException (3 ms)
+#16 [PASS] EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID07 [A]: concurrent completion (CAS fails with P2025) -> BadRequestException, no enqueue (6 ms)
+#17 [PASS] EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID08 [B]: only ONE mandatory consent signed -> still blocked and reports exactly one missing item (4 ms)

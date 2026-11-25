@@ -1,0 +1,23 @@
+FILE     : vitals/vital-alert.pipeline.spec.ts
+RAN AT   : 2026-11-25T04:11:45.789Z
+RESULT   : 18 passed, 0 failed, 1 skipped / 19 total (4087 ms)
+================================================================================
+#1 [PASS] RuleBasedDetector (F-05: out-of-range value is flagged) UTCID01 [N]: DS-01 values -> exactly Pulse 102 and DBP 92 are abnormal/critical, everything else normal (36 ms)
+#2 [PASS] RuleBasedDetector (F-05: out-of-range value is flagged) UTCID02 [B]: HR 90 (upper bound) is normal, 91 is abnormal (1 ms)
+#3 [PASS] RuleBasedDetector (F-05: out-of-range value is flagged) UTCID03 [B]: HR 51 (lower bound) is normal, 50 is abnormal (bradycardia) (7 ms)
+#4 [PASS] RuleBasedDetector (F-05: out-of-range value is flagged) UTCID04 [N]: BMI / HEIGHT / WEIGHT have no threshold row -> never abnormal, never raise an alert (5 ms)
+#5 [PASS] RuleBasedDetector (F-05: out-of-range value is flagged) UTCID05 [A]: patient without date of birth -> detector throws (caller must handle, see listener tests) (84 ms)
+#6 [PASS] RuleBasedDetector (F-05: out-of-range value is flagged) UTCID06 [N]: threshold lookup uses the patient age at measuredAt (21) and the measurement time (3 ms)
+#7 [PASS] VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID01 [N]: abnormal observation -> isAbnormal=true and ONE active alert created with the threshold data (5 ms)
+#8 [PASS] VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID02 [N]: re-running detection (e.g. after a nurse edit) does not duplicate an already active alert (1 ms)
+#9 [PASS] VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID03 [N]: when two detectors disagree on one observation, the abnormal verdict wins (2 ms)
+#10 [PASS] VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID04 [N]: all-normal session creates no alert (3 ms)
+#11 [PASS] VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID05 [N]: default detectors (rule + AI placeholder) work end-to-end on DS-01 data -> 2 alerts (5 ms)
+#12 [PASS] VitalSignDetectionListener -> VitalAlertGateway (real-time alert) UTCID01 [N]: after detection, pushes ONE update for the encounter with abnormalCount (DS-01 step 11: 2 of 9) (8 ms)
+#13 [PASS] VitalSignDetectionListener -> VitalAlertGateway (real-time alert) UTCID02 [N]: all-normal session still pushes an update with abnormalCount 0 (UI clears old warnings) (3 ms)
+#14 [PASS] VitalSignDetectionListener -> VitalAlertGateway (real-time alert) UTCID03 [A]: detection failure is swallowed (no unhandled rejection) and nothing is pushed (3 ms)
+#15 [PASS] VitalSignDetectionListener -> VitalAlertGateway (real-time alert) UTCID04 [A]: session deleted before detection finished -> nothing is pushed (2 ms)
+#16 [PASS] VitalAlertGateway (rooms per encounter) UTCID01 [N]: subscribe joins room encounter:<id> (2 ms)
+#17 [PASS] VitalAlertGateway (rooms per encounter) UTCID02 [N]: unsubscribe leaves the room (2 ms)
+#18 [PASS] VitalAlertGateway (rooms per encounter) UTCID03 [N]: pushAlertUpdate emits "vital-alert-update" ONLY to the matching encounter room (1 ms)
+#19 [TODO] VitalAlertGateway (rooms per encounter) UTCID04 [A]: unauthenticated socket cannot subscribe to an encounter room (gateway currently has no auth, cors "*") (0 ms)

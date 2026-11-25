@@ -1,0 +1,192 @@
+{
+  "file": "common/appointment-status.util.spec.ts",
+  "ranAt": "2026-11-25T04:11:51.783Z",
+  "durationMs": 349,
+  "total": 20,
+  "passed": 20,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "allows pending -> confirmed",
+      "fullName": "Appointment state machine (state transition tests) allows pending -> confirmed",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "allows pending -> cancelled",
+      "fullName": "Appointment state machine (state transition tests) allows pending -> cancelled",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "allows pending -> no_show",
+      "fullName": "Appointment state machine (state transition tests) allows pending -> no_show",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "allows confirmed -> checked_in",
+      "fullName": "Appointment state machine (state transition tests) allows confirmed -> checked_in",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "allows confirmed -> cancelled",
+      "fullName": "Appointment state machine (state transition tests) allows confirmed -> cancelled",
+      "status": "PASS",
+      "durationMs": 13,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "allows confirmed -> no_show",
+      "fullName": "Appointment state machine (state transition tests) allows confirmed -> no_show",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "allows checked_in -> in_progress",
+      "fullName": "Appointment state machine (state transition tests) allows checked_in -> in_progress",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 8,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "allows checked_in -> no_show",
+      "fullName": "Appointment state machine (state transition tests) allows checked_in -> no_show",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 9,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "allows in_progress -> completed",
+      "fullName": "Appointment state machine (state transition tests) allows in_progress -> completed",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 10,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "rejects pending -> checked_in",
+      "fullName": "Appointment state machine (state transition tests) rejects pending -> checked_in",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 11,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "rejects confirmed -> pending",
+      "fullName": "Appointment state machine (state transition tests) rejects confirmed -> pending",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 12,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "rejects checked_in -> confirmed",
+      "fullName": "Appointment state machine (state transition tests) rejects checked_in -> confirmed",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 13,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "rejects checked_in -> cancelled",
+      "fullName": "Appointment state machine (state transition tests) rejects checked_in -> cancelled",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 14,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "rejects in_progress -> cancelled",
+      "fullName": "Appointment state machine (state transition tests) rejects in_progress -> cancelled",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 15,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "rejects completed -> pending",
+      "fullName": "Appointment state machine (state transition tests) rejects completed -> pending",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 16,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "rejects cancelled -> confirmed",
+      "fullName": "Appointment state machine (state transition tests) rejects cancelled -> confirmed",
+      "status": "PASS",
+      "durationMs": 0,
+      "error": ""
+    },
+    {
+      "no": 17,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "rejects no_show -> confirmed",
+      "fullName": "Appointment state machine (state transition tests) rejects no_show -> confirmed",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 18,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "terminal states have no outgoing transition",
+      "fullName": "Appointment state machine (state transition tests) terminal states have no outgoing transition",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 19,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "unknown status is never a valid source",
+      "fullName": "Appointment state machine (state transition tests) unknown status is never a valid source",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 20,
+      "suite": "Appointment state machine (state transition tests)",
+      "name": "canCancelAppointment: only pending/confirmed",
+      "fullName": "Appointment state machine (state transition tests) canCancelAppointment: only pending/confirmed",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+﻿"STT","File","Suite","Test case","Kết quả","Thời gian (ms)","Lỗi / Ghi chú"
+"1","doctor-schedule/doctor-schedule.service.spec.ts","DoctorScheduleService - create (Function 11)","UTCID01 [N]: should successfully create MORNING schedule and generate 8 slots","PASS","16",""
+"2","doctor-schedule/doctor-schedule.service.spec.ts","DoctorScheduleService - create (Function 11)","UTCID02 [N]: should successfully create AFTERNOON schedule and generate 8 slots","PASS","1",""
+"3","doctor-schedule/doctor-schedule.service.spec.ts","DoctorScheduleService - create (Function 11)","UTCID03 [A]: should throw NotFoundException when doctor does not exist","PASS","39",""
+"4","doctor-schedule/doctor-schedule.service.spec.ts","DoctorScheduleService - create (Function 11)","UTCID04 [A]: should throw ConflictException if doctor already has schedule for this date & session","PASS","2",""
+"5","doctor-schedule/doctor-schedule.service.spec.ts","DoctorScheduleService - create (Function 11)","UTCID05 [A]: should throw BadRequestException if startTime >= endTime","PASS","3",""
+"6","doctor-schedule/doctor-schedule.service.spec.ts","DoctorScheduleService - create (Function 11)","UTCID06 [B]: should allow creating schedule for tomorrow (boundary valid advance date)","PASS","2",""

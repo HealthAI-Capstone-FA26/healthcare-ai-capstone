@@ -1,0 +1,34 @@
+FILE     : pharmacy/prescription.service.spec.ts
+RAN AT   : 2026-11-25T04:10:41.562Z
+RESULT   : 10 passed, 1 failed, 0 skipped / 11 total (59016 ms)
+================================================================================
+#1 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-01 [Normal]: should create draft prescription and trigger safety check when diagnosis is final and encounter is awaiting_review (33 ms)
+#2 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-02 [Abnormal]: should throw NotFoundException when diagnosisId does not exist (101 ms)
+#3 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-03 [Abnormal]: should throw ForbiddenException when diagnosis belongs to another doctor (4 ms)
+#4 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-04 [Abnormal]: should throw ForbiddenException when encounter status is not awaiting_review (3 ms)
+#5 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-05 [Abnormal]: should throw BadRequestException when prescription contains an inactive drug (5 ms)
+#6 [FAIL] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-06 [Boundary]: should throw BadRequestException when trying to prescribe based on an initial diagnosis instead of final (47 ms)
+    Error: expect(received).rejects.toThrow(expected)
+    
+    Expected constructor: BadRequestException
+    Received constructor: TypeError
+    
+    Received message: "Cannot read properties of undefined (reading 'prescriptionId')"
+    
+          140 |         });
+          141 |
+        > 142 |         await this.safetyCheckOrchestrator.run(prescription.prescriptionId);
+              |                                                             ^
+          143 |
+          144 |         return this.findById(prescription.prescriptionId);
+          145 |     }
+    
+          at PrescriptionService.create (src/modules/pharmacy/prescription/prescription.service.ts:142:61)
+          at Object.<anonymous> (test/pharmacy/prescription.service.spec.ts:197:9)
+        at Object.<anonymous> (D:\Kì 9\backend\healthcare-ai-capstone\backend\test\pharmacy\prescription.service.spec.ts:197:75)
+        at new Promise (<anonymous>)
+#7 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal]: updateItems should replace items on draft prescription and re-run safety check (7 ms)
+#8 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Abnormal]: updateItems should throw ForbiddenException when prescription is not in draft status (2 ms)
+#9 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal/Abnormal]: cancel should transition draft to cancelled and reject already cancelled (5 ms)
+#10 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 Safety [Normal]: AllergyContraindicationDetector should flag drug matching patient active allergy (3 ms)
+#11 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 Safety [Normal]: DuplicateTherapeuticClassDetector should flag two drugs sharing therapeuticClass (2 ms)

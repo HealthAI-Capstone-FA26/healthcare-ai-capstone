@@ -1,0 +1,11 @@
+FILE     : lab-test/ecg-anomaly-labeler.spec.ts
+RAN AT   : 2026-11-25T04:11:51.911Z
+RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (333 ms)
+================================================================================
+#1 [PASS] buildAnomalyFlags đánh 1 cho mẫu nằm trong [start, end] (gồm 2 đầu) @500Hz (2ms/mẫu) (4 ms)
+#2 [PASS] buildAnomalyFlags biên không khớp mẫu: chỉ lấy mẫu nằm thật sự trong đoạn (1 ms)
+#3 [PASS] buildAnomalyFlags nhiều đoạn chồng lấn, đoạn vượt cuối bản ghi, start < 0 và đoạn đảo đầu-cuối (1 ms)
+#4 [PASS] buildAnomalyFlags không có đoạn / tổng mẫu 0 / fs không hợp lệ -> toàn 0 (1 ms)
+#5 [PASS] buildAnomalyFlags bỏ qua đoạn NaN/Infinity (1 ms)
+#6 [PASS] buildAnomalyFlags không lệch do sai số dấu phẩy động ở fs lẻ (360 Hz) (1 ms)
+#7 [PASS] sampleTimeMs tính t = i*1000/fs, làm tròn 3 chữ số (1 ms)

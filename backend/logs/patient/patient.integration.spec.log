@@ -1,0 +1,8 @@
+FILE     : patient/patient.integration.spec.ts
+RAN AT   : 2026-11-23T08:45:03.922Z
+RESULT   : 4 passed, 0 failed, 0 skipped / 4 total (5662 ms)
+================================================================================
+#1 [PASS] PatientController integration creates a patient and passes the authenticated user to the service (87 ms)
+#2 [PASS] PatientController integration rejects invalid patient data before calling the service (15 ms)
+#3 [PASS] PatientController integration searches patients using the query string (9 ms)
+#4 [PASS] PatientController integration updates a patient through the HTTP endpoint (7 ms)

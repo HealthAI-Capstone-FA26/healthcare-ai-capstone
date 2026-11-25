@@ -1,0 +1,75 @@
+{
+  "file": "lab-test/ecg-anomaly-labeler.spec.ts",
+  "ranAt": "2026-11-25T04:11:51.911Z",
+  "durationMs": 333,
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "buildAnomalyFlags",
+      "name": "đánh 1 cho mẫu nằm trong [start, end] (gồm 2 đầu) @500Hz (2ms/mẫu)",
+      "fullName": "buildAnomalyFlags đánh 1 cho mẫu nằm trong [start, end] (gồm 2 đầu) @500Hz (2ms/mẫu)",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "buildAnomalyFlags",
+      "name": "biên không khớp mẫu: chỉ lấy mẫu nằm thật sự trong đoạn",
+      "fullName": "buildAnomalyFlags biên không khớp mẫu: chỉ lấy mẫu nằm thật sự trong đoạn",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "buildAnomalyFlags",
+      "name": "nhiều đoạn chồng lấn, đoạn vượt cuối bản ghi, start < 0 và đoạn đảo đầu-cuối",
+      "fullName": "buildAnomalyFlags nhiều đoạn chồng lấn, đoạn vượt cuối bản ghi, start < 0 và đoạn đảo đầu-cuối",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "buildAnomalyFlags",
+      "name": "không có đoạn / tổng mẫu 0 / fs không hợp lệ -> toàn 0",
+      "fullName": "buildAnomalyFlags không có đoạn / tổng mẫu 0 / fs không hợp lệ -> toàn 0",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "buildAnomalyFlags",
+      "name": "bỏ qua đoạn NaN/Infinity",
+      "fullName": "buildAnomalyFlags bỏ qua đoạn NaN/Infinity",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "buildAnomalyFlags",
+      "name": "không lệch do sai số dấu phẩy động ở fs lẻ (360 Hz)",
+      "fullName": "buildAnomalyFlags không lệch do sai số dấu phẩy động ở fs lẻ (360 Hz)",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "sampleTimeMs",
+      "name": "tính t = i*1000/fs, làm tròn 3 chữ số",
+      "fullName": "sampleTimeMs tính t = i*1000/fs, làm tròn 3 chữ số",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    }
+  ]
+}

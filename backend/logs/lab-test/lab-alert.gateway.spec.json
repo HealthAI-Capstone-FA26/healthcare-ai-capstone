@@ -1,0 +1,75 @@
+{
+  "file": "lab-test/lab-alert.gateway.spec.ts",
+  "ranAt": "2026-11-25T04:11:47.180Z",
+  "durationMs": 3032,
+  "total": 7,
+  "passed": 7,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "LabAlertGateway (/lab-alerts)",
+      "name": "từ chối kết nối khi thiếu token",
+      "fullName": "LabAlertGateway (/lab-alerts) từ chối kết nối khi thiếu token",
+      "status": "PASS",
+      "durationMs": 8,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "LabAlertGateway (/lab-alerts)",
+      "name": "từ chối khi token không hợp lệ",
+      "fullName": "LabAlertGateway (/lab-alerts) từ chối khi token không hợp lệ",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "LabAlertGateway (/lab-alerts)",
+      "name": "chấp nhận token hợp lệ (auth.token hoặc header) và lưu userId",
+      "fullName": "LabAlertGateway (/lab-alerts) chấp nhận token hợp lệ (auth.token hoặc header) và lưu userId",
+      "status": "PASS",
+      "durationMs": 7,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "LabAlertGateway (/lab-alerts)",
+      "name": "subscribe: join room khi đúng vai trò",
+      "fullName": "LabAlertGateway (/lab-alerts) subscribe: join room khi đúng vai trò",
+      "status": "PASS",
+      "durationMs": 13,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "LabAlertGateway (/lab-alerts)",
+      "name": "subscribe: từ chối vai trò không được phép / chưa xác thực / encounterId rỗng",
+      "fullName": "LabAlertGateway (/lab-alerts) subscribe: từ chối vai trò không được phép / chưa xác thực / encounterId rỗng",
+      "status": "PASS",
+      "durationMs": 15,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "LabAlertGateway (/lab-alerts)",
+      "name": "LAB_ALERT_REQUIRE_AUTH=false: bỏ qua xác thực (dev)",
+      "fullName": "LabAlertGateway (/lab-alerts) LAB_ALERT_REQUIRE_AUTH=false: bỏ qua xác thực (dev)",
+      "status": "PASS",
+      "durationMs": 7,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "LabAlertGateway (/lab-alerts)",
+      "name": "pushEcgAlertUpdate emit vào đúng room",
+      "fullName": "LabAlertGateway (/lab-alerts) pushEcgAlertUpdate emit vào đúng room",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,273 @@
+{
+  "file": "appointment-registration/appointment.service.spec.ts",
+  "ranAt": "2026-11-25T04:10:41.569Z",
+  "durationMs": 65578,
+  "total": 29,
+  "passed": 29,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > createOnline",
+      "name": "UTCID01 [N]: books a free slot -> appointment pending/online, bookedCount +1, slot stays free while capacity remains",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) createOnline UTCID01 [N]: books a free slot -> appointment pending/online, bookedCount +1, slot stays free while capacity remains",
+      "status": "PASS",
+      "durationMs": 72,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > createOnline",
+      "name": "UTCID02 [B]: booking the last seat flips slot free -> full",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) createOnline UTCID02 [B]: booking the last seat flips slot free -> full",
+      "status": "PASS",
+      "durationMs": 24,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > createOnline",
+      "name": "UTCID03 [A]: throws NotFoundException when patient profile does not exist",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) createOnline UTCID03 [A]: throws NotFoundException when patient profile does not exist",
+      "status": "PASS",
+      "durationMs": 95,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > createOnline",
+      "name": "UTCID04 [A]: throws ForbiddenException when patient profile is not linked to the current account",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) createOnline UTCID04 [A]: throws ForbiddenException when patient profile is not linked to the current account",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > createOnline",
+      "name": "UTCID05 [A]: a full slot cannot be selected -> BadRequestException, nothing created",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) createOnline UTCID05 [A]: a full slot cannot be selected -> BadRequestException, nothing created",
+      "status": "PASS",
+      "durationMs": 7,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > createOnline",
+      "name": "UTCID06 [A]: slot belonging to another doctor is rejected",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) createOnline UTCID06 [A]: slot belonging to another doctor is rejected",
+      "status": "PASS",
+      "durationMs": 7,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > createOnline",
+      "name": "UTCID07 [A]: race condition - slot filled between check and update -> ConflictException",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) createOnline UTCID07 [A]: race condition - slot filled between check and update -> ConflictException",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 8,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > createOnline",
+      "name": "UTCID08 [A]: slot that already started in the past is rejected",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) createOnline UTCID08 [A]: slot that already started in the past is rejected",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 9,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > createOnline",
+      "name": "UTCID09 [B]: slotStartTime exactly equal to \"now\" is rejected, one second later is accepted",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) createOnline UTCID09 [B]: slotStartTime exactly equal to \"now\" is rejected, one second later is accepted",
+      "status": "PASS",
+      "durationMs": 21,
+      "error": ""
+    },
+    {
+      "no": 10,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > confirm",
+      "name": "UTCID01 [N]: pending -> confirmed when at least one active nurse exists",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) confirm UTCID01 [N]: pending -> confirmed when at least one active nurse exists",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 11,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > confirm",
+      "name": "UTCID02 [A]: blocked when no active nurse exists",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) confirm UTCID02 [A]: blocked when no active nurse exists",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 12,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > confirm",
+      "name": "UTCID03 [A]: invalid transition checked_in -> confirmed is rejected",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) confirm UTCID03 [A]: invalid transition checked_in -> confirmed is rejected",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 13,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > confirm",
+      "name": "UTCID04 [A]: unknown appointment -> NotFoundException",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) confirm UTCID04 [A]: unknown appointment -> NotFoundException",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 14,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > checkIn",
+      "name": "UTCID01 [N]: confirmed online appointment gets a ticket with prefix A (status stays confirmed)",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) checkIn UTCID01 [N]: confirmed online appointment gets a ticket with prefix A (status stays confirmed)",
+      "status": "PASS",
+      "durationMs": 8,
+      "error": ""
+    },
+    {
+      "no": 15,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > checkIn",
+      "name": "UTCID02 [A]: walk_in appointments cannot use check-in",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) checkIn UTCID02 [A]: walk_in appointments cannot use check-in",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 16,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > checkIn",
+      "name": "UTCID03 [A]: appointment not yet confirmed cannot check in",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) checkIn UTCID03 [A]: appointment not yet confirmed cannot check in",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 17,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > checkIn",
+      "name": "UTCID04 [A]: second check-in is rejected when a ticket already exists",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) checkIn UTCID04 [A]: second check-in is rejected when a ticket already exists",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 18,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > cancel",
+      "name": "UTCID01 [N]: owner cancels -> status cancelled, slot bookedCount -1 and reopened (free)",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) cancel UTCID01 [N]: owner cancels -> status cancelled, slot bookedCount -1 and reopened (free)",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 19,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > cancel",
+      "name": "UTCID02 [N]: staff with appointment:update:all can cancel any appointment",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) cancel UTCID02 [N]: staff with appointment:update:all can cancel any appointment",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 20,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > cancel",
+      "name": "UTCID03 [A]: a patient cannot cancel an appointment booked by someone else",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) cancel UTCID03 [A]: a patient cannot cancel an appointment booked by someone else",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 21,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > cancel",
+      "name": "UTCID04 [A]: checked_in appointment cannot be cancelled",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) cancel UTCID04 [A]: checked_in appointment cannot be cancelled",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 22,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > rescheduleFollowUp",
+      "name": "UTCID01 [N]: owner moves follow-up to a new slot -> old slot released, new slot reserved",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) rescheduleFollowUp UTCID01 [N]: owner moves follow-up to a new slot -> old slot released, new slot reserved",
+      "status": "PASS",
+      "durationMs": 8,
+      "error": ""
+    },
+    {
+      "no": 23,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > rescheduleFollowUp",
+      "name": "UTCID02 [B]: taking the last seat of the new slot marks it full",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) rescheduleFollowUp UTCID02 [B]: taking the last seat of the new slot marks it full",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 24,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > rescheduleFollowUp",
+      "name": "UTCID03 [A]: only follow_up appointments can be rescheduled by the patient",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) rescheduleFollowUp UTCID03 [A]: only follow_up appointments can be rescheduled by the patient",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 25,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > rescheduleFollowUp",
+      "name": "UTCID04 [A]: a patient can reschedule only their own follow-up -> ForbiddenException",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) rescheduleFollowUp UTCID04 [A]: a patient can reschedule only their own follow-up -> ForbiddenException",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 26,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > rescheduleFollowUp",
+      "name": "UTCID05 [A]: checked_in follow-up can no longer be rescheduled",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) rescheduleFollowUp UTCID05 [A]: checked_in follow-up can no longer be rescheduled",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 27,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > rescheduleFollowUp",
+      "name": "UTCID06 [A]: neither slotId nor appointmentDate provided -> BadRequestException",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) rescheduleFollowUp UTCID06 [A]: neither slotId nor appointmentDate provided -> BadRequestException",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 28,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > rescheduleFollowUp",
+      "name": "UTCID07 [A]: new slot already full -> BadRequestException, old slot untouched",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) rescheduleFollowUp UTCID07 [A]: new slot already full -> BadRequestException, old slot untouched",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 29,
+      "suite": "AppointmentService (F-03 Book appointment / F-04 check-in) > rescheduleFollowUp",
+      "name": "UTCID08 [A]: new slot of a different doctor is rejected",
+      "fullName": "AppointmentService (F-03 Book appointment / F-04 check-in) rescheduleFollowUp UTCID08 [A]: new slot of a different doctor is rejected",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    }
+  ]
+}

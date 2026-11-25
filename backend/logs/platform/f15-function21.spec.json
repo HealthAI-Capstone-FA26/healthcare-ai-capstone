@@ -1,0 +1,120 @@
+{
+  "file": "platform/f15-function21.spec.ts",
+  "ranAt": "2026-11-25T04:13:58.504Z",
+  "durationMs": 22491,
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF03: TC-F21-01..03 — Lab & ECG Diagnostics Completion Notifications",
+      "name": "TC-F21-01 (UTCID01) [N]: notifyEncounterCompleted dispatches diagnostics_completed to Doctor (in_app) and Patient (in_app, email, zalo_oa) when encounter reaches awaiting_review",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF03: TC-F21-01..03 — Lab & ECG Diagnostics Completion Notifications TC-F21-01 (UTCID01) [N]: notifyEncounterCompleted dispatches diagnostics_completed to Doctor (in_app) and Patient (in_app, email, zalo_oa) when encounter reaches awaiting_review",
+      "status": "PASS",
+      "durationMs": 20,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF03: TC-F21-01..03 — Lab & ECG Diagnostics Completion Notifications",
+      "name": "TC-F21-02 (UTCID02) [B]: notifyEncounterCompleted dispatches alert to Patient only and logs warning when doctor is unassigned (null)",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF03: TC-F21-01..03 — Lab & ECG Diagnostics Completion Notifications TC-F21-02 (UTCID02) [B]: notifyEncounterCompleted dispatches alert to Patient only and logs warning when doctor is unassigned (null)",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF03: TC-F21-01..03 — Lab & ECG Diagnostics Completion Notifications",
+      "name": "TC-F21-03 (UTCID03) [A]: notifyEncounterCompleted skips notification when encounter is still in diagnostics_in_progress",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF03: TC-F21-01..03 — Lab & ECG Diagnostics Completion Notifications TC-F21-03 (UTCID03) [A]: notifyEncounterCompleted skips notification when encounter is still in diagnostics_in_progress",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF01: TC-F21-04..06 — Reception Queue ETA & Stage Wait-Time Logging",
+      "name": "TC-F21-04 (UTCID04) [N]: estimateForQueueTicket calculates accurate wait time prioritizing Online (Type A) before Walk-in (Type B)",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF01: TC-F21-04..06 — Reception Queue ETA & Stage Wait-Time Logging TC-F21-04 (UTCID04) [N]: estimateForQueueTicket calculates accurate wait time prioritizing Online (Type A) before Walk-in (Type B)",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF01: TC-F21-04..06 — Reception Queue ETA & Stage Wait-Time Logging",
+      "name": "TC-F21-05 (UTCID05) [A]: estimateForQueueTicket & estimateWait throw NotFoundException / BadRequestException on invalid ticket or stage",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF01: TC-F21-04..06 — Reception Queue ETA & Stage Wait-Time Logging TC-F21-05 (UTCID05) [A]: estimateForQueueTicket & estimateWait throw NotFoundException / BadRequestException on invalid ticket or stage",
+      "status": "PASS",
+      "durationMs": 37,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF01: TC-F21-04..06 — Reception Queue ETA & Stage Wait-Time Logging",
+      "name": "TC-F21-06 (UTCID06) [N]: StageEventCollector.collect extracts reception_queue, payment, triage_wait, and vitals stage timestamps from WF01",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF01: TC-F21-04..06 — Reception Queue ETA & Stage Wait-Time Logging TC-F21-06 (UTCID06) [N]: StageEventCollector.collect extracts reception_queue, payment, triage_wait, and vitals stage timestamps from WF01",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF02: TC-F21-07..08 — Diagnostics Payment Notification & Test Order Cancellation Audit",
+      "name": "TC-F21-07 (UTCID07) [N]: NotificationService.enqueue creates payment_success notification (in_app sent, email/zalo_oa queued, skips non-milestone SMS)",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF02: TC-F21-07..08 — Diagnostics Payment Notification & Test Order Cancellation Audit TC-F21-07 (UTCID07) [N]: NotificationService.enqueue creates payment_success notification (in_app sent, email/zalo_oa queued, skips non-milestone SMS)",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 8,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF02: TC-F21-07..08 — Diagnostics Payment Notification & Test Order Cancellation Audit",
+      "name": "TC-F21-08 (UTCID08) [N]: AuditLogService.recordHttp logs doctor test-order item cancellation with reason field in WF02 (DS-06)",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF02: TC-F21-07..08 — Diagnostics Payment Notification & Test Order Cancellation Audit TC-F21-08 (UTCID08) [N]: AuditLogService.recordHttp logs doctor test-order item cancellation with reason field in WF02 (DS-06)",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 9,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF04: TC-F21-09..10 — Prescription/Follow-up Notifications & Digital Signature Audit",
+      "name": "TC-F21-09 (UTCID09) [B]: NotificationService.enqueue dispatches prescription_ready across all 4 channels (including SMS milestone) and queues future follow_up_reminder",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF04: TC-F21-09..10 — Prescription/Follow-up Notifications & Digital Signature Audit TC-F21-09 (UTCID09) [B]: NotificationService.enqueue dispatches prescription_ready across all 4 channels (including SMS milestone) and queues future follow_up_reminder",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 10,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF04: TC-F21-09..10 — Prescription/Follow-up Notifications & Digital Signature Audit",
+      "name": "TC-F21-10 (UTCID10) [N]: AuditLogService.recordHttp records AUDIT_ACTION.SIGN when doctor digitally signs e-prescription in WF04",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF04: TC-F21-09..10 — Prescription/Follow-up Notifications & Digital Signature Audit TC-F21-10 (UTCID10) [N]: AuditLogService.recordHttp records AUDIT_ACTION.SIGN when doctor digitally signs e-prescription in WF04",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 11,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF05: TC-F21-11..12 — Registration/Profile Masking Audit & Patient History Access Summary",
+      "name": "TC-F21-11 (UTCID11) [A]: AuditLogService.recordHttp logs denied/failed auth & masks sensitive fields during WF05 account/profile update",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF05: TC-F21-11..12 — Registration/Profile Masking Audit & Patient History Access Summary TC-F21-11 (UTCID11) [A]: AuditLogService.recordHttp logs denied/failed auth & masks sensitive fields during WF05 account/profile update",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    },
+    {
+      "no": 12,
+      "suite": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) > WF05: TC-F21-11..12 — Registration/Profile Masking Audit & Patient History Access Summary",
+      "name": "TC-F21-12 (UTCID12) [N]: AuditLogService.patientAccessSummary aggregates PHI read/write access history for a patient in WF05",
+      "fullName": "Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 (TC-F21-01..12) WF05: TC-F21-11..12 — Registration/Profile Masking Audit & Patient History Access Summary TC-F21-12 (UTCID12) [N]: AuditLogService.patientAccessSummary aggregates PHI read/write access history for a patient in WF05",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "file": "lab-test/ecg-recording.service.spec.ts",
+  "ranAt": "2026-11-25T04:11:49.904Z",
+  "durationMs": 2086,
+  "total": 9,
+  "passed": 9,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "EcgRecordingService - Function 18 (F-11): createFromFile",
+      "name": "UTCID20 [N]: should store the signal in object storage, mark the recording completed and emit the completed event (autoAnalyze defaults to true)",
+      "fullName": "EcgRecordingService - Function 18 (F-11): createFromFile UTCID20 [N]: should store the signal in object storage, mark the recording completed and emit the completed event (autoAnalyze defaults to true)",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "EcgRecordingService - Function 18 (F-11): createFromFile",
+      "name": "UTCID21 [B]: should emit the completed event with autoAnalyze = false when the lab staff opts out of AI analysis",
+      "fullName": "EcgRecordingService - Function 18 (F-11): createFromFile UTCID21 [B]: should emit the completed event with autoAnalyze = false when the lab staff opts out of AI analysis",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "EcgRecordingService - Function 18 (F-11): createFromFile",
+      "name": "UTCID22 [A]: should throw ForbiddenException and create nothing when the task is unpaid",
+      "fullName": "EcgRecordingService - Function 18 (F-11): createFromFile UTCID22 [A]: should throw ForbiddenException and create nothing when the task is unpaid",
+      "status": "PASS",
+      "durationMs": 16,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "EcgRecordingService - Function 18 (F-11): createFromFile",
+      "name": "UTCID23 [A]: should throw BadRequestException when the task has not been received yet (status is not 'in_progress')",
+      "fullName": "EcgRecordingService - Function 18 (F-11): createFromFile UTCID23 [A]: should throw BadRequestException when the task has not been received yet (status is not 'in_progress')",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "EcgRecordingService - Function 18 (F-11): createFromFile",
+      "name": "UTCID24 [A]: should throw BadRequestException when the task modality is not ecg",
+      "fullName": "EcgRecordingService - Function 18 (F-11): createFromFile UTCID24 [A]: should throw BadRequestException when the task modality is not ecg",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "EcgRecordingService - Function 18 (F-11): createFromFile",
+      "name": "UTCID25 [A]: should throw ForbiddenException when the task belongs to another lab staff",
+      "fullName": "EcgRecordingService - Function 18 (F-11): createFromFile UTCID25 [A]: should throw ForbiddenException when the task belongs to another lab staff",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "EcgRecordingService - Function 18 (F-11): createFromFile",
+      "name": "UTCID26 [A]: should throw ConflictException when the same file (checksum) was already uploaded for the task",
+      "fullName": "EcgRecordingService - Function 18 (F-11): createFromFile UTCID26 [A]: should throw ConflictException when the same file (checksum) was already uploaded for the task",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 8,
+      "suite": "EcgRecordingService - Function 18 (F-11): createFromFile",
+      "name": "UTCID27 [A]: should delete the draft recording, throw BadRequestException and emit nothing when object storage fails",
+      "fullName": "EcgRecordingService - Function 18 (F-11): createFromFile UTCID27 [A]: should delete the draft recording, throw BadRequestException and emit nothing when object storage fails",
+      "status": "PASS",
+      "durationMs": 9,
+      "error": ""
+    },
+    {
+      "no": 9,
+      "suite": "EcgRecordingService - Function 18 (F-11): createFromFile",
+      "name": "UTCID28 [A]: should throw BadRequestException before any DB access when the file extension does not match signalFormat",
+      "fullName": "EcgRecordingService - Function 18 (F-11): createFromFile UTCID28 [A]: should throw BadRequestException before any DB access when the file extension does not match signalFormat",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "file": "pre-doctor-examination/test-order.service.spec.ts",
+  "ranAt": "2026-11-25T04:11:49.899Z",
+  "durationMs": 1974,
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "TestOrderService - Function 15: create",
+      "name": "UTCID01: should create DiagnosticOrder, 2 DiagnosticTasks (payment_pending) and transition Encounter to awaiting_diagnostics",
+      "fullName": "TestOrderService - Function 15: create UTCID01: should create DiagnosticOrder, 2 DiagnosticTasks (payment_pending) and transition Encounter to awaiting_diagnostics",
+      "status": "PASS",
+      "durationMs": 15,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "TestOrderService - Function 15: create",
+      "name": "UTCID02: should throw BadRequestException when referenced diagnosis does not belong to encounterId or is null",
+      "fullName": "TestOrderService - Function 15: create UTCID02: should throw BadRequestException when referenced diagnosis does not belong to encounterId or is null",
+      "status": "PASS",
+      "durationMs": 14,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "TestOrderService - Function 15: create",
+      "name": "UTCID03: should throw BadRequestException when referenced diagnosis has diagnosisType !== \"initial\"",
+      "fullName": "TestOrderService - Function 15: create UTCID03: should throw BadRequestException when referenced diagnosis has diagnosisType !== \"initial\"",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "TestOrderService - Function 15: create",
+      "name": "UTCID04: should throw BadRequestException when dto.items contains duplicate serviceIds in the request array",
+      "fullName": "TestOrderService - Function 15: create UTCID04: should throw BadRequestException when dto.items contains duplicate serviceIds in the request array",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "TestOrderService - Function 15: create",
+      "name": "UTCID05: should throw BadRequestException when a requested service has isActive = false",
+      "fullName": "TestOrderService - Function 15: create UTCID05: should throw BadRequestException when a requested service has isActive = false",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "TestOrderService - Function 15: create",
+      "name": "UTCID06: should throw ConflictException when service is already ordered and its task is still active (payment_pending)",
+      "fullName": "TestOrderService - Function 15: create UTCID06: should throw ConflictException when service is already ordered and its task is still active (payment_pending)",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    }
+  ]
+}

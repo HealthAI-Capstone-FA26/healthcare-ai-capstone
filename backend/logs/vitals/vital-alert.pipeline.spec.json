@@ -1,0 +1,183 @@
+{
+  "file": "vitals/vital-alert.pipeline.spec.ts",
+  "ranAt": "2026-11-25T04:11:45.789Z",
+  "durationMs": 4087,
+  "total": 19,
+  "passed": 18,
+  "failed": 0,
+  "skipped": 1,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "RuleBasedDetector (F-05: out-of-range value is flagged)",
+      "name": "UTCID01 [N]: DS-01 values -> exactly Pulse 102 and DBP 92 are abnormal/critical, everything else normal",
+      "fullName": "RuleBasedDetector (F-05: out-of-range value is flagged) UTCID01 [N]: DS-01 values -> exactly Pulse 102 and DBP 92 are abnormal/critical, everything else normal",
+      "status": "PASS",
+      "durationMs": 36,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "RuleBasedDetector (F-05: out-of-range value is flagged)",
+      "name": "UTCID02 [B]: HR 90 (upper bound) is normal, 91 is abnormal",
+      "fullName": "RuleBasedDetector (F-05: out-of-range value is flagged) UTCID02 [B]: HR 90 (upper bound) is normal, 91 is abnormal",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "RuleBasedDetector (F-05: out-of-range value is flagged)",
+      "name": "UTCID03 [B]: HR 51 (lower bound) is normal, 50 is abnormal (bradycardia)",
+      "fullName": "RuleBasedDetector (F-05: out-of-range value is flagged) UTCID03 [B]: HR 51 (lower bound) is normal, 50 is abnormal (bradycardia)",
+      "status": "PASS",
+      "durationMs": 7,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "RuleBasedDetector (F-05: out-of-range value is flagged)",
+      "name": "UTCID04 [N]: BMI / HEIGHT / WEIGHT have no threshold row -> never abnormal, never raise an alert",
+      "fullName": "RuleBasedDetector (F-05: out-of-range value is flagged) UTCID04 [N]: BMI / HEIGHT / WEIGHT have no threshold row -> never abnormal, never raise an alert",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "RuleBasedDetector (F-05: out-of-range value is flagged)",
+      "name": "UTCID05 [A]: patient without date of birth -> detector throws (caller must handle, see listener tests)",
+      "fullName": "RuleBasedDetector (F-05: out-of-range value is flagged) UTCID05 [A]: patient without date of birth -> detector throws (caller must handle, see listener tests)",
+      "status": "PASS",
+      "durationMs": 84,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "RuleBasedDetector (F-05: out-of-range value is flagged)",
+      "name": "UTCID06 [N]: threshold lookup uses the patient age at measuredAt (21) and the measurement time",
+      "fullName": "RuleBasedDetector (F-05: out-of-range value is flagged) UTCID06 [N]: threshold lookup uses the patient age at measuredAt (21) and the measurement time",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "VitalSignDetectionOrchestrator (alert creation is idempotent)",
+      "name": "UTCID01 [N]: abnormal observation -> isAbnormal=true and ONE active alert created with the threshold data",
+      "fullName": "VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID01 [N]: abnormal observation -> isAbnormal=true and ONE active alert created with the threshold data",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 8,
+      "suite": "VitalSignDetectionOrchestrator (alert creation is idempotent)",
+      "name": "UTCID02 [N]: re-running detection (e.g. after a nurse edit) does not duplicate an already active alert",
+      "fullName": "VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID02 [N]: re-running detection (e.g. after a nurse edit) does not duplicate an already active alert",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 9,
+      "suite": "VitalSignDetectionOrchestrator (alert creation is idempotent)",
+      "name": "UTCID03 [N]: when two detectors disagree on one observation, the abnormal verdict wins",
+      "fullName": "VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID03 [N]: when two detectors disagree on one observation, the abnormal verdict wins",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 10,
+      "suite": "VitalSignDetectionOrchestrator (alert creation is idempotent)",
+      "name": "UTCID04 [N]: all-normal session creates no alert",
+      "fullName": "VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID04 [N]: all-normal session creates no alert",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 11,
+      "suite": "VitalSignDetectionOrchestrator (alert creation is idempotent)",
+      "name": "UTCID05 [N]: default detectors (rule + AI placeholder) work end-to-end on DS-01 data -> 2 alerts",
+      "fullName": "VitalSignDetectionOrchestrator (alert creation is idempotent) UTCID05 [N]: default detectors (rule + AI placeholder) work end-to-end on DS-01 data -> 2 alerts",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 12,
+      "suite": "VitalSignDetectionListener -> VitalAlertGateway (real-time alert)",
+      "name": "UTCID01 [N]: after detection, pushes ONE update for the encounter with abnormalCount (DS-01 step 11: 2 of 9)",
+      "fullName": "VitalSignDetectionListener -> VitalAlertGateway (real-time alert) UTCID01 [N]: after detection, pushes ONE update for the encounter with abnormalCount (DS-01 step 11: 2 of 9)",
+      "status": "PASS",
+      "durationMs": 8,
+      "error": ""
+    },
+    {
+      "no": 13,
+      "suite": "VitalSignDetectionListener -> VitalAlertGateway (real-time alert)",
+      "name": "UTCID02 [N]: all-normal session still pushes an update with abnormalCount 0 (UI clears old warnings)",
+      "fullName": "VitalSignDetectionListener -> VitalAlertGateway (real-time alert) UTCID02 [N]: all-normal session still pushes an update with abnormalCount 0 (UI clears old warnings)",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 14,
+      "suite": "VitalSignDetectionListener -> VitalAlertGateway (real-time alert)",
+      "name": "UTCID03 [A]: detection failure is swallowed (no unhandled rejection) and nothing is pushed",
+      "fullName": "VitalSignDetectionListener -> VitalAlertGateway (real-time alert) UTCID03 [A]: detection failure is swallowed (no unhandled rejection) and nothing is pushed",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 15,
+      "suite": "VitalSignDetectionListener -> VitalAlertGateway (real-time alert)",
+      "name": "UTCID04 [A]: session deleted before detection finished -> nothing is pushed",
+      "fullName": "VitalSignDetectionListener -> VitalAlertGateway (real-time alert) UTCID04 [A]: session deleted before detection finished -> nothing is pushed",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 16,
+      "suite": "VitalAlertGateway (rooms per encounter)",
+      "name": "UTCID01 [N]: subscribe joins room encounter:<id>",
+      "fullName": "VitalAlertGateway (rooms per encounter) UTCID01 [N]: subscribe joins room encounter:<id>",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 17,
+      "suite": "VitalAlertGateway (rooms per encounter)",
+      "name": "UTCID02 [N]: unsubscribe leaves the room",
+      "fullName": "VitalAlertGateway (rooms per encounter) UTCID02 [N]: unsubscribe leaves the room",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 18,
+      "suite": "VitalAlertGateway (rooms per encounter)",
+      "name": "UTCID03 [N]: pushAlertUpdate emits \"vital-alert-update\" ONLY to the matching encounter room",
+      "fullName": "VitalAlertGateway (rooms per encounter) UTCID03 [N]: pushAlertUpdate emits \"vital-alert-update\" ONLY to the matching encounter room",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 19,
+      "suite": "VitalAlertGateway (rooms per encounter)",
+      "name": "UTCID04 [A]: unauthenticated socket cannot subscribe to an encounter room (gateway currently has no auth, cors \"*\")",
+      "fullName": "VitalAlertGateway (rooms per encounter) UTCID04 [A]: unauthenticated socket cannot subscribe to an encounter room (gateway currently has no auth, cors \"*\")",
+      "status": "TODO",
+      "durationMs": 0,
+      "error": ""
+    }
+  ]
+}

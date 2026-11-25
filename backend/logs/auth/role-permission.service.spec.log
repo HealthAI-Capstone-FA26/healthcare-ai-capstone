@@ -1,0 +1,14 @@
+FILE     : auth/role-permission.service.spec.ts
+RAN AT   : 2026-11-25T04:37:30.230Z
+RESULT   : 10 passed, 0 failed, 0 skipped / 10 total (903 ms)
+================================================================================
+#1 [PASS] AdminRbacService (F-02 RBAC) listAllPermissions: trả danh sách permission sắp theo permissionCode (5 ms)
+#2 [PASS] AdminRbacService (F-02 RBAC) listRolesWithPermissions: trim roleCode khi trả danh sách role (1 ms)
+#3 [PASS] AdminRbacService (F-02 RBAC) getRolePermissions: ném NotFoundException nếu role không tồn tại (7 ms)
+#4 [PASS] AdminRbacService (F-02 RBAC) addPermissionsToRole: thêm permissions (skipDuplicates) và trả danh sách mới (2 ms)
+#5 [PASS] AdminRbacService (F-02 RBAC) addPermissionsToRole: ném NotFoundException khi có permissionId không tồn tại (2 ms)
+#6 [PASS] AdminRbacService (F-02 RBAC) replaceRolePermissions: chạy transaction xoá hết cũ và tạo lại permissions mới (2 ms)
+#7 [PASS] AdminRbacService (F-02 RBAC) removePermissionFromRole: ném NotFoundException nếu role chưa có permission đó (1 ms)
+#8 [PASS] AdminRbacService (F-02 RBAC) removePermissionFromRole: xoá permission khỏi role thành công (1 ms)
+#9 [PASS] AdminRbacService (F-02 RBAC) getUserRole: trả role hiện tại của user hoặc ném NotFoundException nếu thiếu user (2 ms)
+#10 [PASS] AdminRbacService (F-02 RBAC) assignRoleToUser: gán role mới cho user và bỏ qua update nếu đã cùng roleId (2 ms)

@@ -1,0 +1,10 @@
+FILE     : pre-doctor-examination/test-order.service.spec.ts
+RAN AT   : 2026-11-25T04:11:49.899Z
+RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (1974 ms)
+================================================================================
+#1 [PASS] TestOrderService - Function 15: create UTCID01: should create DiagnosticOrder, 2 DiagnosticTasks (payment_pending) and transition Encounter to awaiting_diagnostics (15 ms)
+#2 [PASS] TestOrderService - Function 15: create UTCID02: should throw BadRequestException when referenced diagnosis does not belong to encounterId or is null (14 ms)
+#3 [PASS] TestOrderService - Function 15: create UTCID03: should throw BadRequestException when referenced diagnosis has diagnosisType !== "initial" (3 ms)
+#4 [PASS] TestOrderService - Function 15: create UTCID04: should throw BadRequestException when dto.items contains duplicate serviceIds in the request array (2 ms)
+#5 [PASS] TestOrderService - Function 15: create UTCID05: should throw BadRequestException when a requested service has isActive = false (2 ms)
+#6 [PASS] TestOrderService - Function 15: create UTCID06: should throw ConflictException when service is already ordered and its task is still active (payment_pending) (3 ms)
