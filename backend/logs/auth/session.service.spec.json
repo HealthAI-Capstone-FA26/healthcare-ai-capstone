@@ -1,0 +1,48 @@
+{
+  "file": "auth/session.service.spec.ts",
+  "ranAt": "2026-11-25T13:52:27.889Z",
+  "durationMs": 8046,
+  "total": 4,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "SessionService (F-01 Session Management)",
+      "name": "createSession: hash refreshToken và upsert session với expiredAt theo maxSessionHours",
+      "fullName": "SessionService (F-01 Session Management) createSession: hash refreshToken và upsert session với expiredAt theo maxSessionHours",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "SessionService (F-01 Session Management)",
+      "name": "findByUserId: truy vấn userSession theo userId",
+      "fullName": "SessionService (F-01 Session Management) findByUserId: truy vấn userSession theo userId",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "SessionService (F-01 Session Management)",
+      "name": "rotateRefreshToken: chỉ cập nhật refreshTokenHash, giữ nguyên expiredAt",
+      "fullName": "SessionService (F-01 Session Management) rotateRefreshToken: chỉ cập nhật refreshTokenHash, giữ nguyên expiredAt",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "SessionService (F-01 Session Management)",
+      "name": "revokeByUserId: đánh dấu revokedAt cho các session chưa thu hồi",
+      "fullName": "SessionService (F-01 Session Management) revokeByUserId: đánh dấu revokedAt cho các session chưa thu hồi",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    }
+  ]
+}

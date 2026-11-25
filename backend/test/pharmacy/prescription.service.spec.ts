@@ -185,17 +185,40 @@ describe('PrescriptionService - Function 20: create & F-13 Safety Checks', () =>
         expect(mockTx.prescription.create).not.toHaveBeenCalled();
     });
 
-    // TC-F20-06 [Boundary] - updated from draft: prescribing on initial diagnosis is rejected
-    it('TC-F20-06 [Boundary]: should throw BadRequestException when trying to prescribe based on an initial diagnosis instead of final', async () => {
+    // TC-F20-06 [Boundary] - prescribing directly on an initial diagnosis (Encounter in_progress)
+    it('TC-F20-06 [Boundary]: should create draft prescription and run safety check when prescribing directly on an initial diagnosis', async () => {
+        const created = {
+            prescriptionId: 'rx-06',
+            prescriptionCode: 'DT000006',
+            encounterId,
+            diagnosisId,
+            doctorId: doctor.doctorId,
+            status: 'draft',
+            items: baseDto.items,
+            safetyAlerts: [],
+        };
+
         mockPrisma.diagnosis.findUnique.mockResolvedValue({
             diagnosisId,
             encounterId,
             doctorId: doctor.doctorId,
             diagnosisType: 'initial',
         });
+        mockPrisma.encounter.findUnique.mockResolvedValue({
+            encounterId,
+            doctorId: doctor.doctorId,
+            status: EncounterStatus.IN_PROGRESS,
+        });
+        mockTx.prescription.create.mockResolvedValue(created);
+        mockPrisma.prescription.findUnique
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(created);
 
-        await expect(service.create(baseDto as any, currentUser)).rejects.toThrow(BadRequestException);
-        expect(mockTx.prescription.create).not.toHaveBeenCalled();
+        const result = await service.create(baseDto as any, currentUser);
+
+        expect(mockTx.prescription.create).toHaveBeenCalled();
+        expect(mockSafetyOrchestrator.run).toHaveBeenCalledWith('rx-06');
+        expect(result.status).toBe('draft');
     });
 
     // Additional Feature Tests for F-13 (updateItems, cancel, safety detectors)

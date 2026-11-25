@@ -1,0 +1,66 @@
+{
+  "file": "post-test-consultation/diagnosis-conclusion.service.spec.ts",
+  "ranAt": "2026-11-25T13:52:25.817Z",
+  "durationMs": 2114,
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "DiagnosisConclusionService - Function 19: create",
+      "name": "UTCID01 [Normal]: should create final diagnosis with isPrimary = true when no existing final diagnoses exist",
+      "fullName": "DiagnosisConclusionService - Function 19: create UTCID01 [Normal]: should create final diagnosis with isPrimary = true when no existing final diagnoses exist",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "DiagnosisConclusionService - Function 19: create",
+      "name": "UTCID02 [Normal]: should create final diagnosis with isPrimary = false when 1 existing diagnosis and isPrimary set to false",
+      "fullName": "DiagnosisConclusionService - Function 19: create UTCID02 [Normal]: should create final diagnosis with isPrimary = false when 1 existing diagnosis and isPrimary set to false",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "DiagnosisConclusionService - Function 19: create",
+      "name": "UTCID03 [Abnormal]: should throw BadRequestException when encounter status is awaiting_diagnostics",
+      "fullName": "DiagnosisConclusionService - Function 19: create UTCID03 [Abnormal]: should throw BadRequestException when encounter status is awaiting_diagnostics",
+      "status": "PASS",
+      "durationMs": 20,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "DiagnosisConclusionService - Function 19: create",
+      "name": "UTCID04 [Abnormal]: should throw BadRequestException when ICD-10 code is inactive (I99.0)",
+      "fullName": "DiagnosisConclusionService - Function 19: create UTCID04 [Abnormal]: should throw BadRequestException when ICD-10 code is inactive (I99.0)",
+      "status": "PASS",
+      "durationMs": 5,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "DiagnosisConclusionService - Function 19: create",
+      "name": "UTCID05 [Abnormal]: should throw ConflictException when final diagnosis with same ICD-10 code already exists",
+      "fullName": "DiagnosisConclusionService - Function 19: create UTCID05 [Abnormal]: should throw ConflictException when final diagnosis with same ICD-10 code already exists",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "DiagnosisConclusionService - Function 19: create",
+      "name": "UTCID06 [Boundary]: should demote previous primary diagnosis when new final diagnosis has isPrimary = true",
+      "fullName": "DiagnosisConclusionService - Function 19: create UTCID06 [Boundary]: should demote previous primary diagnosis when new final diagnosis has isPrimary = true",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "file": "lab-test/ecg-playback.spec.ts",
-  "ranAt": "2026-11-23T08:10:24.225Z",
-  "durationMs": 1418,
+  "ranAt": "2026-11-25T13:52:28.254Z",
+  "durationMs": 327,
   "total": 8,
   "passed": 8,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "mẫu đầu đi ngay khi start; các mẫu sau đi theo đồng hồ (100Hz = 10ms/mẫu)",
       "fullName": "EcgPlayback mẫu đầu đi ngay khi start; các mẫu sau đi theo đồng hồ (100Hz = 10ms/mẫu)",
       "status": "PASS",
-      "durationMs": 18,
+      "durationMs": 15,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "tick trễ vẫn đẩy bù đủ mẫu, không bỏ mẫu và không trùng",
       "fullName": "EcgPlayback tick trễ vẫn đẩy bù đủ mẫu, không bỏ mẫu và không trùng",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 10,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "hết bản ghi: onEnd đúng 1 lần với tổng số mẫu đã phát, timer dừng",
       "fullName": "EcgPlayback hết bản ghi: onEnd đúng 1 lần với tổng số mẫu đã phát, timer dừng",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "speed 2x phát nhanh gấp đôi; startIndex bỏ qua đoạn đầu",
       "fullName": "EcgPlayback speed 2x phát nhanh gấp đôi; startIndex bỏ qua đoạn đầu",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "gắn isAnomaly 0/1 khi có flags, không gắn khi không có",
       "fullName": "EcgPlayback gắn isAnomaly 0/1 khi có flags, không gắn khi không có",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "stop giữa chừng: không phát thêm, không gọi onEnd",
       "fullName": "EcgPlayback stop giữa chừng: không phát thêm, không gọi onEnd",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "startIndex vượt cuối: kết thúc ngay với 0 mẫu",
       "fullName": "EcgPlayback startIndex vượt cuối: kết thúc ngay với 0 mẫu",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "timer thật (setInterval) tự gọi tick",
       "fullName": "EcgPlayback timer thật (setInterval) tự gọi tick",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 4,
       "error": ""
     }
   ]

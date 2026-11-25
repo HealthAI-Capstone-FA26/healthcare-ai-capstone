@@ -1,11 +1,5 @@
 FILE     : ci/ci-ratio.spec.ts
-RAN AT   : 2026-11-23T09:35:15.133Z
-RESULT   : 0 passed, 1 failed, 0 skipped / 1 total (6052 ms)
+RAN AT   : 2026-11-25T14:01:21.917Z
+RESULT   : 1 passed, 0 failed, 0 skipped / 1 total (15362 ms)
 ================================================================================
-#1 [FAIL] CI unit-test ratio (Commitment) CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại (210 ms)
-    Error: expect(received).toBeLessThanOrEqual(expected)
-    
-    Expected: <= 5
-    Received:    25
-        at Object.<anonymous> (D:\Learning\Capstone\capstone_ecg_updated\healthcare-ai-capstone\backend\test\ci\ci-ratio.spec.ts:11:42)
-        at new Promise (<anonymous>)
+#1 [PASS] CI unit-test ratio (Commitment) CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại (688 ms)

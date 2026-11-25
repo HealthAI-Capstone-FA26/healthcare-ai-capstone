@@ -1,7 +1,7 @@
 {
   "file": "lab-test/ecg-model.service.spec.ts",
-  "ranAt": "2026-11-23T08:10:25.488Z",
-  "durationMs": 2169,
+  "ranAt": "2026-11-25T13:52:25.958Z",
+  "durationMs": 1918,
   "total": 2,
   "passed": 2,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "chỉ LAB_STAFF/DOCTOR/ADMIN",
       "fullName": "EcgModelService.listSelectable chỉ LAB_STAFF/DOCTOR/ADMIN",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "lọc active/candidate theo taskType, đánh dấu isDefault, ép Decimal -> number",
       "fullName": "EcgModelService.listSelectable lọc active/candidate theo taskType, đánh dấu isDefault, ép Decimal -> number",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 5,
       "error": ""
     }
   ]

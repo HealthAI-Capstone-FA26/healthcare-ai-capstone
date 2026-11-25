@@ -84,9 +84,14 @@ describe('Function21 - F-15 (Notification, Statistics, Audit) across WF01..WF05 
       resolve: jest.fn().mockResolvedValue({ allowed: true, destination: 'patient@clinic.vn' }),
     };
 
+    const zaloDeliveryMock = {
+      sendResultsForEncounter: jest.fn().mockResolvedValue(undefined),
+    };
+
     labCompletionNotificationService = new LabCompletionNotificationService(
       prismaMock as unknown as PrismaService,
       dispatcherMock as unknown as NotificationDispatcherService,
+      zaloDeliveryMock as any,
     );
 
     statisticsService = new StatisticsService(
