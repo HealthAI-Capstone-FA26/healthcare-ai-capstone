@@ -13,16 +13,20 @@ import {
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { ALERT_STATUSES, LabResultAlertService } from './lab-result-alert.service';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 /** Cảnh báo chỉ số cận lâm sàng nguy hiểm. Toàn bộ route yêu cầu đăng nhập (trước đây không có guard). */
 @ApiTags('Lab Result Alerts')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller()
 export class LabResultAlertController {
     constructor(private readonly alertService: LabResultAlertService) {}
 
     @Post('lab-results/:id/detect-alerts')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.CREATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Chạy lại phát hiện bất thường cho 1 kết quả',
         description: 'Đồng bộ isAbnormal + ResultValueAlert. Người gọi phải là LAB_STAFF hoặc DOCTOR.',
@@ -35,6 +39,7 @@ export class LabResultAlertController {
     }
 
     @Get('encounters/:encounterId/result-alerts')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Danh sách cảnh báo chỉ số của 1 lượt khám' })
     @ApiParam({ name: 'encounterId', format: 'uuid' })
     @ApiQuery({ name: 'status', required: false, enum: ALERT_STATUSES })
@@ -44,6 +49,7 @@ export class LabResultAlertController {
     }
 
     @Patch('result-alerts/:alertId/confirm')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({ summary: "Xác nhận đã nhìn thấy cảnh báo (active -> confirmed)" })
     @ApiParam({ name: 'alertId', format: 'uuid' })
     @ApiForbiddenResponse({ description: 'Người gọi không phải DOCTOR/LAB_STAFF.' })
@@ -53,6 +59,7 @@ export class LabResultAlertController {
     }
 
     @Patch('result-alerts/:alertId/resolve')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({ summary: "Đánh dấu đã xử lý cảnh báo (active|confirmed -> resolved)" })
     @ApiParam({ name: 'alertId', format: 'uuid' })
     @ApiForbiddenResponse({ description: 'Người gọi không phải DOCTOR/LAB_STAFF.' })

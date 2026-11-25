@@ -52,12 +52,14 @@ export class PaymentController {
   }
 
   @Get(':id')
+  @RequirePermissions(`${Resource.PAYMENT}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Chi tiết 1 giao dịch thanh toán — đã login' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.paymentService.getById(id);
   }
 
   @Get()
+  @RequirePermissions(`${Resource.PAYMENT}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Lịch sử thanh toán của 1 hoá đơn — đã login' })
   findByInvoice(@Query('invoiceId', ParseUUIDPipe) invoiceId: string) {
     return this.paymentService.findByInvoice(invoiceId);

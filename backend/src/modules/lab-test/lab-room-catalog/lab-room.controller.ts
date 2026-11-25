@@ -14,16 +14,20 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { LabRoomService } from './lab-room.service';
 import { AssignLabStaffToRoomDto } from './dtos/assign-lab-staff-to-room.dto';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 /** Toàn bộ route yêu cầu đăng nhập; gán/gỡ nhân sự chỉ ADMIN (kiểm trong service). */
 @ApiTags('Lab Rooms (Diagnostic Rooms)')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('lab-rooms')
 export class LabRoomController {
     constructor(private readonly labRoomService: LabRoomService) {}
 
     @Get()
+    @RequirePermissions(`${Resource.ORGANIZATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Danh mục phòng cận lâm sàng đang hoạt động',
         description: 'Blood Lab / ECG / Echo / X-ray. Có thể lọc theo modality.',
@@ -35,6 +39,7 @@ export class LabRoomController {
     }
 
     @Get('my-assignments')
+    @RequirePermissions(`${Resource.ORGANIZATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Danh sách phòng của KTV đang đăng nhập' })
     @ApiOkResponse({ description: 'Danh sách phân công phòng của KTV.' })
     async myAssignments(@CurrentUser('userId') userId: string) {
@@ -42,6 +47,7 @@ export class LabRoomController {
     }
 
     @Get(':id/staff')
+    @RequirePermissions(`${Resource.ORGANIZATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Kỹ thuật viên được phân công vào 1 phòng' })
     @ApiParam({ name: 'id', description: 'ID phòng (diagnosticRoomId)', format: 'uuid' })
     @ApiOkResponse({ description: 'Danh sách phân công kỹ thuật viên của phòng.' })
@@ -50,6 +56,7 @@ export class LabRoomController {
     }
 
     @Post(':id/staff')
+    @RequirePermissions(`${Resource.ORGANIZATION}:${Action.CREATE}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Phân công kỹ thuật viên vào phòng (ADMIN)' })
     @ApiParam({ name: 'id', description: 'ID phòng (diagnosticRoomId)', format: 'uuid' })
     @ApiCreatedResponse({ description: 'Bản ghi phân công sau khi tạo/cập nhật.' })
@@ -64,6 +71,7 @@ export class LabRoomController {
     }
 
     @Delete(':id/staff/:userId')
+    @RequirePermissions(`${Resource.ORGANIZATION}:${Action.DELETE}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Gỡ kỹ thuật viên khỏi phòng (ADMIN)' })
     @ApiParam({ name: 'id', description: 'ID phòng (diagnosticRoomId)', format: 'uuid' })
     @ApiParam({ name: 'userId', description: 'ID kỹ thuật viên', format: 'uuid' })

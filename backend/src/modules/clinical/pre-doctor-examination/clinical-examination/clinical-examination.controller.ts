@@ -7,19 +7,23 @@ import { CurrentUser } from '../../../../common/decorators/current-user.decorato
 import { ACTOR_ROLE } from '../../../../common/constants/actor-role.constant';
 import { ClinicalExaminationService } from './clinical-examination.service';
 import { UpsertClinicalExaminationDto } from './dto/upsert-clinical-examination.dto';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 /**
  * SE02 — Phiếu thăm khám lâm sàng tim mạch (tư thế → nhìn → sờ → gõ → nghe → nhận định).
  */
 @ApiTags('Doctor Examination - Clinical Examination')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, ActorRolesGuard)
+@UseGuards(JwtAuthGuard, ActorRolesGuard, PermissionsGuard)
 @AllowActorRoles(ACTOR_ROLE.DOCTOR, ACTOR_ROLE.NURSE, ACTOR_ROLE.ADMIN)
 @Controller('doctor-examination/encounters/:encounterId')
 export class ClinicalExaminationController {
     constructor(private readonly clinicalExaminationService: ClinicalExaminationService) { }
 
     @Post('start')
+    @RequirePermissions(`${Resource.ENCOUNTER}:${Action.UPDATE}:${Scope.GROUP}`)
     @AllowActorRoles(ACTOR_ROLE.DOCTOR)
     @ApiOperation({
         summary: 'Bác sĩ bắt đầu khám (Encounter: waiting_for_doctor → in_progress, Appointment: checked_in → in_progress)',
@@ -34,6 +38,7 @@ export class ClinicalExaminationController {
     }
 
     @Post('clinical-examination')
+    @RequirePermissions(`${Resource.ENCOUNTER}:${Action.UPDATE}:${Scope.GROUP}`)
     @AllowActorRoles(ACTOR_ROLE.DOCTOR)
     @ApiOperation({
         summary: 'Ghi nhận (hoặc cập nhật / lưu nháp) phiếu thăm khám lâm sàng cho 1 lượt khám',
@@ -52,6 +57,7 @@ export class ClinicalExaminationController {
     }
 
     @Get('clinical-examination')
+    @RequirePermissions(`${Resource.ENCOUNTER}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Xem phiếu thăm khám lâm sàng đã ghi nhận cho 1 lượt khám',
         description: '404 nếu chưa ghi nhận. Để dựng sẵn form nên gọi GET .../overview (trả clinicalExamination = null khi chưa có).',

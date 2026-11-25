@@ -2,6 +2,9 @@ import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
 import { CaseTimelineService } from './case-timeline.service';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 /**
  * SE05, "Tổng hợp tiến trình bệnh án". Chỉ đọc — mọi user đã đăng nhập đều xem được (không assert actorRole), cùng
@@ -9,12 +12,13 @@ import { CaseTimelineService } from './case-timeline.service';
  */
 @ApiTags('Post-Test Consultation - Case Timeline')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('post-test-consultation/encounters/:encounterId')
 export class CaseTimelineController {
     constructor(private readonly caseTimelineService: CaseTimelineService) { }
 
     @Get('timeline')
+    @RequirePermissions(`${Resource.ENCOUNTER}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Tổng hợp hồ sơ bệnh án theo trình tự thời gian (timeline) cho 1 lượt khám',
         description:

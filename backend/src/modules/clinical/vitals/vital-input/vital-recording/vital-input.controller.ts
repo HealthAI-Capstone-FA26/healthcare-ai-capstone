@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import {
     ApiCreatedResponse,
     ApiNotFoundResponse,
@@ -14,6 +14,10 @@ import { RecordVitalSignsDto } from '../dtos/record-vital-signs.dto';
 import { UpdateVitalSignsDto } from '../dtos/update-vital-signs.dto';
 import { ListVitalSessionsQueryDto } from '../dtos/list-vital-sessions-query.dto';
 import { LatestVitalSessionQueryDto } from '../dtos/latest-vital-session-query.dto';
+import { JwtAuthGuard } from '../../../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../../common/constants/permissions.dictionary';
 
 /**
  * Ghi nhận và tra cứu chỉ số sinh hiệu / thể trạng của bệnh nhân — do Điều dưỡng thực hiện.
@@ -23,6 +27,7 @@ import { LatestVitalSessionQueryDto } from '../dtos/latest-vital-session-query.d
  * segment 'latest' (Nest/Express khớp route theo thứ tự khai báo).
  */
 @ApiTags('Vital Sessions')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('vital-sessions')
 export class VitalInputController {
     constructor(
@@ -40,6 +45,7 @@ export class VitalInputController {
      * và đẩy cảnh báo qua WebSocket (xem module vital-anomaly) nếu có chỉ số bất thường.
      */
     @Post()
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.CREATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Ghi nhận sinh hiệu / thể trạng',
         description:
@@ -57,6 +63,7 @@ export class VitalInputController {
      * xu hướng trên giao diện điều dưỡng.
      */
     @Get()
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Lịch sử ghi nhận sinh hiệu của 1 lượt khám',
         description: 'Trả về danh sách các lần đo của 1 encounter, mới nhất trước — dùng để vẽ bảng/biểu đồ xu hướng.',
@@ -73,6 +80,7 @@ export class VitalInputController {
      * Lần đo gần nhất của lượt khám — để điều dưỡng đối chiếu nhanh với lần đang nhập.
      */
     @Get('latest')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Lần đo gần nhất của 1 lượt khám',
         description: 'Trả về phiên ghi nhận sinh hiệu gần nhất của encounter — để điều dưỡng đối chiếu nhanh với lần đang nhập.',
@@ -89,6 +97,7 @@ export class VitalInputController {
      * Chi tiết 1 lần ghi nhận, kèm cảnh báo (nếu có) của từng chỉ số.
      */
     @Get(':id')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Chi tiết 1 phiên ghi nhận sinh hiệu',
         description: 'Trả về đầy đủ các chỉ số của 1 lần đo, kèm cảnh báo (nếu có) của từng chỉ số.',
@@ -107,6 +116,7 @@ export class VitalInputController {
      * làm mới ở background sau khi cập nhật (không cần gọi lại API detect-alerts thủ công).
      */
     @Patch(':id')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Sửa / bổ sung chỉ số cho 1 phiên đã ghi nhận',
         description:

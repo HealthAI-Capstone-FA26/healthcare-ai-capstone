@@ -8,10 +8,13 @@ import { EncounterService } from './encounter.service';
 import { EncounterPdfService } from './encounter-pdf.service';
 import { FindEncountersQueryDto } from './dto/find-encounter-query.dto';
 import { EncounterDoctorRoutingService } from './encounter-doctor-routing.service';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 @ApiTags('Encounter')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('encounters')
 export class EncounterController {
   constructor(
@@ -21,12 +24,14 @@ export class EncounterController {
   ) { }
 
   @Get()
+  @RequirePermissions(`${Resource.ENCOUNTER}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Danh sách lượt khám theo bệnh nhân/trạng thái, sắp xếp mới nhất trước' })
   findMany(@Query() query: FindEncountersQueryDto) {
     return this.encounterService.findMany(query);
   }
 
   @Get(':id')
+  @RequirePermissions(`${Resource.ENCOUNTER}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({
     summary: 'Chi tiết 1 lượt khám kèm lý do khám, lịch sử xác minh danh tính, hàng chờ bác sĩ, đồng ý',
   })
@@ -35,6 +40,7 @@ export class EncounterController {
   }
 
   @Get(':id/export-pdf')
+  @RequirePermissions(`${Resource.ENCOUNTER}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Xuất PDF thông tin lượt khám (bệnh nhân, bác sĩ, lý do khám, sinh hiệu)' })
   @ApiParam({ name: 'id', format: 'uuid' })
   async exportPdf(@Param('id') id: string): Promise<StreamableFile> {
@@ -46,6 +52,7 @@ export class EncounterController {
   }
 
   @Post(':id/send-pdf-zalo')
+  @RequirePermissions(`${Resource.ENCOUNTER}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({
     summary: '[TEST] Xuất PDF lượt khám và gửi qua Zalo OA (không cần complete-registration); trả lỗi chi tiết nếu thất bại',
   })
@@ -55,6 +62,7 @@ export class EncounterController {
   }
 
   @Post(':id/complete-registration')
+  @RequirePermissions(`${Resource.ENCOUNTER}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({
     summary:
       'Hoàn tất thủ tục tiếp đón: kiểm tra đủ chief complaint + xác minh danh tính + consent bắt buộc, chuyển Encounter sang registered và xếp vào hàng đợi triage cho module vitals',
@@ -64,6 +72,7 @@ export class EncounterController {
   }
 
   @Post('from-paid-appointment/:appointmentId')
+  @RequirePermissions(`${Resource.ENCOUNTER}:${Action.CREATE}:${Scope.GROUP}`)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Tạo Encounter sau khi examination fee của Appointment đã thanh toán',
@@ -73,6 +82,7 @@ export class EncounterController {
   }
 
   @Post(':id/route-doctor')
+  @RequirePermissions(`${Resource.ENCOUNTER}:${Action.UPDATE}:${Scope.GROUP}`)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary:
@@ -91,6 +101,7 @@ export class EncounterController {
   }
 
   @Post(':id/finish')
+  @RequirePermissions(`${Resource.ENCOUNTER}:${Action.UPDATE}:${Scope.GROUP}`)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary:

@@ -19,6 +19,9 @@ import { AssignLabTaskDto } from './dtos/assign-lab-task.dto';
 import { ReceiveLabTaskDto } from './dtos/receive-lab-task.dto';
 import { ReportLabTaskExceptionDto } from './dtos/report-lab-task-exception.dto';
 import { ResolveLabTaskExceptionDto } from './dtos/resolve-lab-task-exception.dto';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 /**
  * SE04 — Tiếp nhận & vòng đời nhiệm vụ cận lâm sàng (DiagnosticTask) tại các phòng: xét nghiệm máu, ECG, siêu âm tim,
@@ -35,13 +38,14 @@ import { ResolveLabTaskExceptionDto } from './dtos/resolve-lab-task-exception.dt
  */
 @ApiTags('Lab Tasks (Diagnostic Tasks)')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('lab-tasks')
 export class LabTaskController {
     constructor(private readonly labTaskService: LabTaskService) { }
 
     /** GET /lab-tasks — worklist theo phòng/loại/trạng thái; sắp theo ưu tiên (stat > urgent > routine) rồi readyAt. */
     @Get()
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Worklist nhiệm vụ cận lâm sàng của 1 phòng',
         description:
@@ -53,6 +57,7 @@ export class LabTaskController {
     }
 
     @Get(':id')
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Chi tiết 1 nhiệm vụ cận lâm sàng' })
     @ApiParam({ name: 'id', description: 'ID nhiệm vụ cận lâm sàng (taskId)', format: 'uuid' })
     @ApiOkResponse({ description: 'Chi tiết nhiệm vụ, kèm kết quả (nếu đã có).' })
@@ -62,6 +67,7 @@ export class LabTaskController {
     }
 
     @Patch(':id/assign')
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Gán trước hoặc chuyển (reassign) kỹ thuật viên phụ trách nhiệm vụ',
         description:
@@ -92,6 +98,7 @@ export class LabTaskController {
      * chính của ràng buộc "chỉ tiến hành khi đã thanh toán".
      */
     @Post(':id/receive')
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Tiếp nhận nhiệm vụ cận lâm sàng để bắt đầu thực hiện',
         description:
@@ -128,6 +135,7 @@ export class LabTaskController {
      * quyết định bước tiếp theo (huỷ hẳn chỉ định, hoặc yêu cầu lấy lại mẫu).
      */
     @Post(':id/report-exception')
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Báo cáo ngoại lệ khiến phòng thực hiện không thể tiếp tục thực hiện',
         description:
@@ -157,6 +165,7 @@ export class LabTaskController {
      * DOCTOR trước khi thực hiện, vì đây là quyết định lâm sàng, không phải hành động của phòng thực hiện.
      */
     @Post(':id/resolve-exception')
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: "Bác sĩ xử lý ngoại lệ đang 'on_hold' của 1 nhiệm vụ cận lâm sàng",
         description:

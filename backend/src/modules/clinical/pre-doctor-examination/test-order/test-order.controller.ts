@@ -8,16 +8,20 @@ import { ACTOR_ROLE } from '../../../../common/constants/actor-role.constant';
 import { TestOrderService } from './test-order.service';
 import { CreateTestOrderDto } from './dto/create-test-order.dto';
 import { CancelTestOrderItemDto } from './dto/cancel-test-order-item.dto';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 @ApiTags('Doctor Examination - Test Order')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, ActorRolesGuard)
+@UseGuards(JwtAuthGuard, ActorRolesGuard, PermissionsGuard)
 @AllowActorRoles(ACTOR_ROLE.DOCTOR, ACTOR_ROLE.NURSE, ACTOR_ROLE.ADMIN)
 @Controller('doctor-examination')
 export class TestOrderController {
     constructor(private readonly testOrderService: TestOrderService) { }
 
     @Post('encounters/:encounterId/test-orders')
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.CREATE}:${Scope.GROUP}`)
     @AllowActorRoles(ACTOR_ROLE.DOCTOR)
     @ApiOperation({
         summary: 'Chỉ định cận lâm sàng cho 1 lượt khám',
@@ -36,6 +40,7 @@ export class TestOrderController {
     }
 
     @Get('encounters/:encounterId/test-orders')
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Danh sách chỉ định cận lâm sàng của 1 lượt khám' })
     @ApiParam({ name: 'encounterId', format: 'uuid' })
     findByEncounterId(@Param('encounterId', ParseUUIDPipe) encounterId: string) {
@@ -43,6 +48,7 @@ export class TestOrderController {
     }
 
     @Get('test-orders/:orderId')
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Chi tiết 1 chỉ định cận lâm sàng' })
     @ApiParam({ name: 'orderId', format: 'uuid' })
     findById(@Param('orderId', ParseUUIDPipe) orderId: string) {
@@ -50,6 +56,7 @@ export class TestOrderController {
     }
 
     @Patch('test-order-items/:orderItemId/cancel')
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.UPDATE}:${Scope.GROUP}`)
     @AllowActorRoles(ACTOR_ROLE.DOCTOR)
     @ApiOperation({
         summary: 'Huỷ 1 hạng mục cận lâm sàng đã chỉ định',

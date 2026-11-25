@@ -18,6 +18,9 @@ import { EcgModelService } from './ecg-model.service';
 import { ReanalyzeEcgDto } from './dto/reanalyze-ecg.dto';
 import { ReviewEcgEventDto } from './dto/review-ecg-event.dto';
 import { ListEcgEventsQueryDto } from './dto/list-ecg-events-query.dto';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 /**
  * SE04 — Phân tích AI ECG & cảnh báo bất thường. Toàn bộ route yêu cầu đăng nhập; vai trò assert trong service.
@@ -25,7 +28,7 @@ import { ListEcgEventsQueryDto } from './dto/list-ecg-events-query.dto';
  */
 @ApiTags('ECG AI Analysis')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller()
 export class EcgAnalysisController {
     constructor(
@@ -35,6 +38,7 @@ export class EcgAnalysisController {
     ) { }
 
     @Get('ecg-ai-models')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Danh sách model AI ECG có thể chọn khi chạy lại phân tích',
         description: "LAB_STAFF/DOCTOR/ADMIN. Trả model 'active' + 'candidate' (ecg_anomaly_detection); `isDefault` = model sẽ dùng nếu bỏ trống modelVersionId.",
@@ -46,6 +50,7 @@ export class EcgAnalysisController {
     }
 
     @Get('ecg-recordings/:id/analyses')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Mọi lần phân tích AI của 1 bản ghi ECG (mới nhất trước), kèm sự kiện bất thường' })
     @ApiParam({ name: 'id', description: 'ecgRecordingId', format: 'uuid' })
     async list(@Param('id') id: string) {
@@ -53,6 +58,7 @@ export class EcgAnalysisController {
     }
 
     @Post('ecg-recordings/:id/analyses')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.CREATE}:${Scope.GROUP}`)
     @HttpCode(202)
     @ApiOperation({
         summary: 'Chạy lại phân tích AI (reanalysis)',
@@ -68,6 +74,7 @@ export class EcgAnalysisController {
     }
 
     @Get('ecg-analyses/:analysisId')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Chi tiết 1 lần phân tích AI' })
     @ApiParam({ name: 'analysisId', format: 'uuid' })
     @ApiNotFoundResponse({ description: 'Không tìm thấy phân tích.' })
@@ -76,6 +83,7 @@ export class EcgAnalysisController {
     }
 
     @Get('encounters/:encounterId/ecg-anomaly-events')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Feed cảnh báo bất thường ECG của 1 lượt khám (analysis hiện hành)' })
     @ApiParam({ name: 'encounterId', format: 'uuid' })
     @ApiOkResponse({ description: 'Danh sách sự kiện, mới nhất trước.' })
@@ -84,6 +92,7 @@ export class EcgAnalysisController {
     }
 
     @Patch('ecg-anomaly-events/:eventId/acknowledge')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({ summary: "Xác nhận đã nhận cảnh báo (alertStatus: active -> acknowledged)" })
     @ApiParam({ name: 'eventId', format: 'uuid' })
     @ApiForbiddenResponse({ description: 'Không phải DOCTOR/LAB_STAFF.' })
@@ -93,6 +102,7 @@ export class EcgAnalysisController {
     }
 
     @Patch('ecg-anomaly-events/:eventId/resolve')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({ summary: "Đóng cảnh báo (alertStatus: active|acknowledged -> resolved)" })
     @ApiParam({ name: 'eventId', format: 'uuid' })
     @ApiConflictResponse({ description: 'Cảnh báo đã đóng.' })
@@ -101,6 +111,7 @@ export class EcgAnalysisController {
     }
 
     @Patch('ecg-anomaly-events/:eventId/review')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Bác sĩ xác nhận AI đúng/sai (reviewVerdict)',
         description: 'Chỉ DOCTOR. Độc lập với alertStatus. Cho phép đổi ý (ghi đè).',

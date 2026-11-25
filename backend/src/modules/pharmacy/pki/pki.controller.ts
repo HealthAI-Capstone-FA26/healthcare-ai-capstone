@@ -12,6 +12,9 @@ import { RequestUser } from '../../identity-access/auth/strategies/jwt.strategy'
 import { DoctorCertificateService, toPublicCertificate } from './doctor-certificate.service';
 import { PkiAuthorityService } from './pki-authority.service';
 import { ImportPkcs12Dto, RevokeCertificateDto, TrustAuthorityDto } from './dtos/pki.dto';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 /**
  * Quản trị PKI / CA cho chữ ký số đơn thuốc. Mặc định chỉ ADMIN; riêng ca-certificate / crl mở cho mọi user đã đăng nhập
@@ -19,7 +22,7 @@ import { ImportPkcs12Dto, RevokeCertificateDto, TrustAuthorityDto } from './dtos
  */
 @ApiTags('PKI / Digital Certificates')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, ActorRolesGuard)
+@UseGuards(JwtAuthGuard, ActorRolesGuard, PermissionsGuard)
 @AllowActorRoles(ACTOR_ROLE.ADMIN)
 @Controller('pki')
 export class PkiController {
@@ -29,6 +32,7 @@ export class PkiController {
     ) {}
 
     @Get('ca-certificate')
+    @RequirePermissions(`${Resource.USER}:${Action.READ}:${Scope.OWN}`)
     @AllowActorRoles()
     @ApiOperation({ summary: 'Chứng thư công khai của Root CA nội bộ (PEM) — để cài làm tin cậy khi mở PDF đơn thuốc' })
     caCertificate() {
@@ -36,6 +40,7 @@ export class PkiController {
     }
 
     @Get('crl')
+    @RequirePermissions(`${Resource.USER}:${Action.READ}:${Scope.OWN}`)
     @AllowActorRoles()
     @ApiOperation({ summary: 'Danh sách chứng thư đã thu hồi (CRL dạng JSON)' })
     crl() {
@@ -43,12 +48,14 @@ export class PkiController {
     }
 
     @Get('authorities')
+    @RequirePermissions(`${Resource.SECURITY_CONFIG}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Danh sách CA tin cậy (Root nội bộ + CA ngoài)' })
     listAuthorities() {
         return this.authorities.listAuthorities();
     }
 
     @Post('authorities/trust')
+    @RequirePermissions(`${Resource.SECURITY_CONFIG}:${Action.CREATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Thêm Root/Intermediate CA bên ngoài vào danh sách tin cậy',
         description: 'Cần làm trước khi import .p12 từ CA công cộng được cấp phép (VNPT-CA, Viettel-CA, FPT-CA, ...).',
@@ -58,6 +65,7 @@ export class PkiController {
     }
 
     @Get('certificates')
+    @RequirePermissions(`${Resource.SECURITY_CONFIG}:${Action.READ}:${Scope.GROUP}`)
     @ApiQuery({ name: 'doctorId', required: false })
     @ApiOperation({ summary: 'Danh sách chứng thư số (không trả private key)' })
     list(@Query('doctorId') doctorId?: string) {
@@ -65,12 +73,14 @@ export class PkiController {
     }
 
     @Post('doctors/:doctorId/certificates')
+    @RequirePermissions(`${Resource.SECURITY_CONFIG}:${Action.CREATE}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Cấp chứng thư số cho bác sĩ từ CA nội bộ (RSA-2048, ký SHA-256)' })
     async issue(@Param('doctorId', ParseUUIDPipe) doctorId: string, @CurrentUser() user: RequestUser) {
         return toPublicCertificate(await this.certificates.issueForDoctor(doctorId, user.userId));
     }
 
     @Post('doctors/:doctorId/certificates/import')
+    @RequirePermissions(`${Resource.SECURITY_CONFIG}:${Action.CREATE}:${Scope.GROUP}`)
     @ApiConsumes('multipart/form-data')
     @ApiBody({
         schema: {
@@ -95,6 +105,7 @@ export class PkiController {
     }
 
     @Post('certificates/:certificateId/revoke')
+    @RequirePermissions(`${Resource.SECURITY_CONFIG}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Thu hồi chứng thư số' })
     revoke(@Param('certificateId', ParseUUIDPipe) certificateId: string, @Body() dto: RevokeCertificateDto, @CurrentUser() user: RequestUser) {
         return this.certificates.revoke(certificateId, dto.reason, user.userId);

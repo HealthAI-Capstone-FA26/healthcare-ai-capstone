@@ -27,6 +27,7 @@ import { AdminRbacService } from './role-permission.service';
 import { AssignPermissionsDto } from '../dto/assign-permissions.dto';
 import { AssignRoleDto } from '../dto/assign-role.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 @ApiTags('Admin - RBAC')
 @ApiBearerAuth() // đổi tên security scheme cho khớp với SwaggerModule.setup(...) nếu bạn dùng addBearerAuth('access-token')
@@ -44,6 +45,7 @@ export class AdminRbacController {
     @ApiOperation({ summary: 'Lấy danh sách tất cả permissions khả dụng trong hệ thống' })
     @ApiOkResponse({ description: 'Danh sách tất cả permissions' })
     @Get('permissions')
+    @RequirePermissions(`${Resource.ROLE}:${Action.READ}:${Scope.OWN}`)
     listAllPermissions() {
         return this.adminRbacService.listAllPermissions();
     }
