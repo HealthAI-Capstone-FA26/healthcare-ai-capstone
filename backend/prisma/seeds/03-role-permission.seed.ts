@@ -72,7 +72,7 @@ const ROLE_GRANTS: Record<string, Grant[]> = {
         grant(Resource.MEDICATION, [READ], Scope.GROUP),
         grant(Resource.ALLERGY, [READ], Scope.ALL),
         grant(Resource.CONDITION, [READ], Scope.ALL),
-    ],j
+    ],
 
     [ACTOR_ROLE.LAB_STAFF]: [
         grant(Resource.PATIENT, [READ], Scope.GROUP),
