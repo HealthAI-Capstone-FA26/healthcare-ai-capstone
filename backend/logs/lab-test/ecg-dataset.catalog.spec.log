@@ -1,10 +1,10 @@
 FILE     : lab-test/ecg-dataset.catalog.spec.ts
-RAN AT   : 2026-11-25T04:11:48.817Z
-RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (1950 ms)
+RAN AT   : 2026-11-25T13:52:25.773Z
+RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (2087 ms)
 ================================================================================
-#1 [PASS] normalizeDatasetName chuẩn hoá chữ hoa/thường, chỉ nhận ECG_A..ECG_F (3 ms)
-#2 [PASS] EcgDatasetCatalog list: đánh dấu dataset nào đã cài; sampleRate mặc định 100Hz, null nếu chưa cài (44 ms)
-#3 [PASS] EcgDatasetCatalog load: ưu tiên ECG_A/ECG_test.npy, trả buffer + format + fileName + version (19 ms)
-#4 [PASS] EcgDatasetCatalog load: bố cục phẳng ECG_B.csv (14 ms)
-#5 [PASS] EcgDatasetCatalog sampleRate: env mặc định, meta.json ghi đè từng dataset, giá trị sai bị bỏ qua (44 ms)
-#6 [PASS] EcgDatasetCatalog load: chưa cài -> DATASET_NOT_AVAILABLE, thông điệp không lộ đường dẫn (24 ms)
+#1 [PASS] normalizeDatasetName chuẩn hoá chữ hoa/thường, chỉ nhận ECG_A..ECG_F (2 ms)
+#2 [PASS] EcgDatasetCatalog list: đánh dấu dataset nào đã cài; sampleRate mặc định 100Hz, null nếu chưa cài (64 ms)
+#3 [PASS] EcgDatasetCatalog load: ưu tiên ECG_A/ECG_test.npy, trả buffer + format + fileName + version (25 ms)
+#4 [PASS] EcgDatasetCatalog load: bố cục phẳng ECG_B.csv (41 ms)
+#5 [PASS] EcgDatasetCatalog sampleRate: env mặc định, meta.json ghi đè từng dataset, giá trị sai bị bỏ qua (77 ms)
+#6 [PASS] EcgDatasetCatalog load: chưa cài -> DATASET_NOT_AVAILABLE, thông điệp không lộ đường dẫn (15 ms)

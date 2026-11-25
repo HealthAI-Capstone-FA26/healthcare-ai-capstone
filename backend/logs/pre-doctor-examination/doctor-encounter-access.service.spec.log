@@ -1,10 +1,10 @@
 FILE     : pre-doctor-examination/doctor-encounter-access.service.spec.ts
-RAN AT   : 2026-11-25T04:11:47.372Z
-RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (1418 ms)
+RAN AT   : 2026-11-25T13:52:26.361Z
+RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (2169 ms)
 ================================================================================
-#1 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID01 [N]: should return doctor and encounter when assigned doctor accesses an in_progress encounter (8 ms)
-#2 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID02 [N]: should allow access when encounter has no assigned doctor yet (doctorId = null) (1 ms)
-#3 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID03 [A]: should throw ForbiddenException when currentUserId does not have DOCTOR role (19 ms)
-#4 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID04 [A]: should throw NotFoundException when encounter does not exist (5 ms)
+#1 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID01 [N]: should return doctor and encounter when assigned doctor accesses an in_progress encounter (4 ms)
+#2 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID02 [N]: should allow access when encounter has no assigned doctor yet (doctorId = null) (2 ms)
+#3 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID03 [A]: should throw ForbiddenException when currentUserId does not have DOCTOR role (11 ms)
+#4 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID04 [A]: should throw NotFoundException when encounter does not exist (7 ms)
 #5 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID05 [A]: should throw ForbiddenException when encounter belongs to another doctor (1 ms)
-#6 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID06 [B]: should throw BadRequestException when encounter is already finished (outside allowedStatuses) (3 ms)
+#6 [PASS] DoctorEncounterAccessService - prepareWrite (Function 12) UTCID06 [B]: should throw BadRequestException when encounter is already finished (outside allowedStatuses) (13 ms)

@@ -1,13 +1,13 @@
 FILE     : lab-test/ecg-recording.service.spec.ts
-RAN AT   : 2026-11-25T04:11:49.904Z
-RESULT   : 9 passed, 0 failed, 0 skipped / 9 total (2086 ms)
+RAN AT   : 2026-11-25T13:52:23.656Z
+RESULT   : 9 passed, 0 failed, 0 skipped / 9 total (2095 ms)
 ================================================================================
-#1 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID20 [N]: should store the signal in object storage, mark the recording completed and emit the completed event (autoAnalyze defaults to true) (6 ms)
-#2 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID21 [B]: should emit the completed event with autoAnalyze = false when the lab staff opts out of AI analysis (3 ms)
-#3 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID22 [A]: should throw ForbiddenException and create nothing when the task is unpaid (16 ms)
-#4 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID23 [A]: should throw BadRequestException when the task has not been received yet (status is not 'in_progress') (3 ms)
-#5 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID24 [A]: should throw BadRequestException when the task modality is not ecg (3 ms)
-#6 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID25 [A]: should throw ForbiddenException when the task belongs to another lab staff (2 ms)
-#7 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID26 [A]: should throw ConflictException when the same file (checksum) was already uploaded for the task (6 ms)
-#8 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID27 [A]: should delete the draft recording, throw BadRequestException and emit nothing when object storage fails (9 ms)
-#9 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID28 [A]: should throw BadRequestException before any DB access when the file extension does not match signalFormat (6 ms)
+#1 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID20 [N]: should store the signal in object storage, mark the recording completed and emit the completed event (autoAnalyze defaults to true) (11 ms)
+#2 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID21 [B]: should emit the completed event with autoAnalyze = false when the lab staff opts out of AI analysis (16 ms)
+#3 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID22 [A]: should throw ForbiddenException and create nothing when the task is unpaid (15 ms)
+#4 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID23 [A]: should throw BadRequestException when the task has not been received yet (status is not 'in_progress') (5 ms)
+#5 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID24 [A]: should throw BadRequestException when the task modality is not ecg (2 ms)
+#6 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID25 [A]: should throw ForbiddenException when the task belongs to another lab staff (3 ms)
+#7 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID26 [A]: should throw ConflictException when the same file (checksum) was already uploaded for the task (3 ms)
+#8 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID27 [A]: should delete the draft recording, throw BadRequestException and emit nothing when object storage fails (5 ms)
+#9 [PASS] EcgRecordingService - Function 18 (F-11): createFromFile UTCID28 [A]: should throw BadRequestException before any DB access when the file extension does not match signalFormat (3 ms)

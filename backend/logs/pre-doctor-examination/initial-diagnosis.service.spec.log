@@ -1,10 +1,10 @@
 FILE     : pre-doctor-examination/initial-diagnosis.service.spec.ts
-RAN AT   : 2026-11-25T04:11:50.112Z
-RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (1964 ms)
+RAN AT   : 2026-11-25T13:52:25.661Z
+RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (2046 ms)
 ================================================================================
-#1 [PASS] InitialDiagnosisService - Function 14: create UTCID01: should create initial diagnosis and auto-set isPrimary = true when 0 primary diagnosis exists (4 ms)
+#1 [PASS] InitialDiagnosisService - Function 14: create UTCID01: should create initial diagnosis and auto-set isPrimary = true when 0 primary diagnosis exists (5 ms)
 #2 [PASS] InitialDiagnosisService - Function 14: create UTCID02: should create secondary initial diagnosis (isPrimary = false) when 1 primary diagnosis already exists (2 ms)
-#3 [PASS] InitialDiagnosisService - Function 14: create UTCID03: should throw NotFoundException when icd10Code does not exist in ICD-10 catalog (10 ms)
+#3 [PASS] InitialDiagnosisService - Function 14: create UTCID03: should throw NotFoundException when icd10Code does not exist in ICD-10 catalog (15 ms)
 #4 [PASS] InitialDiagnosisService - Function 14: create UTCID04: should throw BadRequestException when icd10Code is inactive (isActive = false) (5 ms)
 #5 [PASS] InitialDiagnosisService - Function 14: create UTCID05: should throw ConflictException when encounter already has an initial diagnosis with the same icd10Code (2 ms)
-#6 [PASS] InitialDiagnosisService - Function 14: create UTCID06: should demote existing primary diagnosis and set new diagnosis as primary when dto.isPrimary = true (4 ms)
+#6 [PASS] InitialDiagnosisService - Function 14: create UTCID06: should demote existing primary diagnosis and set new diagnosis as primary when dto.isPrimary = true (2 ms)

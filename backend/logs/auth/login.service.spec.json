@@ -1,7 +1,7 @@
 {
   "file": "auth/login.service.spec.ts",
-  "ranAt": "2026-11-25T04:37:16.648Z",
-  "durationMs": 13563,
+  "ranAt": "2026-11-25T13:52:10.801Z",
+  "durationMs": 18320,
   "total": 13,
   "passed": 13,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "đăng nhập thành công khi email/mật khẩu hợp lệ và tài khoản active",
       "fullName": "LoginService (F-01 Auth & Session) login đăng nhập thành công khi email/mật khẩu hợp lệ và tài khoản active",
       "status": "PASS",
-      "durationMs": 10,
+      "durationMs": 16,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "ném UnauthorizedException khi email không tồn tại",
       "fullName": "LoginService (F-01 Auth & Session) login ném UnauthorizedException khi email không tồn tại",
       "status": "PASS",
-      "durationMs": 24,
+      "durationMs": 12,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "ném UnauthorizedException khi tài khoản đang bị tạm khóa (lockedUntil > now)",
       "fullName": "LoginService (F-01 Auth & Session) login ném UnauthorizedException khi tài khoản đang bị tạm khóa (lockedUntil > now)",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "tăng đếm sai và báo sai thông tin khi sai mật khẩu chưa tới ngưỡng khóa",
       "fullName": "LoginService (F-01 Auth & Session) login tăng đếm sai và báo sai thông tin khi sai mật khẩu chưa tới ngưỡng khóa",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "khóa tài khoản và thông báo số phút khóa khi sai mật khẩu vượt ngưỡng",
       "fullName": "LoginService (F-01 Auth & Session) login khóa tài khoản và thông báo số phút khóa khi sai mật khẩu vượt ngưỡng",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "ném UnauthorizedException khi verifyRefreshToken thất bại",
       "fullName": "LoginService (F-01 Auth & Session) refreshToken ném UnauthorizedException khi verifyRefreshToken thất bại",
       "status": "PASS",
-      "durationMs": 8,
+      "durationMs": 37,
       "error": ""
     },
     {
@@ -95,7 +95,7 @@
       "name": "ném UnauthorizedException khi phiên vượt quá session limit (expiredAt < now)",
       "fullName": "LoginService (F-01 Auth & Session) refreshToken ném UnauthorizedException khi phiên vượt quá session limit (expiredAt < now)",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -104,7 +104,7 @@
       "name": "ném UnauthorizedException khi refresh token không khớp hash trong session",
       "fullName": "LoginService (F-01 Auth & Session) refreshToken ném UnauthorizedException khi refresh token không khớp hash trong session",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -113,7 +113,7 @@
       "name": "ném UnauthorizedException khi tài khoản không tồn tại hoặc không active",
       "fullName": "LoginService (F-01 Auth & Session) refreshToken ném UnauthorizedException khi tài khoản không tồn tại hoặc không active",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -122,7 +122,7 @@
       "name": "thu hồi session của user và trả về thông báo đăng xuất thành công",
       "fullName": "LoginService (F-01 Auth & Session) logout thu hồi session của user và trả về thông báo đăng xuất thành công",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 4,
       "error": ""
     }
   ]

@@ -1,7 +1,7 @@
 {
   "file": "auth/role-permission.service.spec.ts",
-  "ranAt": "2026-11-25T04:37:30.230Z",
-  "durationMs": 903,
+  "ranAt": "2026-11-25T13:52:27.880Z",
+  "durationMs": 2324,
   "total": 10,
   "passed": 10,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "listAllPermissions: trả danh sách permission sắp theo permissionCode",
       "fullName": "AdminRbacService (F-02 RBAC) listAllPermissions: trả danh sách permission sắp theo permissionCode",
       "status": "PASS",
-      "durationMs": 5,
+      "durationMs": 10,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "listRolesWithPermissions: trim roleCode khi trả danh sách role",
       "fullName": "AdminRbacService (F-02 RBAC) listRolesWithPermissions: trim roleCode khi trả danh sách role",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 8,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "getRolePermissions: ném NotFoundException nếu role không tồn tại",
       "fullName": "AdminRbacService (F-02 RBAC) getRolePermissions: ném NotFoundException nếu role không tồn tại",
       "status": "PASS",
-      "durationMs": 7,
+      "durationMs": 13,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "addPermissionsToRole: thêm permissions (skipDuplicates) và trả danh sách mới",
       "fullName": "AdminRbacService (F-02 RBAC) addPermissionsToRole: thêm permissions (skipDuplicates) và trả danh sách mới",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "addPermissionsToRole: ném NotFoundException khi có permissionId không tồn tại",
       "fullName": "AdminRbacService (F-02 RBAC) addPermissionsToRole: ném NotFoundException khi có permissionId không tồn tại",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 8,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "removePermissionFromRole: ném NotFoundException nếu role chưa có permission đó",
       "fullName": "AdminRbacService (F-02 RBAC) removePermissionFromRole: ném NotFoundException nếu role chưa có permission đó",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -86,7 +86,7 @@
       "name": "getUserRole: trả role hiện tại của user hoặc ném NotFoundException nếu thiếu user",
       "fullName": "AdminRbacService (F-02 RBAC) getUserRole: trả role hiện tại của user hoặc ném NotFoundException nếu thiếu user",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 1,
       "error": ""
     },
     {

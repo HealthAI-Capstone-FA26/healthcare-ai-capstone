@@ -1,7 +1,7 @@
 {
   "file": "post-test-consultation/treatment-consultation.service.spec.ts",
-  "ranAt": "2026-11-25T04:11:50.256Z",
-  "durationMs": 1716,
+  "ranAt": "2026-11-25T13:52:25.889Z",
+  "durationMs": 2081,
   "total": 7,
   "passed": 7,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "F-14 [Normal]: should create consultation and reserve follow-up appointment when followUpRequired = true",
       "fullName": "TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Normal]: should create consultation and reserve follow-up appointment when followUpRequired = true",
       "status": "PASS",
-      "durationMs": 7,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "F-12 [Normal]: should create consultation without follow-up appointment when followUpRequired = false",
       "fullName": "TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-12 [Normal]: should create consultation without follow-up appointment when followUpRequired = false",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "F-12 [Abnormal]: should throw BadRequestException if no final diagnosis exists when creating consultation for the first time",
       "fullName": "TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-12 [Abnormal]: should throw BadRequestException if no final diagnosis exists when creating consultation for the first time",
       "status": "PASS",
-      "durationMs": 10,
+      "durationMs": 12,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "F-14 [Abnormal]: should throw BadRequestException when followUpRequired = true without followUpSlotId",
       "fullName": "TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Abnormal]: should throw BadRequestException when followUpRequired = true without followUpSlotId",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "F-14 [Abnormal]: should throw BadRequestException when followUpSlotId is in the past",
       "fullName": "TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Abnormal]: should throw BadRequestException when followUpSlotId is in the past",
       "status": "PASS",
-      "durationMs": 5,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "F-14 [Abnormal]: should throw ConflictException when target follow-up slot is concurrently filled",
       "fullName": "TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Abnormal]: should throw ConflictException when target follow-up slot is concurrently filled",
       "status": "PASS",
-      "durationMs": 5,
+      "durationMs": 3,
       "error": ""
     },
     {

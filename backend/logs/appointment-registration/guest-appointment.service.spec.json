@@ -1,7 +1,7 @@
 {
   "file": "appointment-registration/guest-appointment.service.spec.ts",
-  "ranAt": "2026-11-25T04:11:44.619Z",
-  "durationMs": 7266,
+  "ranAt": "2026-11-25T13:52:11.429Z",
+  "durationMs": 12398,
   "total": 19,
   "passed": 19,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "UTCID01 [N]: email channel -> OTP mailed and pending request stored by phone number",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) requestOtp UTCID01 [N]: email channel -> OTP mailed and pending request stored by phone number",
       "status": "PASS",
-      "durationMs": 18,
+      "durationMs": 10,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "UTCID02 [N]: sms channel -> OTP sent by SMS",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) requestOtp UTCID02 [N]: sms channel -> OTP sent by SMS",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "UTCID03 [A]: email channel without email -> BadRequestException, nothing sent",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) requestOtp UTCID03 [A]: email channel without email -> BadRequestException, nothing sent",
       "status": "PASS",
-      "durationMs": 57,
+      "durationMs": 34,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "UTCID04 [A]: a full slot is rejected BEFORE any OTP is sent (DS-02 step 1)",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) requestOtp UTCID04 [A]: a full slot is rejected BEFORE any OTP is sent (DS-02 step 1)",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "UTCID05 [A]: slot of another doctor is rejected",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) requestOtp UTCID05 [A]: slot of another doctor is rejected",
       "status": "PASS",
-      "durationMs": 5,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "UTCID06 [A]: phone already belongs to a patient with a different full name -> ConflictException",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) requestOtp UTCID06 [A]: phone already belongs to a patient with a different full name -> ConflictException",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 8,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "UTCID07 [B]: 5th request in the window is allowed, 6th is blocked by the rate limit",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) requestOtp UTCID07 [B]: 5th request in the window is allowed, 6th is blocked by the rate limit",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "UTCID08 [B]: rate-limit window (expire) is armed only on the first request",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) requestOtp UTCID08 [B]: rate-limit window (expire) is armed only on the first request",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -86,7 +86,7 @@
       "name": "UTCID01 [N]: correct OTP + new guest -> Appointment(pending, online) + draft Patient, slot becomes full, OTP deleted",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) verifyOtp UTCID01 [N]: correct OTP + new guest -> Appointment(pending, online) + draft Patient, slot becomes full, OTP deleted",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -95,7 +95,7 @@
       "name": "UTCID02 [N]: guest matches an existing MAIN patient -> suggestedPatientId set, patientId null (receptionist syncs later)",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) verifyOtp UTCID02 [N]: guest matches an existing MAIN patient -> suggestedPatientId set, patientId null (receptionist syncs later)",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -113,7 +113,7 @@
       "name": "UTCID04 [A]: no pending request for this phone -> BadRequestException",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) verifyOtp UTCID04 [A]: no pending request for this phone -> BadRequestException",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -122,7 +122,7 @@
       "name": "UTCID05 [A]: WRONG OTP -> 401, attempt counter +1, no Appointment, no Patient, slot untouched (DS-02 step 2)",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) verifyOtp UTCID05 [A]: WRONG OTP -> 401, attempt counter +1, no Appointment, no Patient, slot untouched (DS-02 step 2)",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 13,
       "error": ""
     },
     {
@@ -131,7 +131,7 @@
       "name": "UTCID06 [A]: expired OTP -> BadRequestException and pending request removed",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) verifyOtp UTCID06 [A]: expired OTP -> BadRequestException and pending request removed",
       "status": "PASS",
-      "durationMs": 5,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -140,7 +140,7 @@
       "name": "UTCID07 [B]: attempts = 5 (limit reached) -> blocked even with the correct OTP, request removed",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) verifyOtp UTCID07 [B]: attempts = 5 (limit reached) -> blocked even with the correct OTP, request removed",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 24,
       "error": ""
     },
     {
@@ -149,7 +149,7 @@
       "name": "UTCID08 [B]: attempts = 4 with a wrong OTP is still a plain 401 (not yet locked)",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) verifyOtp UTCID08 [B]: attempts = 4 with a wrong OTP is still a plain 401 (not yet locked)",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -167,7 +167,7 @@
       "name": "UTCID10 [A]: slot got full between request-otp and verify-otp -> BadRequestException, no records",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) verifyOtp UTCID10 [A]: slot got full between request-otp and verify-otp -> BadRequestException, no records",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -176,7 +176,7 @@
       "name": "UTCID11 [A]: lost the race inside the transaction (updateMany count 0) -> ConflictException, OTP kept",
       "fullName": "GuestAppointmentService (F-03: guest booking needs a correct OTP) verifyOtp UTCID11 [A]: lost the race inside the transaction (updateMany count 0) -> ConflictException, OTP kept",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 5,
       "error": ""
     }
   ]

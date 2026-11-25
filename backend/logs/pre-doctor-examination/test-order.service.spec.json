@@ -1,7 +1,7 @@
 {
   "file": "pre-doctor-examination/test-order.service.spec.ts",
-  "ranAt": "2026-11-25T04:11:49.899Z",
-  "durationMs": 1974,
+  "ranAt": "2026-11-25T13:52:24.139Z",
+  "durationMs": 1947,
   "total": 6,
   "passed": 6,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "UTCID01: should create DiagnosticOrder, 2 DiagnosticTasks (payment_pending) and transition Encounter to awaiting_diagnostics",
       "fullName": "TestOrderService - Function 15: create UTCID01: should create DiagnosticOrder, 2 DiagnosticTasks (payment_pending) and transition Encounter to awaiting_diagnostics",
       "status": "PASS",
-      "durationMs": 15,
+      "durationMs": 20,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "UTCID02: should throw BadRequestException when referenced diagnosis does not belong to encounterId or is null",
       "fullName": "TestOrderService - Function 15: create UTCID02: should throw BadRequestException when referenced diagnosis does not belong to encounterId or is null",
       "status": "PASS",
-      "durationMs": 14,
+      "durationMs": 23,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "UTCID03: should throw BadRequestException when referenced diagnosis has diagnosisType !== \"initial\"",
       "fullName": "TestOrderService - Function 15: create UTCID03: should throw BadRequestException when referenced diagnosis has diagnosisType !== \"initial\"",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "UTCID04: should throw BadRequestException when dto.items contains duplicate serviceIds in the request array",
       "fullName": "TestOrderService - Function 15: create UTCID04: should throw BadRequestException when dto.items contains duplicate serviceIds in the request array",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "UTCID05: should throw BadRequestException when a requested service has isActive = false",
       "fullName": "TestOrderService - Function 15: create UTCID05: should throw BadRequestException when a requested service has isActive = false",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "UTCID06: should throw ConflictException when service is already ordered and its task is still active (payment_pending)",
       "fullName": "TestOrderService - Function 15: create UTCID06: should throw ConflictException when service is already ordered and its task is still active (payment_pending)",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 7,
       "error": ""
     }
   ]

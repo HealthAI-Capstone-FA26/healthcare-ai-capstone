@@ -1,8 +1,8 @@
 FILE     : patient/patient.service.spec.ts
-RAN AT   : 2026-11-25T04:11:47.190Z
-RESULT   : 4 passed, 0 failed, 0 skipped / 4 total (4467 ms)
+RAN AT   : 2026-11-25T13:52:15.607Z
+RESULT   : 4 passed, 0 failed, 0 skipped / 4 total (8498 ms)
 ================================================================================
-#1 [PASS] PatientService creates a self-service patient linked to the current user (4 ms)
-#2 [PASS] PatientService rejects a second self-service patient for the same user (9 ms)
-#3 [PASS] PatientService rejects a duplicate identity number (4 ms)
-#4 [PASS] PatientService prevents a user from viewing another user full profile (2 ms)
+#1 [PASS] PatientService creates a self-service patient linked to the current user (7 ms)
+#2 [PASS] PatientService rejects a second self-service patient for the same user (17 ms)
+#3 [PASS] PatientService rejects a duplicate identity number (9 ms)
+#4 [PASS] PatientService prevents a user from viewing another user full profile (14 ms)

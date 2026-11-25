@@ -1,12 +1,12 @@
 FILE     : lab-test/ecg-playback.spec.ts
-RAN AT   : 2026-11-25T04:11:51.899Z
-RESULT   : 8 passed, 0 failed, 0 skipped / 8 total (390 ms)
+RAN AT   : 2026-11-25T13:52:28.254Z
+RESULT   : 8 passed, 0 failed, 0 skipped / 8 total (327 ms)
 ================================================================================
-#1 [PASS] EcgPlayback mẫu đầu đi ngay khi start; các mẫu sau đi theo đồng hồ (100Hz = 10ms/mẫu) (12 ms)
-#2 [PASS] EcgPlayback tick trễ vẫn đẩy bù đủ mẫu, không bỏ mẫu và không trùng (5 ms)
-#3 [PASS] EcgPlayback hết bản ghi: onEnd đúng 1 lần với tổng số mẫu đã phát, timer dừng (3 ms)
-#4 [PASS] EcgPlayback speed 2x phát nhanh gấp đôi; startIndex bỏ qua đoạn đầu (2 ms)
-#5 [PASS] EcgPlayback gắn isAnomaly 0/1 khi có flags, không gắn khi không có (4 ms)
-#6 [PASS] EcgPlayback stop giữa chừng: không phát thêm, không gọi onEnd (3 ms)
-#7 [PASS] EcgPlayback startIndex vượt cuối: kết thúc ngay với 0 mẫu (1 ms)
+#1 [PASS] EcgPlayback mẫu đầu đi ngay khi start; các mẫu sau đi theo đồng hồ (100Hz = 10ms/mẫu) (15 ms)
+#2 [PASS] EcgPlayback tick trễ vẫn đẩy bù đủ mẫu, không bỏ mẫu và không trùng (10 ms)
+#3 [PASS] EcgPlayback hết bản ghi: onEnd đúng 1 lần với tổng số mẫu đã phát, timer dừng (7 ms)
+#4 [PASS] EcgPlayback speed 2x phát nhanh gấp đôi; startIndex bỏ qua đoạn đầu (4 ms)
+#5 [PASS] EcgPlayback gắn isAnomaly 0/1 khi có flags, không gắn khi không có (7 ms)
+#6 [PASS] EcgPlayback stop giữa chừng: không phát thêm, không gọi onEnd (9 ms)
+#7 [PASS] EcgPlayback startIndex vượt cuối: kết thúc ngay với 0 mẫu (5 ms)
 #8 [PASS] EcgPlayback timer thật (setInterval) tự gọi tick (4 ms)

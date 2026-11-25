@@ -1,12 +1,12 @@
 FILE     : pharmacy/pki.spec.ts
-RAN AT   : 2026-11-25T04:10:41.551Z
-RESULT   : 8 passed, 0 failed, 0 skipped / 8 total (154669 ms)
+RAN AT   : 2026-11-25T13:51:39.961Z
+RESULT   : 8 passed, 0 failed, 0 skipped / 8 total (123860 ms)
 ================================================================================
-#1 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc vault: mã hoá/giải mã AES-GCM và phát hiện bị sửa (203 ms)
-#2 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc tạo Root CA một lần và cấp chứng thư bác sĩ (X.509, SHA-256, keyUsage ký số) (11720 ms)
-#3 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc ký → xác minh hợp lệ; sửa 1 byte nội dung → không hợp lệ (12791 ms)
-#4 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc nối thêm nội dung sau khi ký (incremental update) bị phát hiện (23640 ms)
-#5 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc thu hồi SAU khi ký: chữ ký vẫn hợp lệ nhưng ghi nhận revokedAfterSigning; thu hồi TRƯỚC khi ký: không hợp lệ (12578 ms)
-#6 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc chứng thư của CA lạ (không nằm trong trust store) bị từ chối (15274 ms)
-#7 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc import .p12 từ CA ngoài: cần trust anchor trước; sau đó ký/xác minh được (11954 ms)
-#8 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc PKI_AUTO_ISSUE=false: không tự cấp khi ký (4764 ms)
+#1 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc vault: mã hoá/giải mã AES-GCM và phát hiện bị sửa (108 ms)
+#2 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc tạo Root CA một lần và cấp chứng thư bác sĩ (X.509, SHA-256, keyUsage ký số) (16170 ms)
+#3 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc ký → xác minh hợp lệ; sửa 1 byte nội dung → không hợp lệ (16613 ms)
+#4 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc nối thêm nội dung sau khi ký (incremental update) bị phát hiện (12399 ms)
+#5 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc thu hồi SAU khi ký: chữ ký vẫn hợp lệ nhưng ghi nhận revokedAfterSigning; thu hồi TRƯỚC khi ký: không hợp lệ (12880 ms)
+#6 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc chứng thư của CA lạ (không nằm trong trust store) bị từ chối (14757 ms)
+#7 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc import .p12 từ CA ngoài: cần trust anchor trước; sau đó ký/xác minh được (16546 ms)
+#8 [PASS] PKI / CA — ký và xác minh PDF đơn thuốc PKI_AUTO_ISSUE=false: không tự cấp khi ký (7007 ms)

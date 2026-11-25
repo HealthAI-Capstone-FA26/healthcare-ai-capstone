@@ -1,0 +1,21 @@
+{
+  "file": "ci/ci-ratio.spec.ts",
+  "ranAt": "2026-11-25T14:01:21.917Z",
+  "durationMs": 15362,
+  "total": 1,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "CI unit-test ratio (Commitment)",
+      "name": "CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại",
+      "fullName": "CI unit-test ratio (Commitment) CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại",
+      "status": "PASS",
+      "durationMs": 688,
+      "error": ""
+    }
+  ]
+}

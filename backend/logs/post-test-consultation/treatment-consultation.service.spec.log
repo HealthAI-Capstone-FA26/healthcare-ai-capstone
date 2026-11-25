@@ -1,11 +1,11 @@
 FILE     : post-test-consultation/treatment-consultation.service.spec.ts
-RAN AT   : 2026-11-25T04:11:50.256Z
-RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (1716 ms)
+RAN AT   : 2026-11-25T13:52:25.889Z
+RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (2081 ms)
 ================================================================================
-#1 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Normal]: should create consultation and reserve follow-up appointment when followUpRequired = true (7 ms)
-#2 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-12 [Normal]: should create consultation without follow-up appointment when followUpRequired = false (2 ms)
-#3 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-12 [Abnormal]: should throw BadRequestException if no final diagnosis exists when creating consultation for the first time (10 ms)
-#4 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Abnormal]: should throw BadRequestException when followUpRequired = true without followUpSlotId (2 ms)
-#5 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Abnormal]: should throw BadRequestException when followUpSlotId is in the past (5 ms)
-#6 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Abnormal]: should throw ConflictException when target follow-up slot is concurrently filled (5 ms)
+#1 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Normal]: should create consultation and reserve follow-up appointment when followUpRequired = true (4 ms)
+#2 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-12 [Normal]: should create consultation without follow-up appointment when followUpRequired = false (1 ms)
+#3 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-12 [Abnormal]: should throw BadRequestException if no final diagnosis exists when creating consultation for the first time (12 ms)
+#4 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Abnormal]: should throw BadRequestException when followUpRequired = true without followUpSlotId (3 ms)
+#5 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Abnormal]: should throw BadRequestException when followUpSlotId is in the past (3 ms)
+#6 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Abnormal]: should throw ConflictException when target follow-up slot is concurrently filled (3 ms)
 #7 [PASS] TreatmentConsultationService - F-12 & F-14 Follow-up Scheduling F-14 [Boundary]: should reject disabling followUpRequired when an active follow-up appointment already exists (2 ms)

@@ -1,7 +1,7 @@
 {
   "file": "lab-test/ecg-signal-reader.spec.ts",
-  "ranAt": "2026-11-25T04:11:51.816Z",
-  "durationMs": 451,
+  "ranAt": "2026-11-25T13:52:27.995Z",
+  "durationMs": 330,
   "total": 11,
   "passed": 11,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "csv có header + bỏ cột thời gian",
       "fullName": "parseEcgSignal csv có header + bỏ cột thời gian",
       "status": "PASS",
-      "durationMs": 8,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "csv không header dùng leadNames gợi ý, hỗ trợ ; và dòng trống",
       "fullName": "parseEcgSignal csv không header dùng leadNames gợi ý, hỗ trợ ; và dòng trống",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "csv: ô không phải số -> 0",
       "fullName": "parseEcgSignal csv: ô không phải số -> 0",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "json dạng map lead -> mảng",
       "fullName": "parseEcgSignal json dạng map lead -> mảng",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "json ma trận [mẫu][lead] (nhiều hàng ít cột) được chuyển vị; dùng numLeads để phân biệt",
       "fullName": "parseEcgSignal json ma trận [mẫu][lead] (nhiều hàng ít cột) được chuyển vị; dùng numLeads để phân biệt",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "npy 2D [mẫu][lead] float32",
       "fullName": "parseEcgSignal npy 2D [mẫu][lead] float32",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "npy 2D lead-major khi shape[0] == numLeads, và fortran_order",
       "fullName": "parseEcgSignal npy 2D lead-major khi shape[0] == numLeads, và fortran_order",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "npy 1D và dtype f8 / i2 / i4",
       "fullName": "parseEcgSignal npy 1D và dtype f8 / i2 / i4",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -86,7 +86,7 @@
       "name": "npy hỏng: sai magic, bị cụt, dtype lạ -> SIGNAL_PARSE_FAILED",
       "fullName": "parseEcgSignal npy hỏng: sai magic, bị cụt, dtype lạ -> SIGNAL_PARSE_FAILED",
       "status": "PASS",
-      "durationMs": 43,
+      "durationMs": 33,
       "error": ""
     },
     {
@@ -95,7 +95,7 @@
       "name": "định dạng không stream được -> SIGNAL_FORMAT_NOT_STREAMABLE",
       "fullName": "parseEcgSignal định dạng không stream được -> SIGNAL_FORMAT_NOT_STREAMABLE",
       "status": "PASS",
-      "durationMs": 11,
+      "durationMs": 14,
       "error": ""
     },
     {
@@ -104,7 +104,7 @@
       "name": "tệp rỗng/không có mẫu -> SIGNAL_PARSE_FAILED",
       "fullName": "parseEcgSignal tệp rỗng/không có mẫu -> SIGNAL_PARSE_FAILED",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "error": ""
     }
   ]

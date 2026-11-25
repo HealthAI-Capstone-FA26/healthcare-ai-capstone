@@ -1,10 +1,10 @@
 FILE     : doctor-schedule/doctor-schedule.service.spec.ts
-RAN AT   : 2026-11-25T04:11:47.858Z
-RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (2048 ms)
+RAN AT   : 2026-11-25T13:52:23.846Z
+RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (1792 ms)
 ================================================================================
-#1 [PASS] DoctorScheduleService - create (Function 11) UTCID01 [N]: should successfully create MORNING schedule and generate 8 slots (16 ms)
+#1 [PASS] DoctorScheduleService - create (Function 11) UTCID01 [N]: should successfully create MORNING schedule and generate 8 slots (5 ms)
 #2 [PASS] DoctorScheduleService - create (Function 11) UTCID02 [N]: should successfully create AFTERNOON schedule and generate 8 slots (1 ms)
-#3 [PASS] DoctorScheduleService - create (Function 11) UTCID03 [A]: should throw NotFoundException when doctor does not exist (39 ms)
+#3 [PASS] DoctorScheduleService - create (Function 11) UTCID03 [A]: should throw NotFoundException when doctor does not exist (21 ms)
 #4 [PASS] DoctorScheduleService - create (Function 11) UTCID04 [A]: should throw ConflictException if doctor already has schedule for this date & session (2 ms)
-#5 [PASS] DoctorScheduleService - create (Function 11) UTCID05 [A]: should throw BadRequestException if startTime >= endTime (3 ms)
-#6 [PASS] DoctorScheduleService - create (Function 11) UTCID06 [B]: should allow creating schedule for tomorrow (boundary valid advance date) (2 ms)
+#5 [PASS] DoctorScheduleService - create (Function 11) UTCID05 [A]: should throw BadRequestException if startTime >= endTime (1 ms)
+#6 [PASS] DoctorScheduleService - create (Function 11) UTCID06 [B]: should allow creating schedule for tomorrow (boundary valid advance date) (3 ms)

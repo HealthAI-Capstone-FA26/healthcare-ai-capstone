@@ -1,7 +1,7 @@
 {
   "file": "lab-test/ecg-anomaly-labeler.spec.ts",
-  "ranAt": "2026-11-25T04:11:51.911Z",
-  "durationMs": 333,
+  "ranAt": "2026-11-25T13:52:28.572Z",
+  "durationMs": 296,
   "total": 7,
   "passed": 7,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "đánh 1 cho mẫu nằm trong [start, end] (gồm 2 đầu) @500Hz (2ms/mẫu)",
       "fullName": "buildAnomalyFlags đánh 1 cho mẫu nằm trong [start, end] (gồm 2 đầu) @500Hz (2ms/mẫu)",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "nhiều đoạn chồng lấn, đoạn vượt cuối bản ghi, start < 0 và đoạn đảo đầu-cuối",
       "fullName": "buildAnomalyFlags nhiều đoạn chồng lấn, đoạn vượt cuối bản ghi, start < 0 và đoạn đảo đầu-cuối",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 3,
       "error": ""
     },
     {

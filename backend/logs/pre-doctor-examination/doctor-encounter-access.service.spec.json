@@ -1,7 +1,7 @@
 {
   "file": "pre-doctor-examination/doctor-encounter-access.service.spec.ts",
-  "ranAt": "2026-11-25T04:11:47.372Z",
-  "durationMs": 1418,
+  "ranAt": "2026-11-25T13:52:26.361Z",
+  "durationMs": 2169,
   "total": 6,
   "passed": 6,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "UTCID01 [N]: should return doctor and encounter when assigned doctor accesses an in_progress encounter",
       "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID01 [N]: should return doctor and encounter when assigned doctor accesses an in_progress encounter",
       "status": "PASS",
-      "durationMs": 8,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "UTCID02 [N]: should allow access when encounter has no assigned doctor yet (doctorId = null)",
       "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID02 [N]: should allow access when encounter has no assigned doctor yet (doctorId = null)",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "UTCID03 [A]: should throw ForbiddenException when currentUserId does not have DOCTOR role",
       "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID03 [A]: should throw ForbiddenException when currentUserId does not have DOCTOR role",
       "status": "PASS",
-      "durationMs": 19,
+      "durationMs": 11,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "UTCID04 [A]: should throw NotFoundException when encounter does not exist",
       "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID04 [A]: should throw NotFoundException when encounter does not exist",
       "status": "PASS",
-      "durationMs": 5,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "UTCID06 [B]: should throw BadRequestException when encounter is already finished (outside allowedStatuses)",
       "fullName": "DoctorEncounterAccessService - prepareWrite (Function 12) UTCID06 [B]: should throw BadRequestException when encounter is already finished (outside allowedStatuses)",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 13,
       "error": ""
     }
   ]

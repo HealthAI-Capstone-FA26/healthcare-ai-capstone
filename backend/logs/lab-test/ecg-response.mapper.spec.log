@@ -1,11 +1,11 @@
 FILE     : lab-test/ecg-response.mapper.spec.ts
-RAN AT   : 2026-11-25T04:11:51.691Z
-RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (599 ms)
+RAN AT   : 2026-11-25T13:52:27.947Z
+RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (281 ms)
 ================================================================================
-#1 [PASS] ECG response mapper event: Decimal -> number, thêm id/score/reviewedByName, bỏ object user (3 ms)
+#1 [PASS] ECG response mapper event: Decimal -> number, thêm id/score/reviewedByName, bỏ object user (4 ms)
 #2 [PASS] ECG response mapper analysis: tách scoreSeries khỏi summaryMetrics, alias anomalies/modelName (3 ms)
-#3 [PASS] ECG response mapper analysis không có events (bản tóm tắt) không tạo anomalies (0 ms)
+#3 [PASS] ECG response mapper analysis không có events (bản tóm tắt) không tạo anomalies (1 ms)
 #4 [PASS] ECG response mapper recording: patientName/encounterCode/originalFileName + latest vs current (1 ms)
-#5 [PASS] parseAnalyzeResult - scoreSeries (tuỳ chọn) không có scoreSeries -> null (tương thích ngược) (1 ms)
+#5 [PASS] parseAnalyzeResult - scoreSeries (tuỳ chọn) không có scoreSeries -> null (tương thích ngược) (2 ms)
 #6 [PASS] parseAnalyzeResult - scoreSeries (tuỳ chọn) bỏ điểm sai định dạng, giữ điểm hợp lệ (1 ms)
-#7 [PASS] parseAnalyzeResult - scoreSeries (tuỳ chọn) lấy mẫu đều khi vượt giới hạn (27 ms)
+#7 [PASS] parseAnalyzeResult - scoreSeries (tuỳ chọn) lấy mẫu đều khi vượt giới hạn (45 ms)

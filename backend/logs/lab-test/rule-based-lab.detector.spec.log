@@ -1,10 +1,10 @@
 FILE     : lab-test/rule-based-lab.detector.spec.ts
-RAN AT   : 2026-11-25T04:11:47.511Z
-RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (2377 ms)
+RAN AT   : 2026-11-25T13:52:23.461Z
+RESULT   : 6 passed, 0 failed, 0 skipped / 6 total (2862 ms)
 ================================================================================
-#1 [PASS] RuleBasedLabDetector - Function 17: detect UTCID01 [N]: should classify result as normal when valueNumeric is within the normal range (<= 15 ng/L, male) (49 ms)
-#2 [PASS] RuleBasedLabDetector - Function 17: detect UTCID02 [N]: should classify result as critical when valueNumeric reaches the critical threshold (>= 52 ng/L) (10 ms)
-#3 [PASS] RuleBasedLabDetector - Function 17: detect UTCID03 [B]: should classify result as normal at exact upper boundary of normal range (15 ng/L) (7 ms)
-#4 [PASS] RuleBasedLabDetector - Function 17: detect UTCID04 [B]: should classify result as high at boundary value entering high risk level (16 ng/L) (8 ms)
-#5 [PASS] RuleBasedLabDetector - Function 17: detect UTCID05 [A]: should return unconfigured reason when no applicable threshold rows exist (11 ms)
-#6 [PASS] RuleBasedLabDetector - Function 17: detect UTCID06 [N]: should classify boolean parameter with valueBoolean = true as abnormal with high risk (10 ms)
+#1 [PASS] RuleBasedLabDetector - Function 17: detect UTCID01 [N]: should classify result as normal when valueNumeric is within the normal range (<= 15 ng/L, male) (36 ms)
+#2 [PASS] RuleBasedLabDetector - Function 17: detect UTCID02 [N]: should classify result as critical when valueNumeric reaches the critical threshold (>= 52 ng/L) (14 ms)
+#3 [PASS] RuleBasedLabDetector - Function 17: detect UTCID03 [B]: should classify result as normal at exact upper boundary of normal range (15 ng/L) (8 ms)
+#4 [PASS] RuleBasedLabDetector - Function 17: detect UTCID04 [B]: should classify result as high at boundary value entering high risk level (16 ng/L) (7 ms)
+#5 [PASS] RuleBasedLabDetector - Function 17: detect UTCID05 [A]: should return unconfigured reason when no applicable threshold rows exist (14 ms)
+#6 [PASS] RuleBasedLabDetector - Function 17: detect UTCID06 [N]: should classify boolean parameter with valueBoolean = true as abnormal with high risk (11 ms)

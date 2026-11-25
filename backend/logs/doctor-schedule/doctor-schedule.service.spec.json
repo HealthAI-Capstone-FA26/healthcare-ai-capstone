@@ -1,7 +1,7 @@
 {
   "file": "doctor-schedule/doctor-schedule.service.spec.ts",
-  "ranAt": "2026-11-25T04:11:47.858Z",
-  "durationMs": 2048,
+  "ranAt": "2026-11-25T13:52:23.846Z",
+  "durationMs": 1792,
   "total": 6,
   "passed": 6,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "UTCID01 [N]: should successfully create MORNING schedule and generate 8 slots",
       "fullName": "DoctorScheduleService - create (Function 11) UTCID01 [N]: should successfully create MORNING schedule and generate 8 slots",
       "status": "PASS",
-      "durationMs": 16,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "UTCID03 [A]: should throw NotFoundException when doctor does not exist",
       "fullName": "DoctorScheduleService - create (Function 11) UTCID03 [A]: should throw NotFoundException when doctor does not exist",
       "status": "PASS",
-      "durationMs": 39,
+      "durationMs": 21,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "UTCID05 [A]: should throw BadRequestException if startTime >= endTime",
       "fullName": "DoctorScheduleService - create (Function 11) UTCID05 [A]: should throw BadRequestException if startTime >= endTime",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "UTCID06 [B]: should allow creating schedule for tomorrow (boundary valid advance date)",
       "fullName": "DoctorScheduleService - create (Function 11) UTCID06 [B]: should allow creating schedule for tomorrow (boundary valid advance date)",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 3,
       "error": ""
     }
   ]

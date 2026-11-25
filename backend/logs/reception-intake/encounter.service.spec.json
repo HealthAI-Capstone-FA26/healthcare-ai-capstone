@@ -1,7 +1,7 @@
 {
   "file": "reception-intake/encounter.service.spec.ts",
-  "ranAt": "2026-11-25T04:11:47.386Z",
-  "durationMs": 2703,
+  "ranAt": "2026-11-25T13:52:23.440Z",
+  "durationMs": 2426,
   "total": 17,
   "passed": 17,
   "failed": 0,
@@ -23,7 +23,7 @@
       "name": "UTCID02 [N]: patient with a previously finished encounter is flagged \"returning\"",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID02 [N]: patient with a previously finished encounter is flagged \"returning\"",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "UTCID03 [N]: idempotent - appointment that already has an encounter returns it without a transaction",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID03 [N]: idempotent - appointment that already has an encounter returns it without a transaction",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "UTCID04 [A]: FEE NOT PAID -> BadRequestException, no encounter, appointment untouched (DS-02 step 3)",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID04 [A]: FEE NOT PAID -> BadRequestException, no encounter, appointment untouched (DS-02 step 3)",
       "status": "PASS",
-      "durationMs": 14,
+      "durationMs": 10,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "UTCID05 [A]: only a PAID invoice that contains an examination-fee item counts",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID05 [A]: only a PAID invoice that contains an examination-fee item counts",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "UTCID06 [A]: unknown appointment -> NotFoundException",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID06 [A]: unknown appointment -> NotFoundException",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "UTCID08 [A]: appointment not in confirmed status -> BadRequestException",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) createAfterPaidConsultation UTCID08 [A]: appointment not in confirmed status -> BadRequestException",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -95,7 +95,7 @@
       "name": "UTCID01 [N]: everything complete -> encounter registered, patient draft->main, patient enters triage queue (waiting)",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID01 [N]: everything complete -> encounter registered, patient draft->main, patient enters triage queue (waiting)",
       "status": "PASS",
-      "durationMs": 18,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -104,7 +104,7 @@
       "name": "UTCID02 [N]: patient already identity-verified in a previous visit does not need a new verification",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID02 [N]: patient already identity-verified in a previous visit does not need a new verification",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -113,7 +113,7 @@
       "name": "UTCID03 [A]: missing items are ALL reported at once (chief complaint, ID check, 2 consents) and nothing changes (DS-02 step 4)",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID03 [A]: missing items are ALL reported at once (chief complaint, ID check, 2 consents) and nothing changes (DS-02 step 4)",
       "status": "PASS",
-      "durationMs": 7,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -122,7 +122,7 @@
       "name": "UTCID04 [A]: unpaid consultation fee is reported as missing",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID04 [A]: unpaid consultation fee is reported as missing",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -140,7 +140,7 @@
       "name": "UTCID06 [A]: unknown encounter -> NotFoundException",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID06 [A]: unknown encounter -> NotFoundException",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -158,7 +158,7 @@
       "name": "UTCID08 [B]: only ONE mandatory consent signed -> still blocked and reports exactly one missing item",
       "fullName": "EncounterService (F-04: encounter is created only after paid fee) completeRegistration UTCID08 [B]: only ONE mandatory consent signed -> still blocked and reports exactly one missing item",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 1,
       "error": ""
     }
   ]

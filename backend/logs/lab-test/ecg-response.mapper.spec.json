@@ -1,7 +1,7 @@
 {
   "file": "lab-test/ecg-response.mapper.spec.ts",
-  "ranAt": "2026-11-25T04:11:51.691Z",
-  "durationMs": 599,
+  "ranAt": "2026-11-25T13:52:27.947Z",
+  "durationMs": 281,
   "total": 7,
   "passed": 7,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "event: Decimal -> number, thêm id/score/reviewedByName, bỏ object user",
       "fullName": "ECG response mapper event: Decimal -> number, thêm id/score/reviewedByName, bỏ object user",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "analysis không có events (bản tóm tắt) không tạo anomalies",
       "fullName": "ECG response mapper analysis không có events (bản tóm tắt) không tạo anomalies",
       "status": "PASS",
-      "durationMs": 0,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "không có scoreSeries -> null (tương thích ngược)",
       "fullName": "parseAnalyzeResult - scoreSeries (tuỳ chọn) không có scoreSeries -> null (tương thích ngược)",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "lấy mẫu đều khi vượt giới hạn",
       "fullName": "parseAnalyzeResult - scoreSeries (tuỳ chọn) lấy mẫu đều khi vượt giới hạn",
       "status": "PASS",
-      "durationMs": 27,
+      "durationMs": 45,
       "error": ""
     }
   ]

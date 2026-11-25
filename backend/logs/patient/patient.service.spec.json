@@ -1,7 +1,7 @@
 {
   "file": "patient/patient.service.spec.ts",
-  "ranAt": "2026-11-25T04:11:47.190Z",
-  "durationMs": 4467,
+  "ranAt": "2026-11-25T13:52:15.607Z",
+  "durationMs": 8498,
   "total": 4,
   "passed": 4,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "creates a self-service patient linked to the current user",
       "fullName": "PatientService creates a self-service patient linked to the current user",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "rejects a second self-service patient for the same user",
       "fullName": "PatientService rejects a second self-service patient for the same user",
       "status": "PASS",
-      "durationMs": 9,
+      "durationMs": 17,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "rejects a duplicate identity number",
       "fullName": "PatientService rejects a duplicate identity number",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "prevents a user from viewing another user full profile",
       "fullName": "PatientService prevents a user from viewing another user full profile",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 14,
       "error": ""
     }
   ]

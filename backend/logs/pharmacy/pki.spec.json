@@ -1,7 +1,7 @@
 {
   "file": "pharmacy/pki.spec.ts",
-  "ranAt": "2026-11-25T04:10:41.551Z",
-  "durationMs": 154669,
+  "ranAt": "2026-11-25T13:51:39.961Z",
+  "durationMs": 123860,
   "total": 8,
   "passed": 8,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "vault: mã hoá/giải mã AES-GCM và phát hiện bị sửa",
       "fullName": "PKI / CA — ký và xác minh PDF đơn thuốc vault: mã hoá/giải mã AES-GCM và phát hiện bị sửa",
       "status": "PASS",
-      "durationMs": 203,
+      "durationMs": 108,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "tạo Root CA một lần và cấp chứng thư bác sĩ (X.509, SHA-256, keyUsage ký số)",
       "fullName": "PKI / CA — ký và xác minh PDF đơn thuốc tạo Root CA một lần và cấp chứng thư bác sĩ (X.509, SHA-256, keyUsage ký số)",
       "status": "PASS",
-      "durationMs": 11720,
+      "durationMs": 16170,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "ký → xác minh hợp lệ; sửa 1 byte nội dung → không hợp lệ",
       "fullName": "PKI / CA — ký và xác minh PDF đơn thuốc ký → xác minh hợp lệ; sửa 1 byte nội dung → không hợp lệ",
       "status": "PASS",
-      "durationMs": 12791,
+      "durationMs": 16613,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "nối thêm nội dung sau khi ký (incremental update) bị phát hiện",
       "fullName": "PKI / CA — ký và xác minh PDF đơn thuốc nối thêm nội dung sau khi ký (incremental update) bị phát hiện",
       "status": "PASS",
-      "durationMs": 23640,
+      "durationMs": 12399,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "thu hồi SAU khi ký: chữ ký vẫn hợp lệ nhưng ghi nhận revokedAfterSigning; thu hồi TRƯỚC khi ký: không hợp lệ",
       "fullName": "PKI / CA — ký và xác minh PDF đơn thuốc thu hồi SAU khi ký: chữ ký vẫn hợp lệ nhưng ghi nhận revokedAfterSigning; thu hồi TRƯỚC khi ký: không hợp lệ",
       "status": "PASS",
-      "durationMs": 12578,
+      "durationMs": 12880,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "chứng thư của CA lạ (không nằm trong trust store) bị từ chối",
       "fullName": "PKI / CA — ký và xác minh PDF đơn thuốc chứng thư của CA lạ (không nằm trong trust store) bị từ chối",
       "status": "PASS",
-      "durationMs": 15274,
+      "durationMs": 14757,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "import .p12 từ CA ngoài: cần trust anchor trước; sau đó ký/xác minh được",
       "fullName": "PKI / CA — ký và xác minh PDF đơn thuốc import .p12 từ CA ngoài: cần trust anchor trước; sau đó ký/xác minh được",
       "status": "PASS",
-      "durationMs": 11954,
+      "durationMs": 16546,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "PKI_AUTO_ISSUE=false: không tự cấp khi ký",
       "fullName": "PKI / CA — ký và xác minh PDF đơn thuốc PKI_AUTO_ISSUE=false: không tự cấp khi ký",
       "status": "PASS",
-      "durationMs": 4764,
+      "durationMs": 7007,
       "error": ""
     }
   ]

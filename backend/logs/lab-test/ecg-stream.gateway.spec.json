@@ -1,7 +1,7 @@
 {
   "file": "lab-test/ecg-stream.gateway.spec.ts",
-  "ranAt": "2026-11-25T04:10:41.550Z",
-  "durationMs": 63715,
+  "ranAt": "2026-11-25T13:51:40.079Z",
+  "durationMs": 33059,
   "total": 51,
   "passed": 51,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "từ chối kết nối thiếu token hoặc token sai",
       "fullName": "EcgStreamGateway (/ecg-stream) xác thực / phân quyền từ chối kết nối thiếu token hoặc token sai",
       "status": "PASS",
-      "durationMs": 49,
+      "durationMs": 114,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "chấp nhận token hợp lệ (auth.token hoặc header)",
       "fullName": "EcgStreamGateway (/ecg-stream) xác thực / phân quyền chấp nhận token hợp lệ (auth.token hoặc header)",
       "status": "PASS",
-      "durationMs": 11,
+      "durationMs": 16,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "forbidden khi chưa xác thực hoặc sai vai trò (cả 2 API và list); không nạp dữ liệu",
       "fullName": "EcgStreamGateway (/ecg-stream) xác thực / phân quyền forbidden khi chưa xác thực hoặc sai vai trò (cả 2 API và list); không nạp dữ liệu",
       "status": "PASS",
-      "durationMs": 15,
+      "durationMs": 112,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "LAB_ALERT_REQUIRE_AUTH=false: bỏ qua xác thực (dev)",
       "fullName": "EcgStreamGateway (/ecg-stream) xác thực / phân quyền LAB_ALERT_REQUIRE_AUTH=false: bỏ qua xác thực (dev)",
       "status": "PASS",
-      "durationMs": 9,
+      "durationMs": 19,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "INVALID_REQUEST: không có nguồn",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: không có nguồn",
       "status": "PASS",
-      "durationMs": 9,
+      "durationMs": 6,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "INVALID_REQUEST: hai nguồn: file + dataset",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: hai nguồn: file + dataset",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "INVALID_REQUEST: hai nguồn: dataset + recordingId",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: hai nguồn: dataset + recordingId",
       "status": "PASS",
-      "durationMs": 7,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "INVALID_REQUEST: ba nguồn",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: ba nguồn",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -86,7 +86,7 @@
       "name": "INVALID_REQUEST: dataset ngoài danh mục",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: dataset ngoài danh mục",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 6,
       "error": ""
     },
     {
@@ -95,7 +95,7 @@
       "name": "INVALID_REQUEST: dataset path traversal",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: dataset path traversal",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 6,
       "error": ""
     },
     {
@@ -104,7 +104,7 @@
       "name": "INVALID_REQUEST: recordingId rỗng",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: recordingId rỗng",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -113,7 +113,7 @@
       "name": "INVALID_REQUEST: recordingId quá dài",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: recordingId quá dài",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 12,
       "error": ""
     },
     {
@@ -122,7 +122,7 @@
       "name": "INVALID_REQUEST: file không phải nhị phân",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: file không phải nhị phân",
       "status": "PASS",
-      "durationMs": 5,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -140,7 +140,7 @@
       "name": "INVALID_REQUEST: thiếu fileName",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: thiếu fileName",
       "status": "PASS",
-      "durationMs": 5,
+      "durationMs": 15,
       "error": ""
     },
     {
@@ -149,7 +149,7 @@
       "name": "INVALID_REQUEST: fileName rỗng",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: fileName rỗng",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -158,7 +158,7 @@
       "name": "INVALID_REQUEST: thiếu sampleRateHz",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: thiếu sampleRateHz",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 11,
       "error": ""
     },
     {
@@ -167,7 +167,7 @@
       "name": "INVALID_REQUEST: sampleRateHz thấp",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: sampleRateHz thấp",
       "status": "PASS",
-      "durationMs": 7,
+      "durationMs": 18,
       "error": ""
     },
     {
@@ -176,7 +176,7 @@
       "name": "INVALID_REQUEST: sampleRateHz cao",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: sampleRateHz cao",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -185,7 +185,7 @@
       "name": "INVALID_REQUEST: sampleRateHz không nguyên",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: sampleRateHz không nguyên",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 12,
       "error": ""
     },
     {
@@ -194,7 +194,7 @@
       "name": "INVALID_REQUEST: leadNames không phải mảng",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: leadNames không phải mảng",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 19,
       "error": ""
     },
     {
@@ -203,7 +203,7 @@
       "name": "INVALID_REQUEST: leadNames chứa số",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: leadNames chứa số",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 6,
       "error": ""
     },
     {
@@ -212,7 +212,7 @@
       "name": "INVALID_REQUEST: leadNames quá nhiều",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: leadNames quá nhiều",
       "status": "PASS",
-      "durationMs": 7,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -221,7 +221,7 @@
       "name": "INVALID_REQUEST: speed = 0",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: speed = 0",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -230,7 +230,7 @@
       "name": "INVALID_REQUEST: speed quá lớn",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: speed quá lớn",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 8,
       "error": ""
     },
     {
@@ -239,7 +239,7 @@
       "name": "INVALID_REQUEST: speed không phải số",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: speed không phải số",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -248,7 +248,7 @@
       "name": "INVALID_REQUEST: startMs âm",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: startMs âm",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -257,7 +257,7 @@
       "name": "INVALID_REQUEST: lead là object",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: lead là object",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -266,7 +266,7 @@
       "name": "INVALID_REQUEST: analysisId rỗng",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào INVALID_REQUEST: analysisId rỗng",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 18,
       "error": ""
     },
     {
@@ -275,7 +275,7 @@
       "name": "đuôi tệp sai -> UNSUPPORTED_FILE_TYPE; tệp quá lớn -> FILE_TOO_LARGE (theo ECG_STREAM_MAX_UPLOAD_BYTES)",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào đuôi tệp sai -> UNSUPPORTED_FILE_TYPE; tệp quá lớn -> FILE_TOO_LARGE (theo ECG_STREAM_MAX_UPLOAD_BYTES)",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -284,7 +284,7 @@
       "name": "body undefined cũng không ném lỗi",
       "fullName": "EcgStreamGateway (/ecg-stream) validate nguồn và đầu vào body undefined cũng không ném lỗi",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -293,7 +293,7 @@
       "name": "file upload (Buffer): kind=upload kèm fileName, sampleRateHz, leadNames",
       "fullName": "EcgStreamGateway (/ecg-stream) chuyển nguồn xuống service file upload (Buffer): kind=upload kèm fileName, sampleRateHz, leadNames",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -302,7 +302,7 @@
       "name": "file là ArrayBuffer / Uint8Array cũng được nhận và đổi thành Buffer",
       "fullName": "EcgStreamGateway (/ecg-stream) chuyển nguồn xuống service file là ArrayBuffer / Uint8Array cũng được nhận và đổi thành Buffer",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 8,
       "error": ""
     },
     {
@@ -311,7 +311,7 @@
       "name": "dataset \"ECG_A\" -> kind=dataset đã chuẩn hoá",
       "fullName": "EcgStreamGateway (/ecg-stream) chuyển nguồn xuống service dataset \"ECG_A\" -> kind=dataset đã chuẩn hoá",
       "status": "PASS",
-      "durationMs": 21,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -320,7 +320,7 @@
       "name": "dataset \"ecg_f\" -> kind=dataset đã chuẩn hoá",
       "fullName": "EcgStreamGateway (/ecg-stream) chuyển nguồn xuống service dataset \"ecg_f\" -> kind=dataset đã chuẩn hoá",
       "status": "PASS",
-      "durationMs": 18,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -329,7 +329,7 @@
       "name": "dataset \" ECG_C \" -> kind=dataset đã chuẩn hoá",
       "fullName": "EcgStreamGateway (/ecg-stream) chuyển nguồn xuống service dataset \" ECG_C \" -> kind=dataset đã chuẩn hoá",
       "status": "PASS",
-      "durationMs": 15,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -338,7 +338,7 @@
       "name": "recordingId (+ analysisId) -> kind=recording; analysisId bị bỏ qua với nguồn khác",
       "fullName": "EcgStreamGateway (/ecg-stream) chuyển nguồn xuống service recordingId (+ analysisId) -> kind=recording; analysisId bị bỏ qua với nguồn khác",
       "status": "PASS",
-      "durationMs": 10,
+      "durationMs": 11,
       "error": ""
     },
     {
@@ -347,7 +347,7 @@
       "name": "ack metadata rồi phát từng điểm \"ecg-point\" (không có isAnomaly), cuối cùng \"ecg-stream-end\"",
       "fullName": "EcgStreamGateway (/ecg-stream) API [1] stream-ecg ack metadata rồi phát từng điểm \"ecg-point\" (không có isAnomaly), cuối cùng \"ecg-stream-end\"",
       "status": "PASS",
-      "durationMs": 21,
+      "durationMs": 25,
       "error": ""
     },
     {
@@ -356,7 +356,7 @@
       "name": "upload và dataset phát y hệt nhau; payload không có recordingId",
       "fullName": "EcgStreamGateway (/ecg-stream) API [1] stream-ecg upload và dataset phát y hệt nhau; payload không có recordingId",
       "status": "PASS",
-      "durationMs": 11,
+      "durationMs": 13,
       "error": ""
     },
     {
@@ -365,7 +365,7 @@
       "name": "phát \"ecg-point-anomaly\" kèm isAnomaly 0/1; ack có overallResult + anomalyPointCount (+ analysisId với recording)",
       "fullName": "EcgStreamGateway (/ecg-stream) API [2] stream-ecg-anomaly phát \"ecg-point-anomaly\" kèm isAnomaly 0/1; ack có overallResult + anomalyPointCount (+ analysisId với recording)",
       "status": "PASS",
-      "durationMs": 5,
+      "durationMs": 6,
       "error": ""
     },
     {
@@ -374,7 +374,7 @@
       "name": "upload/dataset: ack không có analysisId nhưng có overallResult của AI",
       "fullName": "EcgStreamGateway (/ecg-stream) API [2] stream-ecg-anomaly upload/dataset: ack không có analysisId nhưng có overallResult của AI",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -383,7 +383,7 @@
       "name": "chuyển lỗi nghiệp vụ (kể cả mã AI_*) thành ack { status:error, code }",
       "fullName": "EcgStreamGateway (/ecg-stream) API [2] stream-ecg-anomaly chuyển lỗi nghiệp vụ (kể cả mã AI_*) thành ack { status:error, code }",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -392,7 +392,7 @@
       "name": "lỗi bất ngờ -> INTERNAL_ERROR, không lộ chi tiết",
       "fullName": "EcgStreamGateway (/ecg-stream) API [2] stream-ecg-anomaly lỗi bất ngờ -> INTERNAL_ERROR, không lộ chi tiết",
       "status": "PASS",
-      "durationMs": 11,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -410,7 +410,7 @@
       "name": "stream-ecg-stop dừng phát; gọi lại khi không có stream -> idle",
       "fullName": "EcgStreamGateway (/ecg-stream) vòng đời stream stream-ecg-stop dừng phát; gọi lại khi không có stream -> idle",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -419,7 +419,7 @@
       "name": "bắt đầu stream mới thì dừng stream cũ của cùng socket",
       "fullName": "EcgStreamGateway (/ecg-stream) vòng đời stream bắt đầu stream mới thì dừng stream cũ của cùng socket",
       "status": "PASS",
-      "durationMs": 8,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -428,7 +428,7 @@
       "name": "ngắt kết nối dừng stream và giải phóng timer",
       "fullName": "EcgStreamGateway (/ecg-stream) vòng đời stream ngắt kết nối dừng stream và giải phóng timer",
       "status": "PASS",
-      "durationMs": 7,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -437,7 +437,7 @@
       "name": "client ngắt trong lúc nạp dữ liệu -> không tạo stream",
       "fullName": "EcgStreamGateway (/ecg-stream) vòng đời stream client ngắt trong lúc nạp dữ liệu -> không tạo stream",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -446,7 +446,7 @@
       "name": "stop trong lúc chờ -> start đang chờ trả CANCELLED và không phát điểm nào",
       "fullName": "EcgStreamGateway (/ecg-stream) vòng đời stream đang chờ AI (prepare chạy lâu) stop trong lúc chờ -> start đang chờ trả CANCELLED và không phát điểm nào",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 6,
       "error": ""
     },
     {
@@ -455,7 +455,7 @@
       "name": "start thứ hai trong lúc start đầu còn chờ AI -> chỉ start thứ hai phát (không rò stream)",
       "fullName": "EcgStreamGateway (/ecg-stream) vòng đời stream đang chờ AI (prepare chạy lâu) start thứ hai trong lúc start đầu còn chờ AI -> chỉ start thứ hai phát (không rò stream)",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 24,
       "error": ""
     },
     {
@@ -464,7 +464,7 @@
       "name": "ngắt kết nối khi đang chờ -> CANCELLED, không tạo timer",
       "fullName": "EcgStreamGateway (/ecg-stream) vòng đời stream đang chờ AI (prepare chạy lâu) ngắt kết nối khi đang chờ -> CANCELLED, không tạo timer",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 3,
       "error": ""
     }
   ]
