@@ -1,2 +1,2 @@
 ﻿"STT","File","Suite","Test case","Kết quả","Thời gian (ms)","Lỗi / Ghi chú"
-"1","ci/ci-ratio.spec.ts","CI unit-test ratio (Commitment)","CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại","PASS","688",""
+"1","ci/ci-ratio.spec.ts","CI unit-test ratio (Commitment)","CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại","PASS","667",""

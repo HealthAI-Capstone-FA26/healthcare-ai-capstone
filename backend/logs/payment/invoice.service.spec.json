@@ -1,7 +1,7 @@
 {
   "file": "payment/invoice.service.spec.ts",
-  "ranAt": "2026-11-25T13:52:26.104Z",
-  "durationMs": 9751,
+  "ranAt": "2026-11-25T15:57:11.999Z",
+  "durationMs": 1308,
   "total": 11,
   "passed": 11,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "ném BadRequestException nếu thiếu cả encounterId và appointmentId",
       "fullName": "InvoiceService (F-08 Invoice Management) generate ném BadRequestException nếu thiếu cả encounterId và appointmentId",
       "status": "PASS",
-      "durationMs": 16,
+      "durationMs": 14,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "ném BadRequestException nếu truyền đồng thời cả encounterId và appointmentId",
       "fullName": "InvoiceService (F-08 Invoice Management) generate ném BadRequestException nếu truyền đồng thời cả encounterId và appointmentId",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "ném NotFoundException khi không tìm thấy encounter",
       "fullName": "InvoiceService (F-08 Invoice Management) generate ném NotFoundException khi không tìm thấy encounter",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "lập hoá đơn gồm phí khám + dịch vụ CLS, tính tổng sau giảm giá và gửi thông báo",
       "fullName": "InvoiceService (F-08 Invoice Management) generate lập hoá đơn gồm phí khám + dịch vụ CLS, tính tổng sau giảm giá và gửi thông báo",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "ném NotFoundException khi không tìm thấy hoá đơn",
       "fullName": "InvoiceService (F-08 Invoice Management) findById ném NotFoundException khi không tìm thấy hoá đơn",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "ném BadRequestException nếu hoá đơn không ở trạng thái pending",
       "fullName": "InvoiceService (F-08 Invoice Management) cancel ném BadRequestException nếu hoá đơn không ở trạng thái pending",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -86,7 +86,7 @@
       "name": "huỷ hoá đơn pending và giải phóng các dòng CLS để có thể lập lại hoá đơn",
       "fullName": "InvoiceService (F-08 Invoice Management) cancel huỷ hoá đơn pending và giải phóng các dòng CLS để có thể lập lại hoá đơn",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 14,
       "error": ""
     },
     {
@@ -104,7 +104,7 @@
       "name": "chuyển paid atomically, verify LabTask cho CLS, sinh PDF và phát event invoice.paid",
       "fullName": "InvoiceService (F-08 Invoice Management) markPaidIfSettled chuyển paid atomically, verify LabTask cho CLS, sinh PDF và phát event invoice.paid",
       "status": "PASS",
-      "durationMs": 11,
+      "durationMs": 3,
       "error": ""
     }
   ]

@@ -172,6 +172,17 @@ describe('PaymentService (F-08 Cash & PayOS Payment)', () => {
       );
     });
 
+    it('ném BadRequestException khi hoá đơn đã thanh toán đủ (remaining <= 0)', async () => {
+      invoiceService.findById.mockResolvedValue({
+        ...pendingInvoice,
+        payments: [{ status: 'success', amount: 250000 }],
+      });
+
+      await expect(service.createBankTransferPayment({ invoiceId: 'inv-01' }, receptionistUser)).rejects.toThrow(
+        new BadRequestException('Hoá đơn đã được thanh toán đủ.'),
+      );
+    });
+
     it('đánh dấu Payment failed nếu gọi PayOS tạo link thất bại', async () => {
       prisma.payment.create.mockResolvedValue({ paymentId: 'pay-fail', status: 'pending' });
       paymentGateway.createPaymentLink.mockRejectedValue(new Error('PayOS timeout'));
