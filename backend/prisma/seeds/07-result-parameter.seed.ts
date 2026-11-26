@@ -136,6 +136,11 @@ export async function seedResultParameters(prisma: PrismaService): Promise<void>
         { serviceCode: 'BLOODFULL', parameterCode: 'HSTNT', parameterName: 'hs-Troponin T', loincCode: '67151-1', unit: 'ng/L', displayOrder: 30 },
         { serviceCode: 'BLOODFULL', parameterCode: 'CKMB', parameterName: 'CK-MB (mass)', loincCode: '13969-1', unit: 'ng/mL', displayOrder: 31 },
         { serviceCode: 'BLOODFULL', parameterCode: 'NTPROBNP', parameterName: 'NT-proBNP', loincCode: '33762-6', unit: 'pg/mL', displayOrder: 32 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'NEUT_ABS', parameterName: 'Bạch cầu trung tính (tuyệt đối)', loincCode: '751-8', unit: '10^9/L', displayOrder: 33 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'LYMPH_ABS', parameterName: 'Bạch cầu Lympho (tuyệt đối)', loincCode: '731-0', unit: '10^9/L', displayOrder: 34 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'MONO_ABS', parameterName: 'Bạch cầu Mono (tuyệt đối)', loincCode: '742-7', unit: '10^9/L', displayOrder: 35 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'EOS_ABS', parameterName: 'Bạch cầu ái toan (tuyệt đối)', loincCode: '711-2', unit: '10^9/L', displayOrder: 36 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'BASO_ABS', parameterName: 'Bạch cầu ái kiềm (tuyệt đối)', loincCode: '704-7', unit: '10^9/L', displayOrder: 37 },
 
         // ── TTE — Siêu âm tim qua thành ngực ──
         { serviceCode: 'TTE', parameterCode: 'LVEF', parameterName: 'Phân suất tống máu thất trái (LVEF)', loincCode: null, unit: '%', displayOrder: 1 },
