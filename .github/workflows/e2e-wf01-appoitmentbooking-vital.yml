@@ -1,4 +1,4 @@
-name: E2E - Appointment registration
+name: E2E - WF-01 Appointment booking & Vitals
 
 on:
   push:
@@ -18,7 +18,7 @@ concurrency:
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
@@ -61,7 +61,7 @@ jobs:
       # Seed policy chỉ cần URL để ghi contentUrl; không upload PDF trong job này.
       SEED_SKIP_STORAGE: "true"
       S3_PUBLIC_URL: https://gljqmokmvcyararjgugt.supabase.co/storage/v1/object/public/capstone
-      S3_PUBLIC_URL: https://gljqmokmvcyararjgugt.supabase.co/storage/v1/object/public/capstone
+      S3_ENDPOINT: https://gljqmokmvcyararjgugt.storage.supabase.co/storage/v1/s3
       S3_REGION: ap-south-1
       S3_BUCKET: capstone
       S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
@@ -91,3 +91,6 @@ jobs:
 
       - name: Run appointment registration tests
         run: npm test -- --runInBand test/appointment-registration
+
+      - name: Run vitals tests
+        run: npm test -- --runInBand test/vitals
