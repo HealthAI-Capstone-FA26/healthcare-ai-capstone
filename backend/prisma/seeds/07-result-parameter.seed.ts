@@ -3,8 +3,8 @@ import { PrismaService } from 'prisma/prisma.service';
 
 /**
  * Danh mục tham số kết quả (ResultParameter) cho:
- *   - blood_test : dịch vụ duy nhất 'BLOODFULL' (Full panel) — 27 tham số dataType = 'numeric' (CBC 15 · sinh hóa 3 · điện giải 2
- *                  · mỡ máu 4 · dấu ấn tim 3). displayOrder 1–27 theo đúng thứ tự nhóm; chưa có cột parameterGroup nên UI nhóm theo displayOrder.
+ *   - blood_test : dịch vụ duy nhất 'BLOODFULL' (Full panel) — 32 tham số dataType = 'numeric' (CBC 15 · sinh hóa 5 · điện giải 5
+ *                  · mỡ máu 4 · dấu ấn tim 3). displayOrder 1–32 theo đúng thứ tự nhóm; chưa có cột parameterGroup nên UI nhóm theo displayOrder.
  *   - echo (TTE) : chỉ số siêu âm tim có cấu trúc — numeric (LVEF, LVIDD, LA_DIAM), enum (mức độ hở/hẹp van),
  *                  boolean (RWMA, tràn dịch màng ngoài tim).
  *   - xray (CXRPA): chỉ số X-quang ngực — numeric (CTR), enum (ứ huyết phổi, tràn dịch màng phổi), boolean (đông đặc/thâm nhiễm).
@@ -19,7 +19,7 @@ import { PrismaService } from 'prisma/prisma.service';
  * QUAN TRỌNG: @@unique là [serviceId, parameterCode] -> tra cứu BẮT BUỘC theo cặp (serviceCode, parameterCode),
  * không bao giờ chỉ theo parameterCode (xem 20-result-parameter-threshold.seed.ts).
  *
- * ── Nguồn chuẩn cho từng thuộc tính của BLOODFULL (kiểm tra lần cuối 21/11/2026) ───────────────────
+ * ── Nguồn chuẩn cho từng thuộc tính của BLOODFULL (kiểm tra lần cuối 21/11/2026; CL, HCO3, AGAP, CA, EGFR bổ sung và đối chiếu Mayo BMP 26/11/2026) ───────────────────
  * Mỗi tham số máu là một xét nghiệm có mã LOINC chính thức; trang định nghĩa gốc (tên đầy đủ, hệ mẫu, phương pháp, đơn vị mẫu)
  * nằm trên LOINC.org (Regenstrief Institute), theo dạng https://loinc.org/<mã>:
  *     parameterCode  LOINC    liên kết
@@ -41,8 +41,13 @@ import { PrismaService } from 'prisma/prisma.service';
  *     GLU      2345-7   https://loinc.org/2345-7
  *     URE      3094-0   https://loinc.org/3094-0
  *     CREA     2160-0   https://loinc.org/2160-0
+ *     EGFR     98979-8  https://loinc.org/98979-8
+ *     CA       17861-6  https://loinc.org/17861-6
  *     NA       2951-2   https://loinc.org/2951-2
  *     K        2823-3   https://loinc.org/2823-3
+ *     CL       2075-0   https://loinc.org/2075-0
+ *     HCO3     1963-8   https://loinc.org/1963-8
+ *     AGAP     33037-3  https://loinc.org/33037-3
  *     TC       2093-3   https://loinc.org/2093-3
  *     LDLC     13457-7  https://loinc.org/13457-7
  *     HDLC     2085-9   https://loinc.org/2085-9
@@ -54,8 +59,9 @@ import { PrismaService } from 'prisma/prisma.service';
  * Đối chiếu chéo mã với danh mục xét nghiệm của phòng xét nghiệm học thuật (cùng mã LOINC kết quả):
  *   - 15 chỉ số CBC (RBC, HGB, HCT, MCV, MCH, MCHC, RDW, WBC, NEUT, LYMPH, MONO, EOS, BASO, PLT, MPV): panel CBC chính thức trên
  *     LOINC.org https://cdn.loinc.org/57021-8/panel ; Mayo Clinic Laboratories https://www.mayocliniclabs.com/test-catalog/overview/9109
- *   - GLU, URE, CREA, NA, K: Mayo Clinic Laboratories, Basic Metabolic Panel (LOINC panel 24321-2)
+ *   - GLU, URE, CREA, EGFR, CA, NA, K, CL, HCO3, AGAP: Mayo Clinic Laboratories, Basic Metabolic Panel (LOINC panel 24321-2)
  *     https://www.mayocliniclabs.com/test-catalog/overview/113630
+ *     EGFR (CKD-EPI 2021) và AGAP (Na − (Cl + HCO3)) là chỉ số TÍNH TOÁN: nhập tay hoặc để hệ thống tự tính; Mayo không tính eGFR cho <18 tuổi.
  *   - HSTNT 67151-1: Mayo Clinic Laboratories, Troponin T 5th generation https://www.mayocliniclabs.com/test-catalog/overview/65832
  *   - NTPROBNP: Mayo Clinic Laboratories dùng 83107-3 cho mẫu huyết thanh (https://www.mayocliniclabs.com/test-catalog/overview/615897);
  *     33762-6 là mã tổng quát huyết thanh/huyết tương, dùng ở đây vì BLOODFULL không ràng buộc loại mẫu cho riêng chỉ số này.
@@ -116,25 +122,30 @@ export async function seedResultParameters(prisma: PrismaService): Promise<void>
         { serviceCode: 'BLOODFULL', parameterCode: 'GLU', parameterName: 'Glucose (đói)', loincCode: '2345-7', unit: 'mg/dL', displayOrder: 16 },
         { serviceCode: 'BLOODFULL', parameterCode: 'URE', parameterName: 'Urea (BUN)', loincCode: '3094-0', unit: 'mg/dL', displayOrder: 17 },
         { serviceCode: 'BLOODFULL', parameterCode: 'CREA', parameterName: 'Creatinine', loincCode: '2160-0', unit: 'mg/dL', displayOrder: 18 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'NA', parameterName: 'Natri (Na+)', loincCode: '2951-2', unit: 'mmol/L', displayOrder: 19 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'K', parameterName: 'Kali (K+)', loincCode: '2823-3', unit: 'mmol/L', displayOrder: 20 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'TC', parameterName: 'Cholesterol toàn phần (Total Cholesterol)', loincCode: '2093-3', unit: 'mg/dL', displayOrder: 21 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'LDLC', parameterName: 'LDL-Cholesterol (tính toán)', loincCode: '13457-7', unit: 'mg/dL', displayOrder: 22 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'HDLC', parameterName: 'HDL-Cholesterol', loincCode: '2085-9', unit: 'mg/dL', displayOrder: 23 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'TG', parameterName: 'Triglyceride', loincCode: '2571-8', unit: 'mg/dL', displayOrder: 24 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'HSTNT', parameterName: 'hs-Troponin T', loincCode: '67151-1', unit: 'ng/L', displayOrder: 25 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'CKMB', parameterName: 'CK-MB (mass)', loincCode: '13969-1', unit: 'ng/mL', displayOrder: 26 },
-        { serviceCode: 'BLOODFULL', parameterCode: 'NTPROBNP', parameterName: 'NT-proBNP', loincCode: '33762-6', unit: 'pg/mL', displayOrder: 27 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'EGFR', parameterName: 'eGFR (CKD-EPI 2021, tính toán)', loincCode: '98979-8', unit: 'mL/min/1.73m²', displayOrder: 19 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'CA', parameterName: 'Calcium toàn phần', loincCode: '17861-6', unit: 'mg/dL', displayOrder: 20 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'NA', parameterName: 'Natri (Na+)', loincCode: '2951-2', unit: 'mmol/L', displayOrder: 21 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'K', parameterName: 'Kali (K+)', loincCode: '2823-3', unit: 'mmol/L', displayOrder: 22 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'CL', parameterName: 'Clorua (Cl-)', loincCode: '2075-0', unit: 'mmol/L', displayOrder: 23 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'HCO3', parameterName: 'Bicarbonate (HCO3-)', loincCode: '1963-8', unit: 'mmol/L', displayOrder: 24 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'AGAP', parameterName: 'Anion gap (tính toán)', loincCode: '33037-3', unit: 'mmol/L', displayOrder: 25 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'TC', parameterName: 'Cholesterol toàn phần (Total Cholesterol)', loincCode: '2093-3', unit: 'mg/dL', displayOrder: 26 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'LDLC', parameterName: 'LDL-Cholesterol (tính toán)', loincCode: '13457-7', unit: 'mg/dL', displayOrder: 27 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'HDLC', parameterName: 'HDL-Cholesterol', loincCode: '2085-9', unit: 'mg/dL', displayOrder: 28 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'TG', parameterName: 'Triglyceride', loincCode: '2571-8', unit: 'mg/dL', displayOrder: 29 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'HSTNT', parameterName: 'hs-Troponin T', loincCode: '67151-1', unit: 'ng/L', displayOrder: 30 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'CKMB', parameterName: 'CK-MB (mass)', loincCode: '13969-1', unit: 'ng/mL', displayOrder: 31 },
+        { serviceCode: 'BLOODFULL', parameterCode: 'NTPROBNP', parameterName: 'NT-proBNP', loincCode: '33762-6', unit: 'pg/mL', displayOrder: 32 },
 
         // ── TTE — Siêu âm tim qua thành ngực ──
         { serviceCode: 'TTE', parameterCode: 'LVEF', parameterName: 'Phân suất tống máu thất trái (LVEF)', loincCode: null, unit: '%', displayOrder: 1 },
         { serviceCode: 'TTE', parameterCode: 'LVIDD', parameterName: 'Đường kính thất trái cuối tâm trương (LVIDd)', loincCode: null, unit: 'mm', displayOrder: 2 },
         { serviceCode: 'TTE', parameterCode: 'LA_DIAM', parameterName: 'Đường kính nhĩ trái (trục dọc cạnh ức)', loincCode: null, unit: 'mm', displayOrder: 3 },
-        { serviceCode: 'TTE', parameterCode: 'MR_GRADE', parameterName: 'Hở van hai lá', loincCode: null, unit: null, displayOrder: 4, dataType: 'enum', allowedValues: grade5 },
-        { serviceCode: 'TTE', parameterCode: 'AR_GRADE', parameterName: 'Hở van động mạch chủ', loincCode: null, unit: null, displayOrder: 5, dataType: 'enum', allowedValues: grade5 },
-        { serviceCode: 'TTE', parameterCode: 'AS_GRADE', parameterName: 'Hẹp van động mạch chủ', loincCode: null, unit: null, displayOrder: 6, dataType: 'enum', allowedValues: grade4 },
-        { serviceCode: 'TTE', parameterCode: 'RWMA', parameterName: 'Rối loạn vận động vùng thành tim (RWMA)', loincCode: null, unit: null, displayOrder: 7, dataType: 'boolean' },
-        { serviceCode: 'TTE', parameterCode: 'PERICARD_EFF', parameterName: 'Tràn dịch màng ngoài tim', loincCode: null, unit: null, displayOrder: 8, dataType: 'boolean' },
+        { serviceCode: 'TTE', parameterCode: 'LAVI', parameterName: 'Chỉ số thể tích nhĩ trái (LAVI)', loincCode: null, unit: 'mL/m²', displayOrder: 4 },
+        { serviceCode: 'TTE', parameterCode: 'IVSD', parameterName: 'Bề dày vách liên thất cuối tâm trương (IVSd)', loincCode: null, unit: 'mm', displayOrder: 5 },
+        { serviceCode: 'TTE', parameterCode: 'LVMI', parameterName: 'Chỉ số khối cơ thất trái (LVMI)', loincCode: null, unit: 'g/m²', displayOrder: 6 },
+        { serviceCode: 'TTE', parameterCode: 'TAPSE', parameterName: 'Biên độ dịch chuyển vòng van ba lá thì tâm thu (TAPSE)', loincCode: null, unit: 'mm', displayOrder: 7 },
+        { serviceCode: 'TTE', parameterCode: 'RVD1', parameterName: 'Đường kính đáy thất phải (RVD1)', loincCode: null, unit: 'mm', displayOrder: 8 },
 
         // ── CXRPA — X-quang ngực thẳng ──
         { serviceCode: 'CXRPA', parameterCode: 'CTR', parameterName: 'Chỉ số tim–ngực (CTR)', loincCode: null, unit: '%', displayOrder: 1 },
