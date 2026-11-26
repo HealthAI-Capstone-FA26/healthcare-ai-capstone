@@ -14,6 +14,47 @@ function normalize(str: string): string {
         .trim();
 }
 
+// Alias duy nhất cho cùng một hoạt chất (không phải mapping nhóm thuốc)
+const INGREDIENT_ALIASES: ReadonlyArray<readonly [string, string]> = [
+    ['aspirin', 'acetylsalicylic'],
+];
+
+function tokenize(str: string): string[] {
+    return normalize(str)
+        .replace(/ll/g, 'l')
+        .split(/[^a-z0-9]+/)
+        .filter(Boolean);
+}
+
+function expandAliases(token: string): string[] {
+    const candidates = [token];
+    for (const [a, b] of INGREDIENT_ALIASES) {
+        if (token === a) candidates.push(b);
+        else if (token === b) candidates.push(a);
+    }
+    return candidates;
+}
+
+/**
+ * So khớp dị nguyên bệnh nhân khai báo với tên thuốc + hoạt chất theo từng token.
+ * Giới hạn: chỉ bắt được khi bệnh nhân khai đúng tên hoạt chất; nếu khai theo nhóm
+ * (vd "penicillin" cho amoxicillin, "sulfa" cho sulfadiazin) thì sẽ không báo.
+ */
+export function matchesDrugAllergen(allergen: string, drugName: string, genericName: string): boolean {
+    const allergenTokens = tokenize(allergen);
+    if (allergenTokens.length === 0) return false;
+
+    const drugTokens = tokenize(`${drugName} ${genericName}`);
+    if (drugTokens.length === 0) return false;
+
+    return allergenTokens.every((allergenToken) => {
+        const candidates = expandAliases(allergenToken);
+        return candidates.some((candidate) =>
+            drugTokens.some((drugToken) => drugToken === candidate || drugToken.endsWith(candidate)),
+        );
+    });
+}
+
 /**
  * Trích xuất danh sách dị nguyên thuốc từ chuỗi allergyText.
  * Quy ước lưu trong schema v2: "[DRUG] drugA, drugB; [FOOD] foodA, foodB; [ENVIRONMENT] envA, envB".
@@ -72,53 +113,16 @@ export class AllergyContraindicationDetector implements PrescriptionSafetyDetect
 
         if (drugAllergens.length === 0) return [];
 
-        // Lấy thông tin nhóm dị nguyên của các thuốc trong đơn
-        const categoryIds = [
-            ...new Set(
-                items
-                    .map((item) => item.drug.allergenCategoryId)
-                    .filter((id): id is string => Boolean(id)),
-            ),
-        ];
-
-        const allergenCategories =
-            categoryIds.length > 0
-                ? await this.prisma.allergenCategory.findMany({
-                    where: { categoryId: { in: categoryIds } },
-                })
-                : [];
-
-        const categoryById = new Map(allergenCategories.map((c) => [c.categoryId, c]));
         const results: PrescriptionSafetyDetectionResult[] = [];
 
         for (const item of items) {
-            const category = item.drug.allergenCategoryId
-                ? categoryById.get(item.drug.allergenCategoryId)
-                : undefined;
-
-            const drugNameNorm = normalize(item.drug.drugName);
-            const genericNameNorm = normalize(item.drug.genericName);
-            const categoryNameNorm = category ? normalize(category.categoryName) : '';
-            const categoryCodeNorm = category ? normalize(category.categoryCode) : '';
-
             for (const allergen of drugAllergens) {
-                const allergenNorm = normalize(allergen);
-                if (!allergenNorm) continue;
-
-                const isMatch =
-                    drugNameNorm.includes(allergenNorm) ||
-                    genericNameNorm.includes(allergenNorm) ||
-                    (categoryNameNorm &&
-                        (categoryNameNorm.includes(allergenNorm) || allergenNorm.includes(categoryNameNorm))) ||
-                    (categoryCodeNorm && categoryCodeNorm === allergenNorm);
-
-                if (isMatch) {
-                    const categoryInfo = category ? `, thuộc nhóm "${category.categoryName}"` : '';
+                if (matchesDrugAllergen(allergen, item.drug.drugName, item.drug.genericName)) {
                     results.push({
                         alertType: 'allergy_contraindication',
                         relatedItemIdA: item.prescriptionItemId,
                         severity: 'contraindicated',
-                        description: `Bệnh nhân có tiền sử dị ứng "${allergen}" (ghi nhận trong hồ sơ dị ứng). Thuốc ${item.drug.drugName} (${item.drug.genericName}${categoryInfo}) có nguy cơ gây dị ứng phản vệ / chống chỉ định.`,
+                        description: `Bệnh nhân có tiền sử dị ứng "${allergen}" (ghi nhận trong hồ sơ dị ứng). Thuốc ${item.drug.drugName} (${item.drug.genericName}) có nguy cơ gây dị ứng phản vệ / chống chỉ định.`,
                     });
                     break; // Tránh trùng lặp alert cho cùng 1 dòng thuốc
                 }
