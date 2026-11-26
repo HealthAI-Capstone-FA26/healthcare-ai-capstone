@@ -1,5 +1,0 @@
-FILE     : ci/ci-ratio.spec.ts
-RAN AT   : 2026-11-26T08:21:04.207Z
-RESULT   : 1 passed, 0 failed, 0 skipped / 1 total (10220 ms)
-================================================================================
-#1 [PASS] CI unit-test ratio (Commitment) CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại (342 ms)
