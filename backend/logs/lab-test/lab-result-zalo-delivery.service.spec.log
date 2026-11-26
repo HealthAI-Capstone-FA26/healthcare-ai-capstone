@@ -1,8 +1,0 @@
-FILE     : lab-test/lab-result-zalo-delivery.service.spec.ts
-RAN AT   : 2026-11-25T13:51:39.954Z
-RESULT   : 4 passed, 0 failed, 0 skipped / 4 total (34615 ms)
-================================================================================
-#1 [PASS] LabResultZaloDeliveryService gửi 2 link PDF (máu, ECG) và 1 ảnh X-quang tới chat_id đã liên kết; bỏ qua DICOM (2445 ms)
-#2 [PASS] LabResultZaloDeliveryService zaloUserId (test) bỏ qua bước tra liên kết bệnh nhân (1585 ms)
-#3 [PASS] LabResultZaloDeliveryService bệnh nhân chưa liên kết Zalo -> không gửi gì, báo lý do trong skipped (5 ms)
-#4 [PASS] LabResultZaloDeliveryService 1 tài liệu lỗi không chặn các tài liệu còn lại và không throw (762 ms)

@@ -1,8 +1,0 @@
-FILE     : auth/session.service.spec.ts
-RAN AT   : 2026-11-25T13:52:27.889Z
-RESULT   : 4 passed, 0 failed, 0 skipped / 4 total (8046 ms)
-================================================================================
-#1 [PASS] SessionService (F-01 Session Management) createSession: hash refreshToken và upsert session với expiredAt theo maxSessionHours (5 ms)
-#2 [PASS] SessionService (F-01 Session Management) findByUserId: truy vấn userSession theo userId (2 ms)
-#3 [PASS] SessionService (F-01 Session Management) rotateRefreshToken: chỉ cập nhật refreshTokenHash, giữ nguyên expiredAt (2 ms)
-#4 [PASS] SessionService (F-01 Session Management) revokeByUserId: đánh dấu revokedAt cho các session chưa thu hồi (2 ms)
