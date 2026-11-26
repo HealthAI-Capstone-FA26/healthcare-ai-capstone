@@ -111,18 +111,21 @@ interface Storage {
 }
 
 function envFlag(name: string): boolean {
-    return (process.env[name] ?? '').toLowerCase() === 'true';
+    return (process.env[name] ?? '').trim().toLowerCase() === 'true';
 }
 
 function publicBaseUrl(): string {
-    const url = process.env.S3_PUBLIC_URL;
+    const url = process.env.S3_PUBLIC_URL?.trim();
     if (!url) throw new Error('Thiếu S3_PUBLIC_URL.');
     return url.replace(/\/+$/, '');
 }
 
 function getStorage(): Storage | null {
     if (envFlag('SEED_SKIP_STORAGE')) return null;
-    const { S3_ENDPOINT, S3_REGION, S3_ACCESS_KEY, S3_SECRET_KEY } = process.env;
+    const S3_ENDPOINT = process.env.S3_ENDPOINT?.trim();
+    const S3_REGION = process.env.S3_REGION?.trim();
+    const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY?.trim();
+    const S3_SECRET_KEY = process.env.S3_SECRET_KEY?.trim();
     if (!S3_ENDPOINT || !S3_REGION || !S3_ACCESS_KEY || !S3_SECRET_KEY) {
         throw new Error('Thiếu S3_ENDPOINT / S3_REGION / S3_ACCESS_KEY / S3_SECRET_KEY (hoặc SEED_SKIP_STORAGE=true).');
     }
@@ -134,7 +137,7 @@ function getStorage(): Storage | null {
             forcePathStyle: true, // Supabase S3 yêu cầu path-style
             credentials: { accessKeyId: S3_ACCESS_KEY, secretAccessKey: S3_SECRET_KEY },
         }),
-        bucket: process.env.S3_BUCKET ?? publicUrl.split('/').pop()!,
+        bucket: process.env.S3_BUCKET?.trim() || publicUrl.split('/').pop()!,
         publicUrl,
     };
 }
