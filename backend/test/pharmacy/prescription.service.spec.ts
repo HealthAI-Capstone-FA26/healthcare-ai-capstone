@@ -279,9 +279,6 @@ describe('PrescriptionService - Function 20: create & F-13 Safety Checks', () =>
                     { allergyText: '[DRUG] Atorvastatin; [FOOD] Tôm', status: 'active' },
                 ]),
             },
-            allergenCategory: {
-                findMany: jest.fn().mockResolvedValue([]),
-            },
         };
         const detector = new AllergyContraindicationDetector(detectorPrisma as any);
         const items = [
@@ -290,7 +287,6 @@ describe('PrescriptionService - Function 20: create & F-13 Safety Checks', () =>
                 drug: {
                     drugName: 'Atorvastatin 20mg',
                     genericName: 'Atorvastatin',
-                    allergenCategoryId: null,
                 },
             },
         ] as any;

@@ -18,9 +18,7 @@ const PRESCRIPTION_CODE_PREFIX = 'DT'; // "Đơn Thuốc"
 export const PRESCRIPTION_INCLUDE = {
     items: {
         include: {
-            drug: {
-                include: { allergenCategory: true },
-            },
+            drug: true,
         },
     },
     safetyAlerts: {

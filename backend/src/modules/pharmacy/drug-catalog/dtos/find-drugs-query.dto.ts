@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBooleanString, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBooleanString, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 /**
  * Tham số tìm kiếm / lọc danh mục thuốc (DrugCatalog) phục vụ màn hình kê đơn (Prescription).
@@ -29,14 +29,6 @@ export class FindDrugsQueryDto {
     @IsOptional()
     @IsString()
     route?: string;
-
-    @ApiPropertyOptional({
-        description: 'Lọc theo ID nhóm dị ứng / danh mục thuốc (allergenCategoryId)',
-        format: 'uuid',
-    })
-    @IsOptional()
-    @IsUUID()
-    allergenCategoryId?: string;
 
     @ApiPropertyOptional({
         description: "Chỉ lấy thuốc đang lưu hành — mặc định 'true'. Truyền 'false' để lấy thuốc đã ngừng lưu hành.",
