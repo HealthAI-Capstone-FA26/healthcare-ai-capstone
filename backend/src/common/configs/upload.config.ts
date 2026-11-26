@@ -19,18 +19,18 @@ const logger = new Logger('MinioSetup');
 // Endpoint phải là URL đầy đủ (gồm cả đường dẫn), vd Supabase: https://<ref>.storage.supabase.co/storage/v1/s3
 // Không đặt S3_ENDPOINT thì ghép từ MINIO_ENDPOINT/MINIO_PORT/MINIO_USE_SSL như cũ (chạy MinIO local).
 const resolveEndpoint = (): string => {
-    if (process.env.S3_ENDPOINT) return process.env.S3_ENDPOINT;
+    if (process.env.S3_ENDPOINT) return process.env.S3_ENDPOINT.trim();
     const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
     return `${protocol}://${process.env.MINIO_ENDPOINT || 'localhost'}:${process.env.MINIO_PORT || '9000'}`;
 };
 
 const s3 = new S3Client({
     endpoint: resolveEndpoint(),
-    region: process.env.S3_REGION || 'us-east-1', // Supabase: điền đúng region của project
+    region: (process.env.S3_REGION || 'us-east-1').trim(), // Supabase: điền đúng region của project
     forcePathStyle: true, // bắt buộc với Supabase/MinIO (dạng endpoint/bucket/key)
     credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY || process.env.MINIO_ACCESS_KEY || '',
-        secretAccessKey: process.env.S3_SECRET_KEY || process.env.MINIO_SECRET_KEY || '',
+        accessKeyId: (process.env.S3_ACCESS_KEY || process.env.MINIO_ACCESS_KEY || '').trim(),
+        secretAccessKey: (process.env.S3_SECRET_KEY || process.env.MINIO_SECRET_KEY || '').trim(),
     },
 });
 
@@ -70,7 +70,7 @@ export const minioClient = {
     },
 };
 
-export const BUCKET_NAME = process.env.S3_BUCKET || process.env.MINIO_BUCKET || 'app-uploads';
+export const BUCKET_NAME = (process.env.S3_BUCKET || process.env.MINIO_BUCKET || 'app-uploads').trim();
 
 /** Các thư mục (prefix) trong bucket được phép đọc công khai. Thêm thư mục mới vào đây MỘT cách có chủ đích. */
 export const PUBLIC_READ_PREFIXES = ['avatars', 'images'] as const;
