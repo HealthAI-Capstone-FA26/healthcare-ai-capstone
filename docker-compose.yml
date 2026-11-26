@@ -1,4 +1,3 @@
-
 services:
   backend:
     build:
@@ -24,13 +23,10 @@ services:
     container_name: healthcare_ecg_ai
     restart: unless-stopped
     environment:
-      ECG_BUNDLE_PATH: /app/checkpoints/ECG_wsize100_deploy.pt
       ECG_AI_API_KEY: ${ECG_AI_API_KEY:-}
       ECG_AI_DEVICE: cpu
       ECG_AI_SEVERITY: high
       ECG_AI_MERGE_GAP_STEPS: "0"
-    volumes:
-      - ./TSAD_PTBXL/checkpoints:/app/checkpoints:ro
     ports:
       - "8000:8000"
 

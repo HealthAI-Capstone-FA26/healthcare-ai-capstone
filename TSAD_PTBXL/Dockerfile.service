@@ -12,8 +12,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 COPY model/ model/
 COPY utils/ utils/
 COPY service/ service/
-# Bundle KHÔNG đóng vào image: mount thư mục checkpoints (xem docker-compose của backend) hoặc đặt ECG_BUNDLE_PATH.
-ENV ECG_BUNDLE_PATH=/app/checkpoints/ECG_wsize100_deploy.pt PYTHONUNBUFFERED=1
+# Bundle được đóng vào image tại /checkpoints; có thể ghi đè bằng ECG_BUNDLE_PATH hoặc mount volume.
+ENV ECG_BUNDLE_PATH=/checkpoints/ECG_wsize100_deploy.pt PYTHONUNBUFFERED=1
+COPY checkpoints/ECG_wsize100_deploy.pt /checkpoints/ECG_wsize100_deploy.pt
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD python -c "import urllib.request as u;u.urlopen('http://localhost:8000/health')"
 CMD ["uvicorn", "service.app:app", "--host", "0.0.0.0", "--port", "8000"]
