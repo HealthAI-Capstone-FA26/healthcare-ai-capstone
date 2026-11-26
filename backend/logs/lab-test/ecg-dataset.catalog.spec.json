@@ -1,7 +1,7 @@
 {
   "file": "lab-test/ecg-dataset.catalog.spec.ts",
-  "ranAt": "2026-11-23T07:58:58.698Z",
-  "durationMs": 948218,
+  "ranAt": "2026-11-25T13:52:25.773Z",
+  "durationMs": 2087,
   "total": 6,
   "passed": 6,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "chuẩn hoá chữ hoa/thường, chỉ nhận ECG_A..ECG_F",
       "fullName": "normalizeDatasetName chuẩn hoá chữ hoa/thường, chỉ nhận ECG_A..ECG_F",
       "status": "PASS",
-      "durationMs": 393,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "list: đánh dấu dataset nào đã cài; sampleRate mặc định 100Hz, null nếu chưa cài",
       "fullName": "EcgDatasetCatalog list: đánh dấu dataset nào đã cài; sampleRate mặc định 100Hz, null nếu chưa cài",
       "status": "PASS",
-      "durationMs": 1745,
+      "durationMs": 64,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "load: ưu tiên ECG_A/ECG_test.npy, trả buffer + format + fileName + version",
       "fullName": "EcgDatasetCatalog load: ưu tiên ECG_A/ECG_test.npy, trả buffer + format + fileName + version",
       "status": "PASS",
-      "durationMs": 1395,
+      "durationMs": 25,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "load: bố cục phẳng ECG_B.csv",
       "fullName": "EcgDatasetCatalog load: bố cục phẳng ECG_B.csv",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 41,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "sampleRate: env mặc định, meta.json ghi đè từng dataset, giá trị sai bị bỏ qua",
       "fullName": "EcgDatasetCatalog sampleRate: env mặc định, meta.json ghi đè từng dataset, giá trị sai bị bỏ qua",
       "status": "PASS",
-      "durationMs": 1576,
+      "durationMs": 77,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "load: chưa cài -> DATASET_NOT_AVAILABLE, thông điệp không lộ đường dẫn",
       "fullName": "EcgDatasetCatalog load: chưa cài -> DATASET_NOT_AVAILABLE, thông điệp không lộ đường dẫn",
       "status": "PASS",
-      "durationMs": 1016,
+      "durationMs": 15,
       "error": ""
     }
   ]

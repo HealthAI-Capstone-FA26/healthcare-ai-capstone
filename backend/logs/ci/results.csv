@@ -1,7 +1,2 @@
 ﻿"STT","File","Suite","Test case","Kết quả","Thời gian (ms)","Lỗi / Ghi chú"
-"1","ci/ci-ratio.spec.ts","CI unit-test ratio (Commitment)","CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại","FAIL","210","Error: expect(received).toBeLessThanOrEqual(expected)
-
-Expected: <= 5
-Received:    25
-    at Object.<anonymous> (D:\Learning\Capstone\capstone_ecg_updated\healthcare-ai-capstone\backend\test\ci\ci-ratio.spec.ts:11:42)
-    at new Promise (<anonymous>)"
+"1","ci/ci-ratio.spec.ts","CI unit-test ratio (Commitment)","CI chạy xấp xỉ 1/2 tổng số unit test (lệch tối đa ±5) và mọi file trong manifest đều tồn tại","PASS","667",""

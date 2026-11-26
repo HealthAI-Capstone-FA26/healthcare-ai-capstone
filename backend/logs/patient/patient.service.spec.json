@@ -1,0 +1,48 @@
+{
+  "file": "patient/patient.service.spec.ts",
+  "ranAt": "2026-11-25T13:52:15.607Z",
+  "durationMs": 8498,
+  "total": 4,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "PatientService",
+      "name": "creates a self-service patient linked to the current user",
+      "fullName": "PatientService creates a self-service patient linked to the current user",
+      "status": "PASS",
+      "durationMs": 7,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "PatientService",
+      "name": "rejects a second self-service patient for the same user",
+      "fullName": "PatientService rejects a second self-service patient for the same user",
+      "status": "PASS",
+      "durationMs": 17,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "PatientService",
+      "name": "rejects a duplicate identity number",
+      "fullName": "PatientService rejects a duplicate identity number",
+      "status": "PASS",
+      "durationMs": 9,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "PatientService",
+      "name": "prevents a user from viewing another user full profile",
+      "fullName": "PatientService prevents a user from viewing another user full profile",
+      "status": "PASS",
+      "durationMs": 14,
+      "error": ""
+    }
+  ]
+}

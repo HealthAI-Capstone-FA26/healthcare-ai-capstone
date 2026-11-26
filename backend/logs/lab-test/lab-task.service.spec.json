@@ -1,7 +1,7 @@
 {
   "file": "lab-test/lab-task.service.spec.ts",
-  "ranAt": "2026-11-23T07:58:58.519Z",
-  "durationMs": 687612,
+  "ranAt": "2026-11-25T13:52:27.720Z",
+  "durationMs": 1883,
   "total": 8,
   "passed": 8,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "UTCID14 [N]: should move a paid ready task to in_progress and recompute order/encounter in the same transaction",
       "fullName": "LabTaskService - Function 17 (F-09): receive UTCID14 [N]: should move a paid ready task to in_progress and recompute order/encounter in the same transaction",
       "status": "PASS",
-      "durationMs": 298,
+      "durationMs": 15,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "UTCID15 [A]: should throw ForbiddenException when the task is unpaid (paymentVerified = false and invoice not paid)",
       "fullName": "LabTaskService - Function 17 (F-09): receive UTCID15 [A]: should throw ForbiddenException when the task is unpaid (paymentVerified = false and invoice not paid)",
       "status": "PASS",
-      "durationMs": 124,
+      "durationMs": 12,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "UTCID16 [B]: should promote a payment_pending task to ready when its invoice is already paid, then receive it",
       "fullName": "LabTaskService - Function 17 (F-09): receive UTCID16 [B]: should promote a payment_pending task to ready when its invoice is already paid, then receive it",
       "status": "PASS",
-      "durationMs": 4,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "UTCID17 [A]: should throw NotFoundException when the diagnostic task does not exist",
       "fullName": "LabTaskService - Function 17 (F-09): receive UTCID17 [A]: should throw NotFoundException when the diagnostic task does not exist",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "UTCID19 [A]: should throw ForbiddenException when the task is pre-assigned to another lab staff",
       "fullName": "LabTaskService - Function 17 (F-09): receive UTCID19 [A]: should throw ForbiddenException when the task is pre-assigned to another lab staff",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "UTCID20 [A]: should reject a caller whose actor role is not LAB_STAFF before touching the task",
       "fullName": "LabTaskService - Function 17 (F-09): receive UTCID20 [A]: should reject a caller whose actor role is not LAB_STAFF before touching the task",
       "status": "PASS",
-      "durationMs": 43,
+      "durationMs": 13,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "UTCID21 [B]: should throw ConflictException when another lab staff claims the same task first (compare-and-swap loses)",
       "fullName": "LabTaskService - Function 17 (F-09): receive UTCID21 [B]: should throw ConflictException when another lab staff claims the same task first (compare-and-swap loses)",
       "status": "PASS",
-      "durationMs": 1,
+      "durationMs": 2,
       "error": ""
     }
   ]
