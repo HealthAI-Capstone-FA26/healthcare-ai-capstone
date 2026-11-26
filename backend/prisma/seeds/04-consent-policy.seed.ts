@@ -12,10 +12,15 @@ import { LEGAL_DOCUMENTS, LEGAL_DOCUMENT_BY_CODE } from './legal/legal-documents
  * bắt buộc có policyId hợp lệ (POST /consents) và hasActivePolicyConsent() tra theo `policyType`,
  * nên bảng này cần seed sẵn, tương tự LabRoom.
  *
+ * ── Quy tắc: 1 văn bản pháp lý (manifest) <-> 1 ConsentPolicy <-> 1 file PDF ────────────────
+ * Có đúng 4 văn bản trong manifest nên có đúng 4 policy; mỗi policy có `contentUrl` riêng,
+ * trỏ tới PDF của văn bản tương ứng. Seed sẽ báo lỗi nếu hai policy dùng chung một văn bản,
+ * hoặc nếu có văn bản trong manifest mà không có policy.
+ *
  * ── Phạm vi (đồ án) ─────────────────────────────────────────────────────────────────────────
- * Cơ sở không có phiếu đồng ý do pháp lý soạn, nên `contentUrl` của mỗi policy trỏ tới văn bản
- * luật làm căn cứ chính (xem `primaryLegalDoc`). Đây là văn bản quy phạm, KHÔNG phải mẫu phiếu
- * bệnh nhân ký — nếu triển khai thực tế phải thay bằng phiếu do bộ phận pháp lý soạn/duyệt.
+ * Cơ sở không có phiếu đồng ý do pháp lý soạn, nên `contentUrl` trỏ tới văn bản luật làm căn cứ.
+ * Đây là văn bản quy phạm, KHÔNG phải mẫu phiếu bệnh nhân ký — nếu triển khai thực tế phải thay
+ * bằng phiếu do bộ phận pháp lý soạn/duyệt.
  *
  * ── Lưu trữ: Supabase Storage qua S3 API, bucket `capstone` (public) ─────────────────────────
  *   legal-documents/<CODE>/<file>.pdf
@@ -23,11 +28,10 @@ import { LEGAL_DOCUMENTS, LEGAL_DOCUMENT_BY_CODE } from './legal/legal-documents
  * bệnh nhân hay phiếu đã ký vào đây.
  *
  * ── Biến môi trường ─────────────────────────────────────────────────────────────────────────
- *   S3_ENDPOINT, S3_REGION, S3_PUBLIC_URL     (đã có)
+ *   S3_ENDPOINT, S3_REGION, S3_PUBLIC_URL
  *   S3_ACCESS_KEY, S3_SECRET_KEY    (bắt buộc để upload; tạo ở Supabase > Storage > S3 Connection)
- *   S3_BUCKET                                 (mặc định: "capstone", suy ra từ S3_PUBLIC_URL)
- *   SEED_SKIP_STORAGE=true                    (chỉ seed DB, không upload)
- *   SEED_ALLOW_MISSING_DOCS=true              (không còn cần: văn bản phụ thiếu file chỉ bị cảnh báo)
+ *   S3_BUCKET                       (mặc định: "capstone", suy ra từ S3_PUBLIC_URL)
+ *   SEED_SKIP_STORAGE=true          (chỉ seed DB, không upload)
  */
 
 const LEGAL_PREFIX = 'legal-documents';
@@ -37,67 +41,47 @@ interface PolicySeed {
     policyCode: string;
     policyType: string;
     version: string;
-    /** Văn bản luật chính dùng làm nội dung (contentUrl) của policy */
-    primaryLegalDoc: string;
-    /** Mã văn bản pháp lý trong manifest làm căn cứ */
-    /** Toàn bộ văn bản căn cứ (để tham chiếu) */
-    legalBasis: string[];
+    /** Mã văn bản pháp lý trong manifest; PDF của văn bản này là `contentUrl` của policy */
+    legalDoc: string;
     effectiveFrom: Date;
     effectiveTo: Date | null;
 }
 
-// Hai văn bản về dữ liệu cá nhân có hiệu lực 01/01/2026 nên giữ mốc hiệu lực chung.
-const EFFECTIVE_FROM = new Date('2026-01-01');
-
 const POLICIES: PolicySeed[] = [
     {
-        // Xử lý dữ liệu cá nhân, gồm dữ liệu sức khỏe (dữ liệu nhạy cảm) và hồ sơ bệnh án điện tử.
+        // Luật Bảo vệ dữ liệu cá nhân: đồng ý xử lý dữ liệu cá nhân, gồm dữ liệu sức khỏe.
         policyCode: 'CONSENT-DATA-PROCESSING-V1',
         policyType: 'data_processing',
         version: 'v1.0',
-        primaryLegalDoc: 'LAW-PDPL-91-2025',
-        legalBasis: ['LAW-PDPL-91-2025', 'DECREE-356-2025', 'LAW-KCB-2023-CONSOLIDATED', 'CIRCULAR-13-2025-BYT'],
-        effectiveFrom: EFFECTIVE_FROM,
+        legalDoc: 'LAW-PDPL-91-2025',
+        effectiveFrom: new Date('2026-01-01'),
         effectiveTo: null,
     },
     {
-        // Đồng ý khám, chữa bệnh sau khi được thông tin, giải thích (Luật KCB Điều 9, 11).
+        // Nghị định 356/2025/NĐ-CP: hướng dẫn Luật BVDLCN; dữ liệu cá nhân nhạy cảm (gồm tình trạng sức khỏe).
+        policyCode: 'CONSENT-SENSITIVE-DATA-V1',
+        policyType: 'sensitive_data_processing',
+        version: 'v1.0',
+        legalDoc: 'DECREE-356-2025',
+        effectiveFrom: new Date('2026-01-01'),
+        effectiveTo: null,
+    },
+    {
+        // Thông tư 13/2025/TT-BYT: lập, lưu trữ, khai thác hồ sơ bệnh án điện tử.
+        policyCode: 'CONSENT-EMR-V1',
+        policyType: 'electronic_medical_record',
+        version: 'v1.0',
+        legalDoc: 'CIRCULAR-13-2025-BYT',
+        effectiveFrom: new Date('2025-07-21'),
+        effectiveTo: null,
+    },
+    {
+        // Luật KCB (bản hợp nhất): đồng ý khám, chữa bệnh sau khi được thông tin, giải thích.
         policyCode: 'CONSENT-TREATMENT-V1',
         policyType: 'treatment_consent',
         version: 'v1.0',
-        primaryLegalDoc: 'LAW-KCB-2023-CONSOLIDATED',
-        legalBasis: ['LAW-KCB-2023-CONSOLIDATED'],
-        effectiveFrom: EFFECTIVE_FROM,
-        effectiveTo: null,
-    },
-    {
-        // Nghĩa vụ chi trả, quyền được giải thích chi phí (Luật KCB Điều 12, 18). Phần BHYT cần thẩm định riêng.
-        policyCode: 'CONSENT-FINANCIAL-RESPONSIBILITY-V1',
-        policyType: 'financial_responsibility',
-        version: 'v1.0',
-        primaryLegalDoc: 'LAW-KCB-2023-CONSOLIDATED',
-        legalBasis: ['LAW-KCB-2023-CONSOLIDATED'],
-        effectiveFrom: EFFECTIVE_FROM,
-        effectiveTo: null,
-    },
-    {
-        // Thủ thuật/can thiệp có xâm nhập cơ thể (vd: thăm dò tim mạch xâm lấn) — Luật KCB Điều 65.
-        policyCode: 'CONSENT-INVASIVE-PROCEDURE-V1',
-        policyType: 'invasive_procedure_consent',
-        version: 'v1.0',
-        primaryLegalDoc: 'LAW-KCB-2023-CONSOLIDATED',
-        legalBasis: ['LAW-KCB-2023-CONSOLIDATED'],
-        effectiveFrom: EFFECTIVE_FROM,
-        effectiveTo: null,
-    },
-    {
-        // Từ chối khám/chữa bệnh hoặc rời cơ sở trái chỉ định: phải cam kết bằng văn bản — Luật KCB Điều 13.
-        policyCode: 'CONSENT-REFUSAL-V1',
-        policyType: 'refusal_of_treatment',
-        version: 'v1.0',
-        primaryLegalDoc: 'LAW-KCB-2023-CONSOLIDATED',
-        legalBasis: ['LAW-KCB-2023-CONSOLIDATED'],
-        effectiveFrom: EFFECTIVE_FROM,
+        legalDoc: 'LAW-KCB-2023-CONSOLIDATED',
+        effectiveFrom: new Date('2024-01-01'),
         effectiveTo: null,
     },
 ];
@@ -142,11 +126,11 @@ function getStorage(): Storage | null {
     };
 }
 
-/** PutObject ghi đè nếu key đã tồn tại nên seed chạy lại an toàn. Thiếu file local -> cảnh báo và bỏ qua. */
-async function uploadPdf(storage: Storage, key: string, localPath: string): Promise<boolean> {
+/** PutObject ghi đè nếu key đã tồn tại nên seed chạy lại an toàn. */
+async function uploadPdf(storage: Storage, key: string, localPath: string): Promise<void> {
     if (!existsSync(localPath)) {
-        console.warn(`  ! thiếu file local, bỏ qua upload: ${localPath}`);
-        return false;
+        // Mỗi policy trỏ tới đúng 1 PDF, thiếu file nghĩa là contentUrl sẽ chết -> dừng seed.
+        throw new Error(`Thiếu file local: ${localPath}. Chạy scripts/fetch-legal-documents.ts hoặc tải tay vào thư mục files/.`);
     }
     const body = await readFile(localPath);
     if (body.subarray(0, 5).toString('latin1') !== '%PDF-') {
@@ -163,7 +147,6 @@ async function uploadPdf(storage: Storage, key: string, localPath: string): Prom
     );
     const sha = createHash('sha256').update(body).digest('hex').slice(0, 12);
     console.log(`  ↑ ${storage.bucket}/${key} (sha256:${sha}…)`);
-    return true;
 }
 
 function legalKey(code: string): string {
@@ -173,20 +156,33 @@ function legalKey(code: string): string {
 
 async function uploadLegalDocuments(storage: Storage): Promise<void> {
     for (const doc of LEGAL_DOCUMENTS) {
-        const ok = await uploadPdf(storage, legalKey(doc.code), join(FILES_ROOT, 'legal', 'files', doc.localFile));
-        if (ok && !doc.verified) console.warn(`  ! ${doc.code} chưa được xác thực với nguồn chính thống — cần rà soát pháp lý.`);
+        await uploadPdf(storage, legalKey(doc.code), join(FILES_ROOT, 'legal', 'files', doc.localFile));
+        if (!doc.verified) console.warn(`  ! ${doc.code} chưa được xác thực với nguồn chính thống — cần rà soát pháp lý.`);
     }
 }
 
 // ─────────────────────────────────── Seed ───────────────────────────────────
 
-export async function seedConsentPolicies(prisma: PrismaService): Promise<void> {
+function validatePolicies(): void {
+    const used = new Set<string>();
+    const codes = new Set<string>();
+    const types = new Set<string>();
     for (const p of POLICIES) {
-        if (!p.legalBasis.includes(p.primaryLegalDoc)) throw new Error(`${p.policyCode}: primaryLegalDoc phải nằm trong legalBasis`);
-        for (const code of p.legalBasis) {
-            if (!LEGAL_DOCUMENT_BY_CODE.has(code)) throw new Error(`${p.policyCode}: legalBasis không có trong manifest: ${code}`);
-        }
+        if (!LEGAL_DOCUMENT_BY_CODE.has(p.legalDoc)) throw new Error(`${p.policyCode}: legalDoc không có trong manifest: ${p.legalDoc}`);
+        if (used.has(p.legalDoc)) throw new Error(`${p.policyCode}: văn bản ${p.legalDoc} đã được policy khác dùng (phải 1-1).`);
+        if (codes.has(p.policyCode)) throw new Error(`Trùng policyCode: ${p.policyCode}`);
+        if (types.has(p.policyType)) throw new Error(`Trùng policyType: ${p.policyType}`);
+        used.add(p.legalDoc);
+        codes.add(p.policyCode);
+        types.add(p.policyType);
     }
+    for (const doc of LEGAL_DOCUMENTS) {
+        if (!used.has(doc.code)) throw new Error(`Văn bản ${doc.code} trong manifest chưa có policy nào.`);
+    }
+}
+
+export async function seedConsentPolicies(prisma: PrismaService): Promise<void> {
+    validatePolicies();
 
     const storage = getStorage();
     if (storage) {
@@ -201,7 +197,7 @@ export async function seedConsentPolicies(prisma: PrismaService): Promise<void> 
         const data = {
             policyType: p.policyType,
             version: p.version,
-            contentUrl: `${publicBaseUrl()}/${legalKey(p.primaryLegalDoc)}`,
+            contentUrl: `${publicBaseUrl()}/${legalKey(p.legalDoc)}`,
             effectiveFrom: p.effectiveFrom,
             effectiveTo: p.effectiveTo,
         };
@@ -210,6 +206,19 @@ export async function seedConsentPolicies(prisma: PrismaService): Promise<void> 
             update: data,
             create: { policyCode: p.policyCode, ...data },
         });
+    }
+
+    // Dọn các policy cũ không còn trong danh sách (vd: FINANCIAL / INVASIVE / REFUSAL từ lần seed trước).
+    // Nếu đã có consent tham chiếu tới policy cũ thì FK sẽ chặn xoá -> chỉ cảnh báo, không làm hỏng seed.
+    const keep = POLICIES.map((p) => p.policyCode);
+    const stale = await prisma.consentPolicy.findMany({ where: { policyCode: { notIn: keep } }, select: { policyCode: true } });
+    for (const s of stale) {
+        try {
+            await prisma.consentPolicy.delete({ where: { policyCode: s.policyCode } });
+            console.log(`  - đã xoá policy cũ: ${s.policyCode}`);
+        } catch {
+            console.warn(`  ! không xoá được ${s.policyCode} (đang được consent tham chiếu) — xử lý thủ công.`);
+        }
     }
 
     const count = await prisma.consentPolicy.count();
