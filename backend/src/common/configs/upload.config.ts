@@ -29,8 +29,8 @@ const s3 = new S3Client({
     region: process.env.S3_REGION || 'us-east-1', // Supabase: điền đúng region của project
     forcePathStyle: true, // bắt buộc với Supabase/MinIO (dạng endpoint/bucket/key)
     credentials: {
-        accessKeyId: process.env.MINIO_ACCESS_KEY || 'minioadmin',
-        secretAccessKey: process.env.MINIO_SECRET_KEY || '12345678',
+        accessKeyId: process.env.S3_ACCESS_KEY || process.env.MINIO_ACCESS_KEY || '',
+        secretAccessKey: process.env.S3_SECRET_KEY || process.env.MINIO_SECRET_KEY || '',
     },
 });
 
@@ -70,7 +70,7 @@ export const minioClient = {
     },
 };
 
-export const BUCKET_NAME = process.env.MINIO_BUCKET || 'app-uploads';
+export const BUCKET_NAME = process.env.S3_BUCKET || process.env.MINIO_BUCKET || 'app-uploads';
 
 /** Các thư mục (prefix) trong bucket được phép đọc công khai. Thêm thư mục mới vào đây MỘT cách có chủ đích. */
 export const PUBLIC_READ_PREFIXES = ['avatars', 'images'] as const;
