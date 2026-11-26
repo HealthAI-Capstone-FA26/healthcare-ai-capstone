@@ -20,10 +20,8 @@ import { PrismaService } from 'prisma/prisma.service';
  *  - Quy ước riskLevel (giữ như seed cũ): `low` = thấp hơn khoảng bình thường; `medium`/`high` = cao hơn mức bình
  *    thường theo mức độ; `critical` = giá trị nguy kịch ở cả hai đầu.
  *  - gender: 'male' | 'female' | null (khớp Patient.gender). Dòng đúng giới được ưu tiên hơn dòng gender = null.
- *  - Tuổi là SỐ NGUYÊN (năm). Phạm vi tuổi được seed: 1–120. Nhóm 1–17 tuổi (nhi) chỉ có cho một phần chỉ số (xem bên dưới);
- *    caller nên làm tròn xuống tuổi trước khi tra ngưỡng để không rơi vào khe giữa 17 và 18.
  *
- * ── Quy ước nguồn cho 27 chỉ số máu (BLOODFULL), kiểm tra lần cuối 21/11/2026 (người lớn) và 26/11/2026 (nhi 1–17t) ────
+ * ── Quy ước nguồn cho 27 chỉ số máu (BLOODFULL), kiểm tra lần cuối 26/11/2026 ────────────────────
  *  - Mọi chỉ số máu đều có dòng `normal`; mỗi dòng có `sourceReference` chứa URL trực tiếp tới tài liệu gốc (xem hằng SRC) và
  *    liên kết LOINC.org của chính chỉ số đó. Cuối hàm có bước tự kiểm tra: thiếu ngưỡng hoặc thiếu URL thì seed báo lỗi.
  *  - Khoảng bình thường: danh mục xét nghiệm chính thức của Mayo Clinic Laboratories và OHSU Lab Services (khoảng tham chiếu
@@ -32,14 +30,12 @@ import { PrismaService } from 'prisma/prisma.service';
  *    glucose cao (UChicago Medicine Labs), glucose thấp (ADA mức 2), TG >= 500 (ATP III), hs-cTnT >= 52 (ESC 2023), CK-MB > 9 (UW Medicine).
  *    Các chỉ số không tìm được nguồn nguy kịch (RBC, MCV, MCH, MCHC, RDW, công thức bạch cầu %, MPV, BUN, creatinine, TC, LDL-C,
  *    HDL-C) chỉ có dải low/normal/high; KHÔNG bịa mức critical.
- *  - NGƯỠNG NHI (1–17 tuổi), theo tuổi và giới, từ Mayo Clinic Laboratories: CBC (HGB, RBC, HCT, MCV, RDW, WBC, PLT),
- *    BMP (Na, K, BUN, creatinine), NT-proBNP; glucose dùng ngưỡng ADA như người lớn. Trẻ em KHÔNG có mức `critical`
- *    (các nguồn nguy kịch hiện có là của người lớn), ngoại trừ glucose < 54 mg/dL (ADA mức 2, áp dụng mọi lứa tuổi).
- *    CHƯA có ngưỡng nhi (chưa có nguồn đã kiểm chứng): MCH, MCHC, MPV, công thức bạch cầu %, TC, LDL-C, HDL-C, TG, hs-cTnT, CK-MB
- *    — với trẻ 1–17 tuổi các chỉ số này không tạo cảnh báo.
  *  - Ngưỡng của phòng xét nghiệm phụ thuộc analyzer/quần thể. Đây là ngưỡng tham chiếu để khởi tạo; phòng Lab của cơ sở phải
  *    xác nhận hoặc thay bằng khoảng tham chiếu đã verify tại chỗ (CLSI EP28) trước khi dùng thật.
- *  - Phần Siêu âm tim (TTE) và X-quang ngực (CXRPA) ở cuối file KHÔNG được kiểm chứng lại trong lần cập nhật này.
+ *  - TTE/CXRPA (kiểm chứng lại 26/11/2026): LVEF theo ESC 2021 HF (>=50 / 41-49 / <=40) + ASE/EACVI 2015 (<30 = severely abnormal);
+ *    LVIDd theo ASE/EACVI 2015 (Table 2 + Supplemental Table 3); đường kính nhĩ trái theo ASE 2005 (ASE/EACVI 2015 giữ nguyên giá trị bình thường,
+ *    nhưng KHÔNG khuyến nghị ngưỡng phân độ cho đường kính LA và ưu tiên LA volume index); CTR chỉ có ngưỡng >50% (phim PA).
+ *    Ngưỡng 'CTR >= 60% tim to rõ' của bản cũ KHÔNG tìm được nguồn nên đã bỏ.
  *
  * Phụ thuộc ResultParameter (07-result-parameter.seed.ts) — seed này chạy SAU (tiền tố "20-").
  */
@@ -169,7 +165,7 @@ export async function seedResultParameterThresholds(prisma: PrismaService): Prom
         [65, 75, 541, 541],
         [76, ADULT_MAX, 541, 541],
     ];
-    const ntProBnpRuleIn = (ageMin: number) => (ageMin < 50 ? 450 : ageMin <= 75 ? 900 : 1800);
+    const ntProBnpRuleIn = (ageMin: number) => (ageMin < 50 ? 451 : ageMin <= 75 ? 900 : 1800);
     const ntProBnpRows = ntProBnpSegments.flatMap(([ageMin, ageMax, maleLower, femaleLower]) => {
         const rule = ntProBnpRuleIn(ageMin);
         const src = ref(SRC.NTPB, '33762-6');

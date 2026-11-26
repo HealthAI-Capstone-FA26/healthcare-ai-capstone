@@ -1,10 +1,11 @@
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 
+
 /**
  * Danh mục tham số kết quả (ResultParameter) cho:
- *   - blood_test : dịch vụ duy nhất 'BLOODFULL' (Full panel) — 32 tham số dataType = 'numeric' (CBC 15 · sinh hóa 5 · điện giải 5
- *                  · mỡ máu 4 · dấu ấn tim 3). displayOrder 1–32 theo đúng thứ tự nhóm; chưa có cột parameterGroup nên UI nhóm theo displayOrder.
+ *   - blood_test : dịch vụ duy nhất 'BLOODFULL' (Full panel) — 27 tham số dataType = 'numeric' (CBC 15 · sinh hóa 3 · điện giải 2
+ *                  · mỡ máu 4 · dấu ấn tim 3). displayOrder 1–27 theo đúng thứ tự nhóm; chưa có cột parameterGroup nên UI nhóm theo displayOrder.
  *   - echo (TTE) : chỉ số siêu âm tim có cấu trúc — numeric (LVEF, LVIDD, LA_DIAM), enum (mức độ hở/hẹp van),
  *                  boolean (RWMA, tràn dịch màng ngoài tim).
  *   - xray (CXRPA): chỉ số X-quang ngực — numeric (CTR), enum (ứ huyết phổi, tràn dịch màng phổi), boolean (đông đặc/thâm nhiễm).
@@ -19,7 +20,7 @@ import { PrismaService } from 'prisma/prisma.service';
  * QUAN TRỌNG: @@unique là [serviceId, parameterCode] -> tra cứu BẮT BUỘC theo cặp (serviceCode, parameterCode),
  * không bao giờ chỉ theo parameterCode (xem 20-result-parameter-threshold.seed.ts).
  *
- * ── Nguồn chuẩn cho từng thuộc tính của BLOODFULL (kiểm tra lần cuối 21/11/2026; CL, HCO3, AGAP, CA, EGFR bổ sung và đối chiếu Mayo BMP 26/11/2026) ───────────────────
+ * ── Nguồn chuẩn cho từng thuộc tính của BLOODFULL (kiểm tra lần cuối 26/11/2026) ───────────────────
  * Mỗi tham số máu là một xét nghiệm có mã LOINC chính thức; trang định nghĩa gốc (tên đầy đủ, hệ mẫu, phương pháp, đơn vị mẫu)
  * nằm trên LOINC.org (Regenstrief Institute), theo dạng https://loinc.org/<mã>:
  *     parameterCode  LOINC    liên kết
@@ -41,13 +42,8 @@ import { PrismaService } from 'prisma/prisma.service';
  *     GLU      2345-7   https://loinc.org/2345-7
  *     URE      3094-0   https://loinc.org/3094-0
  *     CREA     2160-0   https://loinc.org/2160-0
- *     EGFR     98979-8  https://loinc.org/98979-8
- *     CA       17861-6  https://loinc.org/17861-6
  *     NA       2951-2   https://loinc.org/2951-2
  *     K        2823-3   https://loinc.org/2823-3
- *     CL       2075-0   https://loinc.org/2075-0
- *     HCO3     1963-8   https://loinc.org/1963-8
- *     AGAP     33037-3  https://loinc.org/33037-3
  *     TC       2093-3   https://loinc.org/2093-3
  *     LDLC     13457-7  https://loinc.org/13457-7
  *     HDLC     2085-9   https://loinc.org/2085-9
@@ -59,16 +55,15 @@ import { PrismaService } from 'prisma/prisma.service';
  * Đối chiếu chéo mã với danh mục xét nghiệm của phòng xét nghiệm học thuật (cùng mã LOINC kết quả):
  *   - 15 chỉ số CBC (RBC, HGB, HCT, MCV, MCH, MCHC, RDW, WBC, NEUT, LYMPH, MONO, EOS, BASO, PLT, MPV): panel CBC chính thức trên
  *     LOINC.org https://cdn.loinc.org/57021-8/panel ; Mayo Clinic Laboratories https://www.mayocliniclabs.com/test-catalog/overview/9109
- *   - GLU, URE, CREA, EGFR, CA, NA, K, CL, HCO3, AGAP: Mayo Clinic Laboratories, Basic Metabolic Panel (LOINC panel 24321-2)
+ *   - GLU, URE, CREA, NA, K: Mayo Clinic Laboratories, Basic Metabolic Panel (LOINC panel 24321-2)
  *     https://www.mayocliniclabs.com/test-catalog/overview/113630
- *     EGFR (CKD-EPI 2021) và AGAP (Na − (Cl + HCO3)) là chỉ số TÍNH TOÁN: nhập tay hoặc để hệ thống tự tính; Mayo không tính eGFR cho <18 tuổi.
  *   - HSTNT 67151-1: Mayo Clinic Laboratories, Troponin T 5th generation https://www.mayocliniclabs.com/test-catalog/overview/65832
  *   - NTPROBNP: Mayo Clinic Laboratories dùng 83107-3 cho mẫu huyết thanh (https://www.mayocliniclabs.com/test-catalog/overview/615897);
  *     33762-6 là mã tổng quát huyết thanh/huyết tương, dùng ở đây vì BLOODFULL không ràng buộc loại mẫu cho riêng chỉ số này.
  *   - CKMB 13969-1: University of Michigan Health, Michigan Medicine Laboratories https://mlabs.umich.edu/tests/creatine-kinase-total-and-mb-isoenzyme
- *     (mã 20109-5 từng dùng ở bản trước KHÔNG phải CK-MB; đã bỏ)
  *   - MPV: dùng 32623-1 (phương pháp Automated count, thuộc CBC panel); KHÔNG dùng 776-5 (phương pháp Rees-Ecker, thủ công).
  *   - LDLC 13457-7 là LDL TÍNH TOÁN (công thức), không tính được khi TG > 800 mg/dL; nếu analyzer đo LDL trực tiếp thì đổi sang 18262-6.
+ *     Nguồn: Mayo Clinic Laboratories CLDL1 https://www.mayocliniclabs.com/test-catalog/overview/617023 (LOINC 13457-7; tính toán không áp dụng khi TG > 800 mg/dL).
  *   - GLU 2345-7 là glucose huyết thanh/huyết tương nói chung; 'đói' là điều kiện lấy mẫu (xem 06-), không nằm trong mã.
  * Ngưỡng cảnh báo và nguồn trích dẫn của từng chỉ số nằm ở 20-result-parameter-threshold.seed.ts (cột sourceReference của mỗi dòng
  * có URL trực tiếp tới tài liệu gốc).

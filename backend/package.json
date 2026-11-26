@@ -20,7 +20,6 @@
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:ci": "jest --config jest.ci.config.js --runInBand --ci",
-    "ci:check-ratio": "node scripts/check-ci-ratio.js",
     "test:e2e:wf03": "jest --config test/jest-e2e.json --runInBand --ci test/e2e/wf03-lab-testing"
   },
   "prisma": {
