@@ -28,3 +28,5 @@ rag-diagnosis/
 *.zip
 TSAD_PTBXL/dataset
 backend/datasets/ecg/
+
+backend/logs/

@@ -1,15 +1,15 @@
 FILE     : pharmacy/prescription.service.spec.ts
-RAN AT   : 2026-11-25T14:01:21.916Z
-RESULT   : 11 passed, 0 failed, 0 skipped / 11 total (16725 ms)
+RAN AT   : 2026-11-26T14:04:40.655Z
+RESULT   : 11 passed, 0 failed, 0 skipped / 11 total (687 ms)
 ================================================================================
-#1 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-01 [Normal]: should create draft prescription and trigger safety check when diagnosis is final and encounter is awaiting_review (18 ms)
-#2 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-02 [Abnormal]: should throw NotFoundException when diagnosisId does not exist (31 ms)
+#1 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-01 [Normal]: should create draft prescription and trigger safety check when diagnosis is final and encounter is awaiting_review (3 ms)
+#2 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-02 [Abnormal]: should throw NotFoundException when diagnosisId does not exist (5 ms)
 #3 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-03 [Abnormal]: should throw ForbiddenException when diagnosis belongs to another doctor (2 ms)
 #4 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-04 [Abnormal]: should throw ForbiddenException when encounter status is not awaiting_review (1 ms)
-#5 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-05 [Abnormal]: should throw BadRequestException when prescription contains an inactive drug (2 ms)
-#6 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-06 [Boundary]: should create draft prescription and run safety check when prescribing directly on an initial diagnosis (2 ms)
-#7 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal]: updateItems should replace items on draft prescription and re-run safety check (6 ms)
-#8 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Abnormal]: updateItems should throw ForbiddenException when prescription is not in draft status (3 ms)
-#9 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal/Abnormal]: cancel should transition draft to cancelled and reject already cancelled (2 ms)
+#5 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-05 [Abnormal]: should throw BadRequestException when prescription contains an inactive drug (0 ms)
+#6 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-06 [Boundary]: should create draft prescription and run safety check when prescribing directly on an initial diagnosis (1 ms)
+#7 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal]: updateItems should replace items on draft prescription and re-run safety check (2 ms)
+#8 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Abnormal]: updateItems should throw ForbiddenException when prescription is not in draft status (1 ms)
+#9 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal/Abnormal]: cancel should transition draft to cancelled and reject already cancelled (1 ms)
 #10 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 Safety [Normal]: AllergyContraindicationDetector should flag drug matching patient active allergy (2 ms)
 #11 [PASS] PrescriptionService - Function 20: create & F-13 Safety Checks F-13 Safety [Normal]: DuplicateTherapeuticClassDetector should flag two drugs sharing therapeuticClass (1 ms)

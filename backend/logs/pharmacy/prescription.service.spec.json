@@ -1,7 +1,7 @@
 {
   "file": "pharmacy/prescription.service.spec.ts",
-  "ranAt": "2026-11-25T14:01:21.916Z",
-  "durationMs": 16725,
+  "ranAt": "2026-11-26T14:04:40.655Z",
+  "durationMs": 687,
   "total": 11,
   "passed": 11,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "TC-F20-01 [Normal]: should create draft prescription and trigger safety check when diagnosis is final and encounter is awaiting_review",
       "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-01 [Normal]: should create draft prescription and trigger safety check when diagnosis is final and encounter is awaiting_review",
       "status": "PASS",
-      "durationMs": 18,
+      "durationMs": 3,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "TC-F20-02 [Abnormal]: should throw NotFoundException when diagnosisId does not exist",
       "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-02 [Abnormal]: should throw NotFoundException when diagnosisId does not exist",
       "status": "PASS",
-      "durationMs": 31,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "TC-F20-05 [Abnormal]: should throw BadRequestException when prescription contains an inactive drug",
       "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-05 [Abnormal]: should throw BadRequestException when prescription contains an inactive drug",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 0,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "TC-F20-06 [Boundary]: should create draft prescription and run safety check when prescribing directly on an initial diagnosis",
       "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-06 [Boundary]: should create draft prescription and run safety check when prescribing directly on an initial diagnosis",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "F-13 [Normal]: updateItems should replace items on draft prescription and re-run safety check",
       "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal]: updateItems should replace items on draft prescription and re-run safety check",
       "status": "PASS",
-      "durationMs": 6,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "F-13 [Abnormal]: updateItems should throw ForbiddenException when prescription is not in draft status",
       "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Abnormal]: updateItems should throw ForbiddenException when prescription is not in draft status",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -86,7 +86,7 @@
       "name": "F-13 [Normal/Abnormal]: cancel should transition draft to cancelled and reject already cancelled",
       "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal/Abnormal]: cancel should transition draft to cancelled and reject already cancelled",
       "status": "PASS",
-      "durationMs": 2,
+      "durationMs": 1,
       "error": ""
     },
     {
