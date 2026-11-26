@@ -64,10 +64,10 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         localFile: 'nd-356-2025-nd-cp-huong-dan-luat-bvdlcn.pdf',
         sourceUrl: null,
         pageUrl: 'https://thuvienphapluat.vn/van-ban/Quyen-dan-su/Nghi-dinh-356-2025-ND-CP-huong-dan-Luat-Bao-ve-du-lieu-ca-nhan-687428.aspx',
-        sourceKind: 'secondary',
-        verified: false,
+        sourceKind: 'official',
+        verified: true,
         notes:
-            'Thay thế NĐ 13/2023/NĐ-CP. Có phụ lục 10 hồ sơ/biểu mẫu. Phân loại dữ liệu nhạy cảm (gồm tình trạng sức khỏe) ở Điều 4. Chưa tìm được PDF trực tiếp từ nguồn Chính phủ.',
+            'Thay thế NĐ 13/2023/NĐ-CP. Có phụ lục 10 hồ sơ/biểu mẫu. Phân loại dữ liệu nhạy cảm (gồm tình trạng sức khỏe) ở Điều 4. File tải tay (71 trang, bản có chữ ký số Cổng TTĐT Chính phủ ngày 05/01/2026), đã đối chiếu đúng số hiệu 356/2025/NĐ-CP ký 31/12/2025. Là bản scan, không có lớp text.',
     },
     {
         code: 'CIRCULAR-13-2025-BYT',
@@ -79,10 +79,10 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
         localFile: 'tt-13-2025-tt-byt-ho-so-benh-an-dien-tu.pdf',
         sourceUrl: null,
         pageUrl: 'https://luatvietnam.vn/y-te/thong-tu-13-2025-tt-byt-huong-dan-trien-khai-ho-so-benh-an-dien-tu-tu-bo-y-te-402396-d1.html',
-        sourceKind: 'secondary',
-        verified: false,
+        sourceKind: 'official',
+        verified: true,
         notes:
-            'Bệnh viện phải triển khai EMR chậm nhất 30/09/2025; cơ sở khám chữa bệnh khác chậm nhất 31/12/2026 (theo tóm tắt thứ cấp — cần đối chiếu Điều 4 trên bản gốc).',
+            'File tải tay: bản scan sao y từ Bộ Y tế (4 trang, đủ Điều 1–4, có chữ ký), đã đối chiếu đúng số hiệu 13/2025/TT-BYT ký 06/06/2025; không có lớp text. Mốc triển khai EMR (bệnh viện 30/09/2025; cơ sở KCB khác 31/12/2026) lấy từ tóm tắt thứ cấp — cần đối chiếu trên bản gốc.',
     },
 ];
 
