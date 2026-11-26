@@ -1,9 +1,14 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags, ApiBadRequestResponse, ApiNotFoundResponse } from '@nestjs/swagger';
 import { VitalReferenceRangeService } from './vital-reference-range.service';
 import { ReferenceRangeQueryDto } from '../vital-input/dtos/reference-range-query.dto';
+import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 @ApiTags('Vital Reference Ranges')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('patients/:patientId/vital-reference-ranges')
 export class VitalReferenceRangeController {
     constructor(private readonly vitalReferenceRangeService: VitalReferenceRangeService) { }
@@ -15,6 +20,7 @@ export class VitalReferenceRangeController {
      * thay vì chỉ biết bất thường sau khi đã submit.
      */
     @Get()
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Khoảng bình thường / nguy kịch của các chỉ số cho 1 bệnh nhân',
         description:

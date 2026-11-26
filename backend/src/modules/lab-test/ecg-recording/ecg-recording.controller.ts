@@ -19,16 +19,20 @@ import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { EcgRecordingService } from './ecg-recording.service';
 import { CreateEcgRecordingDto, ECG_RECORDING_TYPES, ECG_SIGNAL_FORMATS } from './dto/create-ecg-recording.dto';
 import { ecgUploadConfig } from './ecg-upload.config';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 /** SE04 — Bản ghi ECG. Toàn bộ route yêu cầu đăng nhập; ghi/huỷ chỉ LAB_STAFF phụ trách nhiệm vụ. */
 @ApiTags('ECG Recordings')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller()
 export class EcgRecordingController {
     constructor(private readonly ecgRecordingService: EcgRecordingService) {}
 
     @Post('lab-tasks/:taskId/ecg-recordings')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.CREATE}:${Scope.GROUP}`)
     @UseInterceptors(FileInterceptor('file', ecgUploadConfig))
     @ApiConsumes('multipart/form-data')
     @ApiOperation({
@@ -74,6 +78,7 @@ export class EcgRecordingController {
     }
 
     @Get('lab-tasks/:taskId/ecg-recordings')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Danh sách bản ghi ECG của 1 nhiệm vụ (kèm tóm tắt phân tích hiện hành)' })
     @ApiParam({ name: 'taskId', format: 'uuid' })
     @ApiOkResponse({ description: 'Danh sách bản ghi, mới nhất trước.' })
@@ -82,6 +87,7 @@ export class EcgRecordingController {
     }
 
     @Get('ecg-recordings/:id')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Chi tiết bản ghi ECG', description: 'Kèm mọi lần phân tích AI (mới nhất trước) và các sự kiện bất thường.' })
     @ApiParam({ name: 'id', format: 'uuid' })
     @ApiNotFoundResponse({ description: 'Không tìm thấy bản ghi.' })
@@ -90,6 +96,7 @@ export class EcgRecordingController {
     }
 
     @Get('ecg-recordings/:id/signal-url')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'URL tạm (10 phút) để tải/hiển thị tín hiệu gốc' })
     @ApiParam({ name: 'id', format: 'uuid' })
     async signalUrl(@Param('id') id: string) {
@@ -97,6 +104,7 @@ export class EcgRecordingController {
     }
 
     @Patch('ecg-recordings/:id/cancel')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Huỷ bản ghi tải nhầm (chỉ khi nhiệm vụ còn in_progress)' })
     @ApiParam({ name: 'id', format: 'uuid' })
     @ApiForbiddenResponse({ description: 'Không phải LAB_STAFF phụ trách nhiệm vụ.' })

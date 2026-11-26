@@ -10,13 +10,16 @@ import { JwtAuthGuard } from "../../../../common/guards/jwt-auth.guard";
 import { CurrentUser } from "../../../../common/decorators/current-user.decorator";
 import { TreatmentConsultationService } from "./treatment-consultation.service";
 import { UpsertTreatmentConsultationDto } from "./dto/upsert-treatment-consultation.dto";
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 /**
  * SE05, "Tư vấn điều trị". Chỉ DOCTOR (assert trong service). PUT vì đây là upsert 1-1 theo encounterId (idempotent).
  */
 @ApiTags("Post-Test Consultation - Treatment Consultation")
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller(
   "post-test-consultation/encounters/:encounterId/treatment-consultation",
 )
@@ -26,6 +29,7 @@ export class TreatmentConsultationController {
   ) {}
 
   @Put()
+  @RequirePermissions(`${Resource.CARE_PLAN}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({
     summary:
       "Ghi nhận (hoặc cập nhật) thông tin tư vấn điều trị cho 1 lượt khám",
@@ -48,6 +52,7 @@ export class TreatmentConsultationController {
   }
 
   @Get()
+  @RequirePermissions(`${Resource.CARE_PLAN}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: "Xem thông tin tư vấn điều trị của 1 lượt khám" })
   @ApiParam({ name: "encounterId", format: "uuid" })
   @ApiOkResponse({

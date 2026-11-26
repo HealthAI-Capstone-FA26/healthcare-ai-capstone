@@ -21,6 +21,7 @@ export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) { }
 
   @Post()
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.CREATE}:${Scope.OWN}`)
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Đặt lịch online qua 1 slot còn trống' })
   create(@Body() dto: CreateAppointmentDto, @CurrentUser() user: RequestUser) {
@@ -28,6 +29,7 @@ export class AppointmentController {
   }
 
   @Get()
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.READ}:${Scope.OWN}`)
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Danh sách lịch hẹn, lọc theo patientId/status/khoảng ngày' })
   findMany(@Query() query: FindAppointmentsQueryDto, @CurrentUser() user: RequestUser) {
@@ -46,6 +48,7 @@ export class AppointmentController {
   }
 
   @Get(':id')
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.READ}:${Scope.OWN}`)
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Xem chi tiết 1 lịch hẹn' })
   findOne(@Param('id') id: string) {
@@ -97,7 +100,7 @@ export class AppointmentController {
 
   @Patch(':id/cancel')
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.ALL}`)
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Huỷ lịch hẹn (chỉ cho phép từ pending/confirmed)' })
   cancel(
     @Param('id') id: string,
@@ -108,6 +111,7 @@ export class AppointmentController {
   }
 
   @Patch(':id/reschedule')
+  @RequirePermissions(`${Resource.APPOINTMENT}:${Action.UPDATE}:${Scope.OWN}`)
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Bệnh nhân đổi ngày/giờ tái khám (chọn slot mới hoặc nhập ngày khác)' })
   reschedule(

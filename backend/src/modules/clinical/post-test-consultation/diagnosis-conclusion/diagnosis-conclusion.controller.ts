@@ -5,6 +5,9 @@ import { CurrentUser } from '../../../../common/decorators/current-user.decorato
 import { DiagnosisConclusionService } from './diagnosis-conclusion.service';
 import { CreateDiagnosisConclusionDto } from './dto/create-diagnosis-conclusion.dto';
 import { FindFinalDiagnosesQueryDto } from './dto/find-final-diagnoses-query.dto';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 /**
  * SE05, "Kết luận chuyên môn (Bác sĩ)". Chỉ DOCTOR được ghi (assert trong service); GET mặc định CHỈ gồm chẩn đoán
@@ -12,12 +15,13 @@ import { FindFinalDiagnosesQueryDto } from './dto/find-final-diagnoses-query.dto
  */
 @ApiTags('Post-Test Consultation - Diagnosis Conclusion')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('post-test-consultation/encounters/:encounterId/diagnosis-conclusion')
 export class DiagnosisConclusionController {
     constructor(private readonly diagnosisConclusionService: DiagnosisConclusionService) { }
 
     @Post()
+    @RequirePermissions(`${Resource.CONDITION}:${Action.CREATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Ghi nhận 1 chẩn đoán chính thức (diagnosisType=final) cho lượt khám',
         description:
@@ -36,6 +40,7 @@ export class DiagnosisConclusionController {
     }
 
     @Get()
+    @RequirePermissions(`${Resource.CONDITION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: "Danh sách chẩn đoán của 1 lượt khám — mặc định chỉ chẩn đoán 'final'" })
     @ApiParam({ name: 'encounterId', format: 'uuid' })
     @ApiOkResponse({ description: 'Danh sách chẩn đoán, mới nhất trước.' })

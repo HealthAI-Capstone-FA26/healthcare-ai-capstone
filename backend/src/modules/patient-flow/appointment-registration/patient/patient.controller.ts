@@ -50,6 +50,7 @@ export class PatientController {
   }
 
   @Get('my')
+  @RequirePermissions(`${Resource.PATIENT}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({
     summary:
       'Hồ sơ bệnh nhân gắn với tài khoản hiện tại (Patient.userId)',
@@ -66,6 +67,7 @@ export class PatientController {
   }
 
   @Get(':id/full')
+  @RequirePermissions(`${Resource.PATIENT}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({
     summary:
       'Xem toàn bộ hồ sơ bệnh nhân — staff (read:group/all) hoặc chủ tài khoản của hồ sơ',

@@ -6,16 +6,20 @@ import { AllowActorRoles } from '../../../../common/decorators/actor-roles.decor
 import { ACTOR_ROLE } from '../../../../common/constants/actor-role.constant';
 import { ServiceLookupService } from './service-lookup.service';
 import { FindServicesQueryDto } from './dto/find-services-query.dto';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 @ApiTags('Doctor Examination - Service Lookup')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, ActorRolesGuard)
+@UseGuards(JwtAuthGuard, ActorRolesGuard, PermissionsGuard)
 @AllowActorRoles(ACTOR_ROLE.DOCTOR, ACTOR_ROLE.NURSE, ACTOR_ROLE.ADMIN)
 @Controller('doctor-examination/services')
 export class ServiceLookupController {
     constructor(private readonly serviceLookupService: ServiceLookupService) { }
 
     @Get()
+    @RequirePermissions(`${Resource.PROCEDURE}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Danh mục dịch vụ cận lâm sàng đang cung cấp (xét nghiệm máu / ECG / X-quang / siêu âm tim)',
         description: 'Dùng cho bác sĩ chọn dịch vụ khi chỉ định. Kèm phòng thực hiện mặc định, giá, yêu cầu nhịn ăn.',

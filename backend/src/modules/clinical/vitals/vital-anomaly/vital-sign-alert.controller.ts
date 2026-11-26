@@ -1,7 +1,11 @@
-import { Controller, Post, Param, Inject } from '@nestjs/common';
+import { Controller, Post, Param, Inject, UseGuards } from '@nestjs/common';
 import { VitalSignDetectionOrchestrator } from './vital-sign-detection.orchestrator';
 import { PrismaService } from '../../../../../prisma/prisma.service';
 import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 /**
  * Ví dụ controller NestJS. Nếu bạn dùng framework khác (Express thuần, Fastify...),
@@ -16,6 +20,7 @@ import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
  */
 
 @ApiTags('Vital Sessions')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('vital-sessions')
 export class VitalSignAlertController {
     private readonly orchestrator: VitalSignDetectionOrchestrator;
@@ -30,6 +35,7 @@ export class VitalSignAlertController {
      * theo từng observation (bất thường hay không, mức độ, nguồn phát hiện).
      */
     @Post(':id/detect-alerts')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Chạy lại phát hiện bất thường cho 1 phiên đo',
         description:

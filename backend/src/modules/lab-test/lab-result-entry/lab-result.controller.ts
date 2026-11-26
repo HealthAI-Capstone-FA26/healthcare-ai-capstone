@@ -26,6 +26,9 @@ import {
     LAB_ATTACHMENT_ROLES,
 } from './dtos/add-lab-attachment.dto';
 import { diagnosticUploadConfig } from './diagnostic-upload.config';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 /**
  * SE04 — Nhập & tra cứu kết quả cận lâm sàng (DiagnosticResult). Kỹ thuật viên nhập; bác sĩ có thể sửa/duyệt.
@@ -35,12 +38,13 @@ import { diagnosticUploadConfig } from './diagnostic-upload.config';
  */
 @ApiTags('Lab Results (Diagnostic Results)')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller()
 export class LabResultController {
     constructor(private readonly labResultService: LabResultService) {}
 
     @Post('lab-tasks/:id/results')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.CREATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Nhập kết quả cận lâm sàng cho 1 nhiệm vụ',
         description:
@@ -63,6 +67,7 @@ export class LabResultController {
     }
 
     @Get('lab-tasks/:id/result')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Kết quả của 1 nhiệm vụ' })
     @ApiParam({ name: 'id', description: 'ID nhiệm vụ (taskId)', format: 'uuid' })
     @ApiOkResponse({ description: 'Kết quả cận lâm sàng.' })
@@ -72,6 +77,7 @@ export class LabResultController {
     }
 
     @Get('lab-results/:id')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Chi tiết 1 kết quả',
         description: 'Kèm giá trị từng tham số (+ cảnh báo), tệp đính kèm, người nhập/duyệt và dịch vụ/phòng của nhiệm vụ.',
@@ -84,6 +90,7 @@ export class LabResultController {
     }
 
     @Patch('lab-results/:id')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Sửa / bổ sung kết quả',
         description:
@@ -103,6 +110,7 @@ export class LabResultController {
     }
 
     @Post('lab-results/:id/review')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Bác sĩ đọc/duyệt kết quả (ECG, siêu âm, X-quang...)',
         description: 'Ghi reviewedByUserId/reviewedAt; tuỳ chọn cập nhật kết luận và chốt final. Chỉ DOCTOR.',
@@ -119,6 +127,7 @@ export class LabResultController {
     }
 
     @Post('lab-results/:id/complete')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Hoàn tất kết quả hình ảnh (siêu âm tim, X-quang ngực)',
         description:
@@ -138,6 +147,7 @@ export class LabResultController {
     }
 
     @Post('lab-results/:id/attachments')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.CREATE}:${Scope.GROUP}`)
     @UseInterceptors(FileInterceptor('file', diagnosticUploadConfig))
     @ApiConsumes('multipart/form-data')
     @ApiOperation({
@@ -175,6 +185,7 @@ export class LabResultController {
     }
 
     @Get('lab-results/:id/attachments')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Danh sách tệp đính kèm của 1 kết quả (kèm presigned URL)',
         description:
@@ -189,6 +200,7 @@ export class LabResultController {
     }
 
     @Get('lab-attachments/:attachmentId/access-url')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Lấy presigned URL để xem/tải 1 tệp đính kèm',
         description: 'URL hết hạn sau vài phút — gọi lại khi cần. Chỉ LAB_STAFF hoặc DOCTOR; mỗi lần truy cập được ghi log.',
@@ -202,6 +214,7 @@ export class LabResultController {
     }
 
     @Delete('lab-attachments/:attachmentId')
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.DELETE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Xoá 1 tệp đính kèm của kết quả xét nghiệm',
         description: 'Chỉ LAB_STAFF. Cho phép xoá tệp tải nhầm để thay thế bằng tệp mới.',

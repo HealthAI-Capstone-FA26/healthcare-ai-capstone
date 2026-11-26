@@ -1,8 +1,13 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { VitalItemService } from './vital-item.service';
+import { JwtAuthGuard } from '../../../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../../common/constants/permissions.dictionary';
 
 @ApiTags('Vital Items')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('vital-items')
 export class VitalItemController {
     constructor(private readonly vitalItemService: VitalItemService) { }
@@ -13,6 +18,7 @@ export class VitalItemController {
      * (tên hiển thị, đơn vị) thay vì hardcode danh sách chỉ số ở phía frontend.
      */
     @Get()
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Danh mục chỉ số sinh hiệu / thể trạng',
         description:

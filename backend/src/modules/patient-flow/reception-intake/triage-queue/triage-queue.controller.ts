@@ -5,6 +5,9 @@ import { CurrentUser } from '../../../../common/decorators/current-user.decorato
 import { RequestUser } from '../../../identity-access/auth/strategies/jwt.strategy';
 import { TriageQueueService } from './triage-queue.service';
 import { FindTriageQueueQueryDto } from './dto/find-triage-queue-query.dto';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 // GET: reception xem hàng đợi triage đã xếp (module3.md mục 5 PHASE 2 BƯỚC 2).
 // POST dequeue / PATCH :id/start: y tá (module vitals) gọi bệnh nhân + bắt đầu đo. Bước hoàn tất
@@ -12,18 +15,20 @@ import { FindTriageQueueQueryDto } from './dto/find-triage-queue-query.dto';
 // (POST /vital-sessions kèm queueEntryId, xem TriageQueueService.complete).
 @ApiTags('Triage Queue')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('triage-queue')
 export class TriageQueueController {
   constructor(private readonly triageQueueService: TriageQueueService) { }
 
   @Get()
+  @RequirePermissions(`${Resource.DOCTOR_QUEUE_ENTRY}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Danh sách hàng đợi triage theo khoa/ngày/trạng thái, đã sắp theo thứ tự ưu tiên' })
   findMany(@Query() query: FindTriageQueueQueryDto) {
     return this.triageQueueService.findMany(query);
   }
 
   @Post('dequeue')
+  @RequirePermissions(`${Resource.DOCTOR_QUEUE_ENTRY}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({
     summary:
       'Y tá gọi bệnh nhân tiếp theo trong hàng đợi triage của mình theo thứ tự ưu tiên (waiting -> called)',
@@ -33,12 +38,14 @@ export class TriageQueueController {
   }
 
   @Patch(':id/start')
+  @RequirePermissions(`${Resource.DOCTOR_QUEUE_ENTRY}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Y tá bắt đầu đo sinh hiệu cho bệnh nhân đã gọi (called -> in_progress)' })
   start(@Param('id') id: string, @CurrentUser() user: RequestUser) {
     return this.triageQueueService.startProcessing(id, user.userId);
   }
 
   @Get(':id')
+  @RequirePermissions(`${Resource.DOCTOR_QUEUE_ENTRY}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Chi tiết 1 entry trong hàng đợi triage' })
   findById(@Param('id') id: string) {
     return this.triageQueueService.findById(id);
