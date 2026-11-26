@@ -173,7 +173,7 @@ export async function buildEncounterSummaryPdf(encounter: EncounterPdfData): Pro
   }
 
   const fmt = (text: unknown): string => {
-    const raw = String(text ?? '').trim();
+    const raw = String(text ?? '');
     if (!isUnicode) {
       return raw
         .normalize('NFD')
