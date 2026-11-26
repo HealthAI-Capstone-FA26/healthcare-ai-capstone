@@ -3,6 +3,7 @@
   "files": [
     "test/appointment-registration/guest-appointment.service.spec.ts",
     "test/appointment-registration/queue-ticket.service.spec.ts",
+    "test/auth/login.service.spec.ts",
     "test/ci/ci-ratio.spec.ts",
     "test/lab-test/ecg-analysis.service.spec.ts",
     "test/lab-test/ecg-anomaly-labeler.spec.ts",
@@ -16,6 +17,10 @@
     "test/lab-test/rule-based-lab.detector.spec.ts",
     "test/lab-test/wf03-state-transition.spec.ts",
     "test/patient/patient.integration.spec.ts",
+    "test/payment/invoice.service.spec.ts",
+    "test/payment/payment.service.spec.ts",
+    "test/platform/f15-function21.spec.ts",
+    "test/post-test-consultation/diagnosis-conclusion.service.spec.ts",
     "test/pre-doctor-examination/clinical-examination.service.spec.ts",
     "test/pre-doctor-examination/doctor-encounter-access.service.spec.ts",
     "test/reception-intake/encounter.service.spec.ts",

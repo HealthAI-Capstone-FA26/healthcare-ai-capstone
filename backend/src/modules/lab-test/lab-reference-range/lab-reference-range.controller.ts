@@ -11,10 +11,13 @@ import {
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { LabReferenceRangeService } from './lab-reference-range.service';
 import { LabReferenceRangeQueryDto } from './dtos/lab-reference-range-query.dto';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 @ApiTags('Lab Reference Ranges')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('patients/:patientId/lab-reference-ranges')
 export class LabReferenceRangeController {
     constructor(private readonly labReferenceRangeService: LabReferenceRangeService) {}
@@ -26,6 +29,7 @@ export class LabReferenceRangeController {
      * khi mở form nhập kết quả để hiển thị ngay cạnh mỗi ô nhập.
      */
     @Get()
+    @RequirePermissions(`${Resource.OBSERVATION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Ngưỡng tham chiếu các tham số của 1 dịch vụ cận lâm sàng cho 1 bệnh nhân',
         description:

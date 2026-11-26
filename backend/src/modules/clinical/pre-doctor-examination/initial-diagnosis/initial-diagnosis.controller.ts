@@ -20,6 +20,9 @@ import { InitialDiagnosisService } from './initial-diagnosis.service';
 import { CreateInitialDiagnosisDto } from './dto/create-initial-diagnosis.dto';
 import { UpdateInitialDiagnosisDto } from './dto/update-initial-diagnosis.dto';
 import { FindDiagnosesQueryDto } from './dto/find-diagnoses-query.dto';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 /**
  * SE02 — Chẩn đoán ban đầu. Route giữ nguyên `/diagnoses` vì Diagnosis là bảng dùng chung toàn vòng đời
@@ -27,13 +30,14 @@ import { FindDiagnosesQueryDto } from './dto/find-diagnoses-query.dto';
  */
 @ApiTags('Doctor Examination - Initial Diagnosis')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, ActorRolesGuard)
+@UseGuards(JwtAuthGuard, ActorRolesGuard, PermissionsGuard)
 @AllowActorRoles(ACTOR_ROLE.DOCTOR, ACTOR_ROLE.NURSE, ACTOR_ROLE.ADMIN)
 @Controller('doctor-examination/encounters/:encounterId/diagnoses')
 export class InitialDiagnosisController {
     constructor(private readonly initialDiagnosisService: InitialDiagnosisService) { }
 
     @Post()
+    @RequirePermissions(`${Resource.CONDITION}:${Action.CREATE}:${Scope.GROUP}`)
     @AllowActorRoles(ACTOR_ROLE.DOCTOR)
     @ApiOperation({
         summary: 'Ghi nhận chẩn đoán ban đầu (initial) hoặc chẩn đoán phân biệt (differential)',
@@ -50,6 +54,7 @@ export class InitialDiagnosisController {
     }
 
     @Get()
+    @RequirePermissions(`${Resource.CONDITION}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({ summary: 'Danh sách chẩn đoán của 1 lượt khám (mặc định gồm mọi loại)' })
     @ApiParam({ name: 'encounterId', format: 'uuid' })
     @ApiOkResponse({ description: 'Danh sách chẩn đoán, mới nhất trước.' })
@@ -61,6 +66,7 @@ export class InitialDiagnosisController {
     }
 
     @Patch(':diagnosisId')
+    @RequirePermissions(`${Resource.CONDITION}:${Action.UPDATE}:${Scope.GROUP}`)
     @AllowActorRoles(ACTOR_ROLE.DOCTOR)
     @ApiOperation({ summary: 'Sửa tên / ghi chú / đặt làm chẩn đoán chính (không áp dụng cho chẩn đoán final)' })
     @ApiParam({ name: 'encounterId', format: 'uuid' })
@@ -75,6 +81,7 @@ export class InitialDiagnosisController {
     }
 
     @Delete(':diagnosisId')
+    @RequirePermissions(`${Resource.CONDITION}:${Action.DELETE}:${Scope.GROUP}`)
     @AllowActorRoles(ACTOR_ROLE.DOCTOR)
     @ApiOperation({
         summary: 'Xoá chẩn đoán nhập nhầm',

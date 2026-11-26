@@ -1,7 +1,7 @@
 {
   "file": "lab-test/lab-result-image.spec.ts",
-  "ranAt": "2026-11-23T07:58:58.487Z",
-  "durationMs": 999898,
+  "ranAt": "2026-11-25T13:52:19.091Z",
+  "durationMs": 4540,
   "total": 14,
   "passed": 14,
   "failed": 0,
@@ -14,7 +14,7 @@
       "name": "chấp nhận JPEG/PNG/DICOM/PDF/MP4 hợp lệ",
       "fullName": "assertFileSignature — kiểm tra nội dung thật của tệp chấp nhận JPEG/PNG/DICOM/PDF/MP4 hợp lệ",
       "status": "PASS",
-      "durationMs": 200,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -23,7 +23,7 @@
       "name": "từ chối MIME giả: file .exe khai báo image/jpeg",
       "fullName": "assertFileSignature — kiểm tra nội dung thật của tệp từ chối MIME giả: file .exe khai báo image/jpeg",
       "status": "PASS",
-      "durationMs": 496,
+      "durationMs": 56,
       "error": ""
     },
     {
@@ -32,7 +32,7 @@
       "name": "từ chối JPEG khai báo là PNG, DICOM thiếu DICM, octet-stream cho fileType image",
       "fullName": "assertFileSignature — kiểm tra nội dung thật của tệp từ chối JPEG khai báo là PNG, DICOM thiếu DICM, octet-stream cho fileType image",
       "status": "PASS",
-      "durationMs": 238,
+      "durationMs": 7,
       "error": ""
     },
     {
@@ -41,7 +41,7 @@
       "name": "từ chối script shebang, ELF và tệp rỗng",
       "fullName": "assertFileSignature — kiểm tra nội dung thật của tệp từ chối script shebang, ELF và tệp rỗng",
       "status": "PASS",
-      "durationMs": 156,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -50,7 +50,7 @@
       "name": "isExternalUrl",
       "fullName": "assertFileSignature — kiểm tra nội dung thật của tệp isExternalUrl",
       "status": "PASS",
-      "durationMs": 453,
+      "durationMs": 1,
       "error": ""
     },
     {
@@ -59,7 +59,7 @@
       "name": "chỉ cho đọc công khai các prefix được liệt kê, không dùng wildcard toàn bucket",
       "fullName": "bucket policy — ảnh y khoa không còn công khai chỉ cho đọc công khai các prefix được liệt kê, không dùng wildcard toàn bucket",
       "status": "PASS",
-      "durationMs": 919,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -68,7 +68,7 @@
       "name": "submit image_report: lưu kết quả nhưng KHÔNG hoàn tất task, không phát event",
       "fullName": "LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) submit image_report: lưu kết quả nhưng KHÔNG hoàn tất task, không phát event",
       "status": "PASS",
-      "durationMs": 1740,
+      "durationMs": 9,
       "error": ""
     },
     {
@@ -77,7 +77,7 @@
       "name": "submit dịch vụ parametric vẫn hoàn tất ngay như cũ",
       "fullName": "LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) submit dịch vụ parametric vẫn hoàn tất ngay như cũ",
       "status": "PASS",
-      "durationMs": 550,
+      "durationMs": 4,
       "error": ""
     },
     {
@@ -86,7 +86,7 @@
       "name": "complete: chưa có hình và không có lý do -> từ chối",
       "fullName": "LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) complete: chưa có hình và không có lý do -> từ chối",
       "status": "PASS",
-      "durationMs": 1550,
+      "durationMs": 10,
       "error": ""
     },
     {
@@ -95,7 +95,7 @@
       "name": "complete: đã có ảnh -> hoàn tất, tính lại encounter, phát event \"có kết quả\"",
       "fullName": "LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) complete: đã có ảnh -> hoàn tất, tính lại encounter, phát event \"có kết quả\"",
       "status": "PASS",
-      "durationMs": 682,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -104,7 +104,7 @@
       "name": "complete: không có hình nhưng nêu lý do -> hoàn tất và ghi lý do vào findings",
       "fullName": "LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) complete: không có hình nhưng nêu lý do -> hoàn tất và ghi lý do vào findings",
       "status": "PASS",
-      "durationMs": 376,
+      "durationMs": 2,
       "error": ""
     },
     {
@@ -113,7 +113,7 @@
       "name": "complete: gọi lần 2 -> 409; dịch vụ không phải image_report -> 400; sai vai trò -> 403",
       "fullName": "LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) complete: gọi lần 2 -> 409; dịch vụ không phải image_report -> 400; sai vai trò -> 403",
       "status": "PASS",
-      "durationMs": 2096,
+      "durationMs": 17,
       "error": ""
     },
     {
@@ -122,7 +122,7 @@
       "name": "listAttachments: trả presigned URL cho object key, giữ nguyên URL ngoài; PATIENT bị chặn",
       "fullName": "LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) listAttachments: trả presigned URL cho object key, giữ nguyên URL ngoài; PATIENT bị chặn",
       "status": "PASS",
-      "durationMs": 435,
+      "durationMs": 5,
       "error": ""
     },
     {
@@ -131,7 +131,7 @@
       "name": "getAttachmentAccessUrl: 404 khi không có tệp",
       "fullName": "LabResultService — báo cáo hình ảnh (siêu âm tim, X-quang ngực) getAttachmentAccessUrl: 404 khi không có tệp",
       "status": "PASS",
-      "durationMs": 3,
+      "durationMs": 4,
       "error": ""
     }
   ]

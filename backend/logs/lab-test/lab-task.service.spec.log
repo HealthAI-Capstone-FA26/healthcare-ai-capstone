@@ -1,12 +1,12 @@
 FILE     : lab-test/lab-task.service.spec.ts
-RAN AT   : 2026-11-23T07:58:58.519Z
-RESULT   : 8 passed, 0 failed, 0 skipped / 8 total (687612 ms)
+RAN AT   : 2026-11-25T13:52:27.720Z
+RESULT   : 8 passed, 0 failed, 0 skipped / 8 total (1883 ms)
 ================================================================================
-#1 [PASS] LabTaskService - Function 17 (F-09): receive UTCID14 [N]: should move a paid ready task to in_progress and recompute order/encounter in the same transaction (298 ms)
-#2 [PASS] LabTaskService - Function 17 (F-09): receive UTCID15 [A]: should throw ForbiddenException when the task is unpaid (paymentVerified = false and invoice not paid) (124 ms)
-#3 [PASS] LabTaskService - Function 17 (F-09): receive UTCID16 [B]: should promote a payment_pending task to ready when its invoice is already paid, then receive it (4 ms)
-#4 [PASS] LabTaskService - Function 17 (F-09): receive UTCID17 [A]: should throw NotFoundException when the diagnostic task does not exist (3 ms)
+#1 [PASS] LabTaskService - Function 17 (F-09): receive UTCID14 [N]: should move a paid ready task to in_progress and recompute order/encounter in the same transaction (15 ms)
+#2 [PASS] LabTaskService - Function 17 (F-09): receive UTCID15 [A]: should throw ForbiddenException when the task is unpaid (paymentVerified = false and invoice not paid) (12 ms)
+#3 [PASS] LabTaskService - Function 17 (F-09): receive UTCID16 [B]: should promote a payment_pending task to ready when its invoice is already paid, then receive it (3 ms)
+#4 [PASS] LabTaskService - Function 17 (F-09): receive UTCID17 [A]: should throw NotFoundException when the diagnostic task does not exist (5 ms)
 #5 [PASS] LabTaskService - Function 17 (F-09): receive UTCID18 [A]: should throw BadRequestException when the task is not in 'ready' status (2 ms)
-#6 [PASS] LabTaskService - Function 17 (F-09): receive UTCID19 [A]: should throw ForbiddenException when the task is pre-assigned to another lab staff (2 ms)
-#7 [PASS] LabTaskService - Function 17 (F-09): receive UTCID20 [A]: should reject a caller whose actor role is not LAB_STAFF before touching the task (43 ms)
-#8 [PASS] LabTaskService - Function 17 (F-09): receive UTCID21 [B]: should throw ConflictException when another lab staff claims the same task first (compare-and-swap loses) (1 ms)
+#6 [PASS] LabTaskService - Function 17 (F-09): receive UTCID19 [A]: should throw ForbiddenException when the task is pre-assigned to another lab staff (3 ms)
+#7 [PASS] LabTaskService - Function 17 (F-09): receive UTCID20 [A]: should reject a caller whose actor role is not LAB_STAFF before touching the task (13 ms)
+#8 [PASS] LabTaskService - Function 17 (F-09): receive UTCID21 [B]: should throw ConflictException when another lab staff claims the same task first (compare-and-swap loses) (2 ms)

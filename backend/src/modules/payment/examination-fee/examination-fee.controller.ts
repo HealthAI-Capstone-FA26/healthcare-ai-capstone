@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { RequestUser } from '../../identity-access/auth/strategies/jwt.strategy';
 import { ActorRoleService } from '../../identity-access/user/actor-role.service';
@@ -9,6 +11,7 @@ import { ExaminationFeeService } from './examination-fee.service';
 import { CreateExaminationFeeDto } from './dtos/create-examination-fee.dto';
 import { UpdateExaminationFeeDto } from './dtos/update-examination-fee.dto';
 import { FindExaminationFeesQueryDto } from './dtos/find-examination-fees-query.dto';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 /**
  * Actor xác định qua ActorRoleService (không dùng RequirePermissions/PermissionsGuard ở đây)
@@ -16,7 +19,7 @@ import { FindExaminationFeesQueryDto } from './dtos/find-examination-fees-query.
  */
 @ApiTags('Payment - Examination Fee Catalog')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('examination-fees')
 export class ExaminationFeeController {
   constructor(
@@ -25,6 +28,7 @@ export class ExaminationFeeController {
   ) { }
 
   @Post()
+  @RequirePermissions(`${Resource.INVOICE}:${Action.CREATE}:${Scope.GROUP}`)
   @ApiOperation({
     summary: 'Tạo mức phí khám — chỉ ADMIN',
     description:
@@ -37,12 +41,14 @@ export class ExaminationFeeController {
   }
 
   @Get()
+  @RequirePermissions(`${Resource.INVOICE}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Danh sách phí khám, lọc theo feeType / trạng thái active' })
   async findAll(@Query() query: FindExaminationFeesQueryDto) {
     return this.examinationFeeService.findAll(query);
   }
 
   @Patch(':id')
+  @RequirePermissions(`${Resource.INVOICE}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Sửa giá / isActive của 1 mức phí khám — chỉ ADMIN' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,

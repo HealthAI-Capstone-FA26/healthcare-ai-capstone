@@ -1,0 +1,111 @@
+{
+  "file": "pharmacy/prescription.service.spec.ts",
+  "ranAt": "2026-11-25T14:01:21.916Z",
+  "durationMs": 16725,
+  "total": 11,
+  "passed": 11,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "TC-F20-01 [Normal]: should create draft prescription and trigger safety check when diagnosis is final and encounter is awaiting_review",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-01 [Normal]: should create draft prescription and trigger safety check when diagnosis is final and encounter is awaiting_review",
+      "status": "PASS",
+      "durationMs": 18,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "TC-F20-02 [Abnormal]: should throw NotFoundException when diagnosisId does not exist",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-02 [Abnormal]: should throw NotFoundException when diagnosisId does not exist",
+      "status": "PASS",
+      "durationMs": 31,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "TC-F20-03 [Abnormal]: should throw ForbiddenException when diagnosis belongs to another doctor",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-03 [Abnormal]: should throw ForbiddenException when diagnosis belongs to another doctor",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "TC-F20-04 [Abnormal]: should throw ForbiddenException when encounter status is not awaiting_review",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-04 [Abnormal]: should throw ForbiddenException when encounter status is not awaiting_review",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "TC-F20-05 [Abnormal]: should throw BadRequestException when prescription contains an inactive drug",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-05 [Abnormal]: should throw BadRequestException when prescription contains an inactive drug",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "TC-F20-06 [Boundary]: should create draft prescription and run safety check when prescribing directly on an initial diagnosis",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks TC-F20-06 [Boundary]: should create draft prescription and run safety check when prescribing directly on an initial diagnosis",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 7,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "F-13 [Normal]: updateItems should replace items on draft prescription and re-run safety check",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal]: updateItems should replace items on draft prescription and re-run safety check",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 8,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "F-13 [Abnormal]: updateItems should throw ForbiddenException when prescription is not in draft status",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Abnormal]: updateItems should throw ForbiddenException when prescription is not in draft status",
+      "status": "PASS",
+      "durationMs": 3,
+      "error": ""
+    },
+    {
+      "no": 9,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "F-13 [Normal/Abnormal]: cancel should transition draft to cancelled and reject already cancelled",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks F-13 [Normal/Abnormal]: cancel should transition draft to cancelled and reject already cancelled",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 10,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "F-13 Safety [Normal]: AllergyContraindicationDetector should flag drug matching patient active allergy",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks F-13 Safety [Normal]: AllergyContraindicationDetector should flag drug matching patient active allergy",
+      "status": "PASS",
+      "durationMs": 2,
+      "error": ""
+    },
+    {
+      "no": 11,
+      "suite": "PrescriptionService - Function 20: create & F-13 Safety Checks",
+      "name": "F-13 Safety [Normal]: DuplicateTherapeuticClassDetector should flag two drugs sharing therapeuticClass",
+      "fullName": "PrescriptionService - Function 20: create & F-13 Safety Checks F-13 Safety [Normal]: DuplicateTherapeuticClassDetector should flag two drugs sharing therapeuticClass",
+      "status": "PASS",
+      "durationMs": 1,
+      "error": ""
+    }
+  ]
+}

@@ -8,11 +8,14 @@ import { ActorRoleService } from '../../identity-access/user/actor-role.service'
 import { DateRangeQueryDto, EtaQueryDto, RollupRequestDto, StageStatsQueryDto } from './dto/statistics-query.dto';
 import { StatisticsRollupService } from './statistics-rollup.service';
 import { StatisticsService } from './statistics.service';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 /** SE07 — Thống kê & báo cáo. Báo cáo/dashboard chỉ ADMIN; ETA hàng đợi mở cho mọi người dùng đã đăng nhập. */
 @ApiTags('Statistics & Reporting')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('statistics')
 export class StatisticsController {
   constructor(
@@ -26,6 +29,7 @@ export class StatisticsController {
   }
 
   @Get('overview')
+  @RequirePermissions(`${Resource.ORGANIZATION}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Báo cáo tổng quan: lượt khám theo ngày, lịch hẹn, doanh thu theo phương thức, cận lâm sàng, thông báo — ADMIN' })
   async overview(@Query() q: DateRangeQueryDto, @CurrentUser() user: RequestUser) {
     await this.assertAdmin(user);
@@ -33,6 +37,7 @@ export class StatisticsController {
   }
 
   @Get('stages')
+  @RequirePermissions(`${Resource.ORGANIZATION}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Thời gian chờ / xử lý trung bình từng chặng (từ rollup) — ADMIN' })
   async stages(@Query() q: StageStatsQueryDto, @CurrentUser() user: RequestUser) {
     await this.assertAdmin(user);
@@ -40,6 +45,7 @@ export class StatisticsController {
   }
 
   @Get('dashboard')
+  @RequirePermissions(`${Resource.ORGANIZATION}:${Action.READ}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Dashboard theo dõi luồng khám thời gian thực (hôm nay) — ADMIN' })
   async dashboard(@CurrentUser() user: RequestUser) {
     await this.assertAdmin(user);
@@ -47,18 +53,21 @@ export class StatisticsController {
   }
 
   @Get('eta')
+  @RequirePermissions(`${Resource.ORGANIZATION}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Ước lượng thời gian chờ ở 1 chặng dựa trên số người phía trước và thời gian xử lý lịch sử' })
   eta(@Query() q: EtaQueryDto) {
     return this.statisticsService.estimateWait(q.stage, { serviceId: q.serviceId, ahead: q.ahead, servers: q.servers });
   }
 
   @Get('eta/queue-ticket/:ticketId')
+  @RequirePermissions(`${Resource.ORGANIZATION}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Ước lượng thời gian chờ của 1 số thứ tự (tính theo thứ tự ưu tiên gọi số thực tế)' })
   etaForTicket(@Param('ticketId', ParseUUIDPipe) ticketId: string) {
     return this.statisticsService.estimateForQueueTicket(ticketId);
   }
 
   @Post('rollup')
+  @RequirePermissions(`${Resource.ORGANIZATION}:${Action.UPDATE}:${Scope.GROUP}`)
   @ApiOperation({ summary: 'Tính lại thống kê cho khoảng ngày (backfill / sửa số liệu) — ADMIN' })
   async rollup(@Body() dto: RollupRequestDto, @CurrentUser() user: RequestUser) {
     await this.assertAdmin(user);

@@ -1,0 +1,66 @@
+{
+  "file": "post-test-consultation/wf04-state-transition.spec.ts",
+  "ranAt": "2026-11-25T13:52:10.850Z",
+  "durationMs": 7460,
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "suiteError": "",
+  "cases": [
+    {
+      "no": 1,
+      "suite": "WF-04 state transitions & E2E scenarios > ST-01 Encounter: awaiting_review -> finished",
+      "name": "ST-01 [Normal]: transitions Encounter from awaiting_review to finished, Appointment to completed, QueueEntry to done",
+      "fullName": "WF-04 state transitions & E2E scenarios ST-01 Encounter: awaiting_review -> finished ST-01 [Normal]: transitions Encounter from awaiting_review to finished, Appointment to completed, QueueEntry to done",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 2,
+      "suite": "WF-04 state transitions & E2E scenarios > ST-01 Encounter: awaiting_review -> finished",
+      "name": "ST-01 [Abnormal]: rejects premature finishEncounter when Encounter is awaiting_diagnostics or already finished",
+      "fullName": "WF-04 state transitions & E2E scenarios ST-01 Encounter: awaiting_review -> finished ST-01 [Abnormal]: rejects premature finishEncounter when Encounter is awaiting_diagnostics or already finished",
+      "status": "PASS",
+      "durationMs": 46,
+      "error": ""
+    },
+    {
+      "no": 3,
+      "suite": "WF-04 state transitions & E2E scenarios > ST-02 Encounter: awaiting_review -> awaiting_diagnostics (additional test order)",
+      "name": "ST-02 [Normal]: ordering an additional test when awaiting_review transitions Encounter back to awaiting_diagnostics",
+      "fullName": "WF-04 state transitions & E2E scenarios ST-02 Encounter: awaiting_review -> awaiting_diagnostics (additional test order) ST-02 [Normal]: ordering an additional test when awaiting_review transitions Encounter back to awaiting_diagnostics",
+      "status": "PASS",
+      "durationMs": 7,
+      "error": ""
+    },
+    {
+      "no": 4,
+      "suite": "WF-04 state transitions & E2E scenarios > ST-03 Prescription: draft -> cancelled",
+      "name": "ST-03 [Normal]: transitions Prescription from draft to cancelled",
+      "fullName": "WF-04 state transitions & E2E scenarios ST-03 Prescription: draft -> cancelled ST-03 [Normal]: transitions Prescription from draft to cancelled",
+      "status": "PASS",
+      "durationMs": 6,
+      "error": ""
+    },
+    {
+      "no": 5,
+      "suite": "WF-04 state transitions & E2E scenarios > E2E Scenarios (DS-07 Main & DS-08 Exception)",
+      "name": "E2E DS-07 [Main]: Doctor confirms I20.9 -> drafts Atorvastatin+Amlodipine prescription -> schedules 14d follow-up -> finishes encounter",
+      "fullName": "WF-04 state transitions & E2E scenarios E2E Scenarios (DS-07 Main & DS-08 Exception) E2E DS-07 [Main]: Doctor confirms I20.9 -> drafts Atorvastatin+Amlodipine prescription -> schedules 14d follow-up -> finishes encounter",
+      "status": "PASS",
+      "durationMs": 15,
+      "error": ""
+    },
+    {
+      "no": 6,
+      "suite": "WF-04 state transitions & E2E scenarios > E2E Scenarios (DS-07 Main & DS-08 Exception)",
+      "name": "E2E DS-08 [Exception]: Inconclusive review redirects back to WF-03 (awaiting_diagnostics) and blocks premature closure",
+      "fullName": "WF-04 state transitions & E2E scenarios E2E Scenarios (DS-07 Main & DS-08 Exception) E2E DS-08 [Exception]: Inconclusive review redirects back to WF-03 (awaiting_diagnostics) and blocks premature closure",
+      "status": "PASS",
+      "durationMs": 4,
+      "error": ""
+    }
+  ]
+}

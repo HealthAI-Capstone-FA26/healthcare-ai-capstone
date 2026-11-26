@@ -36,12 +36,14 @@ export class InvoiceController {
   }
 
   @Get(':id')
+  @RequirePermissions(`${Resource.INVOICE}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'Chi tiết hoá đơn + items + payments — đã login' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.invoiceService.findById(id);
   }
 
   @Get(':id/pdf')
+  @RequirePermissions(`${Resource.INVOICE}:${Action.READ}:${Scope.OWN}`)
   @ApiOperation({ summary: 'URL PDF hoá đơn (generate on-demand nếu chưa có) — đã login' })
   getPdf(@Param('id', ParseUUIDPipe) id: string) {
     return this.invoiceService.getOrGeneratePdfUrl(id);

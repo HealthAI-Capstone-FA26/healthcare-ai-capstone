@@ -17,8 +17,9 @@ export class QueueTicketController {
   constructor(private readonly queueTicketService: QueueTicketService) { }
 
   @Get()
+  @RequirePermissions(`${Resource.QUEUE_TICKET}:${Action.READ}:${Scope.GROUP}`)
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Danh sách hàng đợi theo khoa/ngày/trạng thái, đã sắp theo thứ tự ưu tiên' })
   findMany(@Query() query: FindQueueTicketsQueryDto) {
     return this.queueTicketService.findMany(query);

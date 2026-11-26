@@ -15,6 +15,9 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { imageUploadConfig, uploadImageToS3 } from 'src/common/configs/upload.config';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 // Controller chỉ làm nhiệm vụ định tuyến HTTP -> gọi service theo đúng domain
 // (registration / login / password). Không còn 1 "AuthService" khổng lồ ôm hết.
@@ -75,7 +78,8 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermissions(`${Resource.USER}:${Action.UPDATE}:${Scope.OWN}`)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đăng xuất, thu hồi session hiện tại' })
@@ -86,7 +90,8 @@ export class AuthController {
   // ================== CHANGE PASSWORD ==================
 
   @Post('change-password')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermissions(`${Resource.USER}:${Action.UPDATE}:${Scope.OWN}`)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đổi mật khẩu (yêu cầu đăng nhập), thu hồi toàn bộ session' })

@@ -5,6 +5,9 @@ import { ActorRolesGuard } from '../../../../common/guards/actor-roles.guard';
 import { AllowActorRoles } from '../../../../common/decorators/actor-roles.decorator';
 import { ACTOR_ROLE } from '../../../../common/constants/actor-role.constant';
 import { CaseOverviewService } from './case-overview.service';
+import { PermissionsGuard } from '../../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../../common/constants/permissions.dictionary';
 
 /**
  * SE02 — bác sĩ xem hồ sơ bệnh nhân trước/trong lúc khám: lý do khám, sinh hiệu vừa ghi (kèm cờ bất thường),
@@ -12,13 +15,14 @@ import { CaseOverviewService } from './case-overview.service';
  */
 @ApiTags('Doctor Examination - Case Overview')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, ActorRolesGuard)
+@UseGuards(JwtAuthGuard, ActorRolesGuard, PermissionsGuard)
 @AllowActorRoles(ACTOR_ROLE.DOCTOR, ACTOR_ROLE.NURSE, ACTOR_ROLE.ADMIN)
 @Controller('doctor-examination/encounters/:encounterId')
 export class CaseOverviewController {
     constructor(private readonly caseOverviewService: CaseOverviewService) { }
 
     @Get('overview')
+    @RequirePermissions(`${Resource.ENCOUNTER}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Tổng hợp hồ sơ bệnh án điện tử cho 1 lượt khám',
         description:

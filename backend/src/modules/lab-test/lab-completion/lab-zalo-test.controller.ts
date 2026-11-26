@@ -6,7 +6,11 @@ import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { ACTOR_ROLE } from '../../../common/constants/actor-role.constant';
 import { ActorRoleService } from '../../identity-access/user/actor-role.service';
 import { LabResultZaloDeliveryService } from './lab-result-zalo-delivery.service';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class SendLabZaloTestDto {
     @ApiPropertyOptional({
         description: 'chat_id Zalo nhận tài liệu. Bỏ trống = dùng chat_id bệnh nhân đã liên kết với bot (nhắn SĐT cho bot).',
@@ -33,6 +37,7 @@ export class LabZaloTestController {
     ) {}
 
     @Post('encounters/:encounterId/send-zalo-test')
+    @RequirePermissions(`${Resource.ENCOUNTER}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiOperation({
         summary: '[TEST] Gửi tài liệu kết quả cận lâm sàng của 1 encounter qua Zalo',
         description:

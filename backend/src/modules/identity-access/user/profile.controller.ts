@@ -24,8 +24,12 @@ import { SearchUserDto } from './dto/search-user.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { imageUploadConfig } from '../../../common/configs/upload.config';
+import { PermissionsGuard } from '../../../common/guards/permissions.guard';
+import { RequirePermissions } from '../../../common/decorators/permissions.decorator';
+import { Action, Resource, Scope } from '../../../common/constants/permissions.dictionary';
 
 @ApiTags('Users')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('users')
 export class ProfileController {
     constructor(
@@ -33,6 +37,7 @@ export class ProfileController {
     ) { }
 
     @Get()
+    @RequirePermissions(`${Resource.USER}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Lấy danh sách người dùng toàn hệ thống (Dành cho Admin)',
     })
@@ -41,6 +46,7 @@ export class ProfileController {
     }
 
     @Get(':userId')
+    @RequirePermissions(`${Resource.USER}:${Action.READ}:${Scope.GROUP}`)
     @ApiOperation({
         summary: 'Xem chi tiết hồ sơ tài khoản người dùng theo userId',
     })
@@ -49,6 +55,7 @@ export class ProfileController {
     }
 
     @Patch('me')
+    @RequirePermissions(`${Resource.USER}:${Action.UPDATE}:${Scope.OWN}`)
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiConsumes('multipart/form-data')
@@ -72,6 +79,7 @@ export class ProfileController {
     }
 
     @Patch(':userId')
+    @RequirePermissions(`${Resource.USER}:${Action.UPDATE}:${Scope.GROUP}`)
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(FileInterceptor('file', imageUploadConfig))
     @ApiOperation({

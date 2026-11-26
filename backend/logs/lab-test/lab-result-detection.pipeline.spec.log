@@ -1,11 +1,11 @@
 FILE     : lab-test/lab-result-detection.pipeline.spec.ts
-RAN AT   : 2026-11-23T07:58:58.363Z
-RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (987044 ms)
+RAN AT   : 2026-11-25T13:51:40.020Z
+RESULT   : 7 passed, 0 failed, 0 skipped / 7 total (35520 ms)
 ================================================================================
-#1 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID07 [N]: should create an active critical alert, push it in real time and notify the doctor when HGB is critical (1323 ms)
-#2 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID08 [N]: should raise no alert and send no notification when HGB is within the normal range (5 ms)
-#3 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID09 [A]: should raise a low alert and push it in real time but not send a critical notification (0 ms)
-#4 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID10 [B]: should be idempotent when detection re-runs and an open alert with the same risk level already exists (1 ms)
-#5 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID11 [N]: should resolve the open alert when a corrected result is back within the normal range (71 ms)
-#6 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID12 [B]: should still create and push the alert but notify nobody when the order has no assigned doctor (1 ms)
-#7 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID13 [A]: should swallow a detection failure without pushing, and still send the completion notification (579 ms)
+#1 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID07 [N]: should create an active critical alert, push it in real time and notify the doctor when HGB is critical (109 ms)
+#2 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID08 [N]: should raise no alert and send no notification when HGB is within the normal range (21 ms)
+#3 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID09 [A]: should raise a low alert and push it in real time but not send a critical notification (6 ms)
+#4 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID10 [B]: should be idempotent when detection re-runs and an open alert with the same risk level already exists (11 ms)
+#5 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID11 [N]: should resolve the open alert when a corrected result is back within the normal range (9 ms)
+#6 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID12 [B]: should still create and push the alert but notify nobody when the order has no assigned doctor (3 ms)
+#7 [PASS] Rule-based blood alert pipeline - Function 17 (supplement): detect -> alert -> realtime -> notification UTCID13 [A]: should swallow a detection failure without pushing, and still send the completion notification (99 ms)
