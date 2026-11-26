@@ -15,7 +15,6 @@ export class DrugCatalogService {
             isActive,
             ...(query.therapeuticClass ? { therapeuticClass: query.therapeuticClass } : {}),
             ...(query.route ? { route: query.route } : {}),
-            ...(query.allergenCategoryId ? { allergenCategoryId: query.allergenCategoryId } : {}),
             ...(keyword
                 ? {
                       OR: [
@@ -30,9 +29,6 @@ export class DrugCatalogService {
 
         return this.prisma.drugCatalog.findMany({
             where,
-            include: {
-                allergenCategory: true,
-            },
             orderBy: [{ drugName: 'asc' }, { strength: 'asc' }],
             ...(query.limit ? { take: query.limit } : {}),
         });
@@ -40,25 +36,13 @@ export class DrugCatalogService {
 
     async findAll() {
         return this.prisma.drugCatalog.findMany({
-            include: {
-                allergenCategory: true,
-            },
             orderBy: [{ drugName: 'asc' }, { strength: 'asc' }],
-        });
-    }
-
-    async findAllCategories() {
-        return this.prisma.allergenCategory.findMany({
-            orderBy: { categoryName: 'asc' },
         });
     }
 
     async findById(drugId: string) {
         const drug = await this.prisma.drugCatalog.findUnique({
             where: { drugId },
-            include: {
-                allergenCategory: true,
-            },
         });
 
         if (!drug) {

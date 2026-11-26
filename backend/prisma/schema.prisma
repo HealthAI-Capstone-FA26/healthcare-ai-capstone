@@ -1283,17 +1283,6 @@ model TreatmentConsultation {
 // (Pharmacy/dispense không còn trong phạm vi; follow-up dùng bảng appointments ở SE01)
 // ############################################################################
 
-model AllergenCategory {
-  categoryId   String   @id @default(uuid()) @map("category_id") @db.Char(36)
-  categoryCode String   @unique @map("category_code") @db.VarChar(30)
-  categoryName String   @map("category_name") @db.VarChar(100)
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  drugs DrugCatalog[]
-
-  @@map("allergen_categories")
-}
-
 model DrugCatalog {
   drugId             String   @id @default(uuid()) @map("drug_id") @db.Char(36)
   drugCode           String   @unique @map("drug_code") @db.VarChar(30)
@@ -1305,11 +1294,8 @@ model DrugCatalog {
   route              String   @db.VarChar(30)
   unit               String   @db.VarChar(20)
   therapeuticClass   String?  @map("therapeutic_class") @db.VarChar(100) // beta_blocker | ace_inhibitor | arb | statin | anticoagulant | antiplatelet | diuretic | ...
-  allergenCategoryId String?  @map("allergen_category_id") @db.Char(36)
   isActive           Boolean  @default(true) @map("is_active")
   createdAt          DateTime @default(now()) @map("created_at")
-
-  allergenCategory AllergenCategory? @relation(fields: [allergenCategoryId], references: [categoryId])
 
   prescriptionItems PrescriptionItem[]
 

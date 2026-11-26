@@ -16,8 +16,8 @@ import { OrderItemCancelledEvent, ORDER_ITEM_CANCELLED_EVENT } from './events/or
 const DIAGNOSTIC_ORDER_CODE_PREFIX = 'CD'; // "Chỉ Định" — gồm cả xét nghiệm máu, ECG, X-quang, siêu âm tim
 const TASK_INITIAL_STATUS = 'payment_pending';
 const DIAGNOSIS_TYPE_INITIAL = 'initial';
-/** Task còn có thể huỷ chỉ định. 'in_progress'/'completed' đã thực hiện -> dùng luồng đính chính kết quả. */
-const TASK_CANCELLABLE_STATUSES = ['payment_pending', 'ready', 'on_hold'];
+/** Task còn có thể huỷ chỉ định (chỉ huỷ khi chưa thanh toán 'payment_pending' hoặc tạm hoãn 'on_hold'; 'ready' đã thanh toán hoặc 'in_progress'/'completed' đã/đang thực hiện không thể huỷ). */
+const TASK_CANCELLABLE_STATUSES = ['payment_pending', 'on_hold'];
 /** Task đã xong/huỷ -> dịch vụ đó có thể chỉ định lại. Còn lại = đang "sống", chặn chỉ định trùng. */
 const TASK_FINISHED_STATUSES = ['cancelled', 'completed'];
 
@@ -219,7 +219,7 @@ export class TestOrderService {
                 if (taskCancelled.count === 0) {
                     // Ném lỗi trong transaction -> rollback luôn việc huỷ item ở trên.
                     throw new ConflictException(
-                        'Hạng mục đã/đang được thực hiện, không thể huỷ chỉ định. Nếu kết quả sai, dùng luồng đính chính kết quả.',
+                        'Hạng mục đã được thanh toán hoặc đang/đã được thực hiện, không thể huỷ chỉ định. Nếu kết quả sai, dùng luồng đính chính kết quả.',
                     );
                 }
             }
