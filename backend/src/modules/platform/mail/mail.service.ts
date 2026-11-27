@@ -131,7 +131,7 @@ export class MailService {
    * Không chứa thông tin cá nhân hay y tế nhạy cảm của bệnh nhân để đảm bảo bảo mật.
    */
   async sendPatientPortalGuideMail(to: string): Promise<void> {
-    const baseUrl = (this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:5173').replace(/\/$/, '');
+    const baseUrl = (this.configService.get<string>('FRONTEND_URL') ?? 'https://www.4am.website').replace(/\/$/, '');
     const registerUrl = `${baseUrl}/register`;
     const loginUrl = `${baseUrl}/login`;
 
