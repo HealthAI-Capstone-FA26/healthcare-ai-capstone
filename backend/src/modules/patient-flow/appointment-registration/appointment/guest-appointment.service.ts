@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../prisma/prisma.service';
@@ -27,6 +27,8 @@ function normalizeFullName(name: string): string {
 
 @Injectable()
 export class GuestAppointmentService {
+  private readonly logger = new Logger(GuestAppointmentService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
@@ -170,6 +172,30 @@ export class GuestAppointmentService {
     });
 
     await this.guestOtpStore.delete(otpId);
+
+    if (appointmentDto.email) {
+      const doctorFullName = slot.schedule.doctor
+        ? [slot.schedule.doctor.title, slot.schedule.doctor.fullName].filter(Boolean).join(' ')
+        : 'Bác sĩ chuyên khoa Tim mạch';
+      try {
+        await this.mailService.sendOnlineBookingSuccessMail({
+          to: appointmentDto.email,
+          appointmentCode: result.appointmentCode,
+          patientName: appointmentDto.fullName,
+          patientSubLabel: appointmentDto.phoneNumber,
+          doctorName: doctorFullName,
+          slotStartTime: slot.slotStartTime,
+          slotEndTime: slot.slotEndTime,
+          reasonForVisit: appointmentDto.reasonForVisit,
+          isGuest: true,
+        });
+      } catch (err) {
+        this.logger.warn(
+          `Không gửi được email xác nhận đặt lịch guest ${result.appointmentCode}: ${(err as Error).message}`,
+        );
+      }
+    }
+
     return result;
   }
 
@@ -282,7 +308,13 @@ export class GuestAppointmentService {
   private async assertSlotBookable(doctorId: string, slotId: string) {
     const slot = await this.prisma.appointmentSlot.findUnique({
       where: { slotId },
-      include: { schedule: true },
+      include: {
+        schedule: {
+          include: {
+            doctor: { select: { fullName: true, title: true } },
+          },
+        },
+      },
     });
     if (!slot || slot.status !== 'free') {
       throw new BadRequestException('Slot không tồn tại hoặc đã hết chỗ');

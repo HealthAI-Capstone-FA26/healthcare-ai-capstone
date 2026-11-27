@@ -169,4 +169,174 @@ export class MailService {
 
     this.logger.log(`Đã gửi email hướng dẫn đăng ký & liên kết hồ sơ tới ${to}`);
   }
+
+  /**
+   * Gửi email xác nhận đặt lịch khám trực tuyến thành công (dùng chung cho cả Guest và Bệnh nhân có tài khoản).
+   * Giao diện bảng thông báo đồng bộ với modal "Đăng ký khám thành công" trên web.
+   */
+  async sendOnlineBookingSuccessMail(params: {
+    to: string;
+    appointmentCode: string;
+    patientName: string;
+    patientSubLabel?: string; // SĐT (với Guest) hoặc Mã BN (với Patient có tài khoản)
+    doctorName: string;
+    slotStartTime: Date;
+    slotEndTime: Date;
+    reasonForVisit?: string | null;
+    isGuest?: boolean;
+  }): Promise<void> {
+    const esc = (s: string) =>
+      s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+    const startTimeStr = params.slotStartTime.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+    });
+    const endTimeStr = params.slotEndTime.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+    });
+    const dateStr = params.slotStartTime.toLocaleDateString('vi-VN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'UTC',
+    });
+
+    const customerDisplay = params.patientSubLabel
+      ? `${esc(params.patientName)} (${esc(params.patientSubLabel)})`
+      : esc(params.patientName);
+
+    const reasonRow = params.reasonForVisit?.trim()
+      ? `
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #bfdbfe; font-size: 13px;">Lý do khám:</td>
+          <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #ffffff; font-weight: 700; font-size: 13px; text-align: right;">${esc(params.reasonForVisit.trim())}</td>
+        </tr>
+      `
+      : '';
+
+    const html = `
+      <div style="font-family: Arial, Helvetica, sans-serif; background-color: #f1f5f9; padding: 24px 12px;">
+        <div style="max-width: 560px; margin: 0 auto; background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 55%, #0b3c8f 100%); background-color: #0b3c8f; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 25px rgba(11, 60, 143, 0.25); color: #ffffff;">
+          
+          <!-- Header -->
+          <div style="background-color: #0b3c8f; padding: 16px 24px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.15);">
+            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #dbeafe;">
+              Phòng Khám Chuyên Khoa Tim Mạch 4AM · Đăng Ký Khám Trực Tuyến
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div style="padding: 28px 24px; text-align: center;">
+            <div style="width: 56px; height: 56px; line-height: 56px; border-radius: 999px; background-color: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); margin: 0 auto 16px auto; font-size: 28px; color: #facc15; font-weight: bold;">
+              ✓
+            </div>
+
+            <h2 style="margin: 0 0 6px 0; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #ffffff;">
+              Đăng ký khám thành công
+            </h2>
+            <p style="margin: 0; font-size: 13px; color: #dbeafe;">
+              Mã số lịch hẹn của bạn là:
+            </p>
+            <div style="margin: 8px 0 20px 0; font-family: 'Courier New', Courier, monospace; font-size: 24px; font-weight: 800; color: #facc15; letter-spacing: 2px;">
+              ${esc(params.appointmentCode)}
+            </div>
+
+            <!-- Info Table Card -->
+            <div style="background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 16px 20px; text-align: left; margin-bottom: 18px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #bfdbfe; font-size: 13px;">
+                    ${params.isGuest ? 'Khách hàng:' : 'Bệnh nhân:'}
+                  </td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #ffffff; font-weight: 700; font-size: 13px; text-align: right;">
+                    ${customerDisplay}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #bfdbfe; font-size: 13px;">
+                    Bác sĩ khám:
+                  </td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #ffffff; font-weight: 700; font-size: 13px; text-align: right;">
+                    ${esc(params.doctorName)}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #bfdbfe; font-size: 13px;">
+                    Ngày khám:
+                  </td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #ffffff; font-weight: 700; font-size: 13px; text-align: right;">
+                    ${esc(dateStr)}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #bfdbfe; font-size: 13px;">
+                    Khung giờ hẹn:
+                  </td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.14); color: #fde047; font-weight: 700; font-size: 13px; text-align: right;">
+                    ${esc(startTimeStr)} - ${esc(endTimeStr)}
+                  </td>
+                </tr>
+                ${reasonRow}
+                <tr>
+                  <td style="padding: 10px 0 2px 0; color: #bfdbfe; font-size: 13px;">
+                    Email nhận thông báo:
+                  </td>
+                  <td style="padding: 10px 0 2px 0; color: #ffffff; font-weight: 700; font-size: 13px; text-align: right;">
+                    ${esc(params.to)}
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Next Steps Box -->
+            <div style="background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 16px 20px; text-align: left;">
+              <div style="font-size: 12px; font-weight: 700; color: #fcd34d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+                📋 Các bước tiếp theo:
+              </div>
+              <div style="font-size: 12.5px; color: #dbeafe; line-height: 1.6;">
+                <div style="margin-bottom: 8px;">
+                  <strong style="color: #ffffff;">1. Chờ tiếp đón xác nhận:</strong> Nhân viên lễ tân sẽ kiểm tra và xác nhận lịch hẹn của bạn.
+                </div>
+                <div style="margin-bottom: 8px;">
+                  <strong style="color: #ffffff;">2. Đến quầy Lễ tân trước 15 phút:</strong> Đọc mã lịch hẹn <strong style="color: #facc15;">${esc(params.appointmentCode)}</strong>, xuất trình CCCD/BHYT để check-in và đo sinh hiệu ban đầu.
+                </div>
+                <div>
+                  <strong style="color: #ffffff;">3. Nhận số thứ tự A:</strong> Nhận phiếu khám ưu tiên để vào phòng khám chuyên khoa Tim mạch.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const text =
+      `ĐĂNG KÝ KHÁM THÀNH CÔNG\n` +
+      `Mã số lịch hẹn: ${params.appointmentCode}\n` +
+      `Bệnh nhân: ${params.patientName}${params.patientSubLabel ? ` (${params.patientSubLabel})` : ''}\n` +
+      `Bác sĩ khám: ${params.doctorName}\n` +
+      `Thời gian hẹn: ${startTimeStr} - ${endTimeStr}, ${dateStr}\n` +
+      `Các bước tiếp theo:\n` +
+      `1. Chờ tiếp đón xác nhận lịch hẹn.\n` +
+      `2. Đến quầy Lễ tân trước 15 phút, đọc mã ${params.appointmentCode} và đối chiếu CCCD.\n` +
+      `3. Nhận số thứ tự A để vào phòng khám chuyên khoa Tim mạch.`;
+
+    await this.send(
+      params.to,
+      `[Phòng khám Tim mạch 4AM] Xác nhận đăng ký lịch khám thành công — Mã ${params.appointmentCode}`,
+      html,
+      text,
+    );
+
+    this.logger.log(`Đã gửi email xác nhận đặt lịch ${params.appointmentCode} tới ${params.to}`);
+  }
 }
