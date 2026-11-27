@@ -3,10 +3,13 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { AppointmentSlot, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../prisma/prisma.service';
+import { MailService } from '../../../platform/mail/mail.service';
 import { generateUniqueCode } from '../../../../common/utils/code-generator.util';
 import {
   AppointmentStatus,
@@ -35,10 +38,13 @@ const APPOINTMENT_CODE_PREFIX = 'LH';
 
 @Injectable()
 export class AppointmentService {
+  private readonly logger = new Logger(AppointmentService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly patientService: PatientService,
     private readonly queueTicketService: QueueTicketService,
+    @Optional() private readonly mailService?: MailService,
   ) { }
 
   private generateAppointmentCode(): Promise<string> {
@@ -70,7 +76,13 @@ export class AppointmentService {
     // 3. AppointmentSlot tồn tại, thuộc đúng doctorId, status = free.
     const slot = await this.prisma.appointmentSlot.findUnique({
       where: { slotId: dto.slotId },
-      include: { schedule: true },
+      include: {
+        schedule: {
+          include: {
+            doctor: { select: { fullName: true, title: true } },
+          },
+        },
+      },
     });
     if (!slot || slot.schedule.doctorId !== dto.doctorId || slot.status !== 'free') {
       throw new BadRequestException('Slot không tồn tại, không thuộc bác sĩ này, hoặc đã hết chỗ');
@@ -81,7 +93,7 @@ export class AppointmentService {
 
     const appointmentCode = await this.generateAppointmentCode();
 
-    return this.prisma.$transaction(async (tx) => {
+    const createdAppointment = await this.prisma.$transaction(async (tx) => {
       const appointment = await tx.appointment.create({
         data: {
           appointmentCode,
@@ -116,6 +128,32 @@ export class AppointmentService {
 
       return appointment;
     });
+
+    const recipientEmail = patient.email?.trim() || currentUser.email?.trim();
+    if (recipientEmail && this.mailService) {
+      const doctorFullName = slot.schedule.doctor
+        ? [slot.schedule.doctor.title, slot.schedule.doctor.fullName].filter(Boolean).join(' ')
+        : 'Bác sĩ chuyên khoa Tim mạch';
+      try {
+        await this.mailService.sendOnlineBookingSuccessMail({
+          to: recipientEmail,
+          appointmentCode: createdAppointment.appointmentCode,
+          patientName: patient.fullName,
+          patientSubLabel: patient.patientCode,
+          doctorName: doctorFullName,
+          slotStartTime: slot.slotStartTime,
+          slotEndTime: slot.slotEndTime ?? slot.slotStartTime,
+          reasonForVisit: dto.reasonForVisit,
+          isGuest: false,
+        });
+      } catch (err) {
+        this.logger.warn(
+          `Không gửi được email xác nhận đặt lịch online ${createdAppointment.appointmentCode}: ${(err as Error).message}`,
+        );
+      }
+    }
+
+    return createdAppointment;
   }
 
   async findById(appointmentId: string) {
