@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 /**
  * Cổng (port) gọi cổng thanh toán chuyển khoản — §4, §3.2b, §3.3. Tách interface riêng để
@@ -99,7 +99,12 @@ export class PayOsPaymentGatewayAdapter implements PaymentGatewayPort {
       return false;
     }
     const expected = this.sign(data ?? {});
-    return expected === signature;
+    const expectedBuf = Buffer.from(expected, 'utf8');
+    const actualBuf = Buffer.from(signature, 'utf8');
+    if (expectedBuf.length !== actualBuf.length) {
+      return false;
+    }
+    return timingSafeEqual(expectedBuf, actualBuf);
   }
 
   async getPaymentLinkInformation(orderCode: number | string): Promise<any> {

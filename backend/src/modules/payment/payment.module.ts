@@ -17,6 +17,7 @@ import { InvoicePaidListener } from './invoice/listeners/invoice-paid.listener';
 import { PaymentController } from './payment/payment.controller';
 import { PaymentWebhookController } from './payment/payment-webhook.controller';
 import { PaymentService } from './payment/payment.service';
+import { PaymentReconciliationCron } from './payment/payment-reconciliation.cron';
 import {
   INVOICE_PDF_GENERATOR_PORT,
   PdfInvoiceGeneratorAdapter,
@@ -55,6 +56,7 @@ import { NotificationDispatcherService } from './notification/notification-dispa
     ExaminationFeeService,
     InvoiceService,
     PaymentService,
+    PaymentReconciliationCron,
     { provide: LAB_TASK_PAYMENT_NOTIFIER_PORT, useClass: LabTaskPaymentNotifierAdapter },
     { provide: INVOICE_PDF_GENERATOR_PORT, useClass: PdfInvoiceGeneratorAdapter },
     { provide: PAYMENT_GATEWAY_PORT, useClass: PayOsPaymentGatewayAdapter },
